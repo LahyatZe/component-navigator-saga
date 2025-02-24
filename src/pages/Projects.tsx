@@ -1,7 +1,16 @@
 
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Github, Globe } from "lucide-react";
+import { Github, Globe, Filter } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface Project {
   id: number;
@@ -43,17 +52,63 @@ const projects: Project[] = [
 ];
 
 const Projects: FC = () => {
+  const [selectedTech, setSelectedTech] = useState<string>('');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [visibleProjects, setVisibleProjects] = useState<Project[]>([]);
+
+  // Get unique technologies from all projects
+  const allTechnologies = Array.from(
+    new Set(projects.flatMap(project => project.technologies))
+  ).sort();
+
+  // Filter projects based on selected technology
+  useEffect(() => {
+    const filtered = selectedTech
+      ? projects.filter(project => project.technologies.includes(selectedTech))
+      : projects;
+    setVisibleProjects(filtered);
+  }, [selectedTech]);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">My Projects</h1>
-        <p className="text-xl text-gray-600">Here are some of my recent works</p>
+        <p className="text-xl text-gray-600 mb-8">Here are some of my recent works</p>
+
+        {/* Filter Section */}
+        <div className="flex flex-wrap justify-center gap-2 mb-8">
+          <Button
+            variant={selectedTech === '' ? "default" : "outline"}
+            onClick={() => setSelectedTech('')}
+            className="flex items-center gap-2"
+          >
+            <Filter size={16} />
+            All
+          </Button>
+          {allTechnologies.map(tech => (
+            <Button
+              key={tech}
+              variant={selectedTech === tech ? "default" : "outline"}
+              onClick={() => setSelectedTech(tech)}
+            >
+              {tech}
+            </Button>
+          ))}
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((project) => (
-          <Card key={project.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-            <div className="aspect-video overflow-hidden">
+        {visibleProjects.map((project, index) => (
+          <Card 
+            key={project.id} 
+            className="overflow-hidden hover:shadow-lg transition-all duration-300 opacity-0 animate-fade-in"
+            style={{ 
+              animationDelay: `${index * 150}ms`,
+              animationFillMode: 'forwards'
+            }}
+            onClick={() => setSelectedProject(project)}
+          >
+            <div className="aspect-video overflow-hidden cursor-pointer">
               <img 
                 src={project.image} 
                 alt={project.title}
@@ -67,12 +122,12 @@ const Projects: FC = () => {
             <CardContent>
               <div className="flex flex-wrap gap-2 mb-4">
                 {project.technologies.map((tech) => (
-                  <span 
+                  <Badge 
                     key={tech} 
-                    className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm"
+                    variant="secondary"
                   >
                     {tech}
-                  </span>
+                  </Badge>
                 ))}
               </div>
               <div className="flex gap-4">
@@ -82,6 +137,7 @@ const Projects: FC = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Github size={20} />
                     <span>Code</span>
@@ -93,6 +149,7 @@ const Projects: FC = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Globe size={20} />
                     <span>Live Demo</span>
@@ -103,6 +160,58 @@ const Projects: FC = () => {
           </Card>
         ))}
       </div>
+
+      {/* Project Detail Dialog */}
+      <Dialog open={!!selectedProject} onOpenChange={() => setSelectedProject(null)}>
+        {selectedProject && (
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>{selectedProject.title}</DialogTitle>
+              <DialogDescription>
+                {selectedProject.description}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              <img 
+                src={selectedProject.image} 
+                alt={selectedProject.title}
+                className="w-full h-64 object-cover rounded-lg mb-4"
+              />
+              <div className="flex flex-wrap gap-2 mb-4">
+                {selectedProject.technologies.map((tech) => (
+                  <Badge key={tech} variant="secondary">
+                    {tech}
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-4">
+                {selectedProject.githubUrl && (
+                  <a
+                    href={selectedProject.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                  >
+                    <Github size={20} />
+                    <span>View Code</span>
+                  </a>
+                )}
+                {selectedProject.liveUrl && (
+                  <a
+                    href={selectedProject.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                  >
+                    <Globe size={20} />
+                    <span>Visit Site</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 };
