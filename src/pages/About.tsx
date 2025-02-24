@@ -1,5 +1,7 @@
 
-const About = () => {
+import { FC } from 'react';
+
+const About: FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
