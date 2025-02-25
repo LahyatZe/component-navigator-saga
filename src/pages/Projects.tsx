@@ -1,3 +1,4 @@
+
 import { FC, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Github, Globe, Filter } from "lucide-react";
@@ -12,6 +13,10 @@ interface Project {
   description: string;
   image: string;
   technologies: string[];
+  company: string;
+  period: string;
+  keyAchievements?: string[];
+  details?: string;
   githubUrl?: string;
   liveUrl?: string;
 }
@@ -19,29 +24,56 @@ interface Project {
 const projects: Project[] = [
   {
     id: 1,
-    title: "E-Commerce Platform",
-    description: "A full-stack e-commerce platform built with React and Node.js",
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-    technologies: ["React", "Node.js", "MongoDB", "Express"],
-    githubUrl: "https://github.com",
-    liveUrl: "https://example.com"
+    title: "ICY - Solution de gestion d'intervention",
+    description: "Développement d'une solution de gestion d'intervention avec synchronisation en temps réel avec Sage 100, permettant la gestion des plannings, la géolocalisation et la saisie de comptes rendus.",
+    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    technologies: ["Angular", "TypeScript", "PWA", "Sage 100"],
+    company: "Parthena Consultant",
+    period: "Février 2024 - Août 2024",
+    keyAchievements: [
+      "Développement d'un éditeur WYSIWYG avancé",
+      "Personnalisation des onglets dans la PWA",
+      "Sauvegarde automatique des brouillons",
+      "Suppression de masse des éléments",
+      "Communication personnalisée après appel client"
+    ],
+    details: "Ce projet impliquait la conception et le développement d'une plateforme PWA destinée aux techniciens et aux gestionnaires. L'outil WYSIWYG permettait de structurer dynamiquement les entités et leurs données associées, offrant une flexibilité accrue aux utilisateurs. L'intégration de la sauvegarde automatique et des fonctionnalités avancées d'édition a permis d'améliorer l'expérience utilisateur et d'optimiser la gestion des interventions."
   },
   {
     id: 2,
-    title: "Portfolio Website",
-    description: "Personal portfolio website showcasing my projects and skills",
+    title: "Sam Tool Supervisor",
+    description: "Participation au développement et aux tests d'un logiciel de supervision permettant aux clients de suivre l'activité de contenants automatisés intelligents.",
     image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
-    technologies: ["React", "TypeScript", "Tailwind CSS"],
-    githubUrl: "https://github.com",
-    liveUrl: "https://example.com"
+    technologies: ["SQL", "GitLab", "PhpMetrics", "Phpstan"],
+    company: "SAM OUTILLAGE",
+    period: "Juin 2023 - Septembre 2023",
+    keyAchievements: [
+      "Élaboration et exécution des plans de test",
+      "Maintenance et correction des bugs",
+      "Analyse et rédaction de rapports d'infrastructure",
+      "Support technique aux équipes internes et externes"
+    ],
+    details: "La phase de test a été essentielle pour assurer la fiabilité du logiciel avant chaque montée de version. L'analyse d'infrastructure avec PhpMetrics et Phpstan a permis d'optimiser le code et d'améliorer la stabilité de l'application. Mon rôle impliquait aussi un support technique direct aux développeurs et aux équipes clients via TeamViewer."
   },
   {
     id: 3,
-    title: "Task Management App",
-    description: "A collaborative task management application",
-    image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6",
-    technologies: ["React", "Firebase", "Material-UI"],
-    githubUrl: "https://github.com",
+    title: "Crédit Agricole - Applications Web",
+    description: "Travail sur le développement et la maintenance d'applications web pour la filiale Technologies & Services du Crédit Agricole.",
+    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
+    technologies: ["GitLab", "Web Development"],
+    company: "Capgemini",
+    period: "Janvier 2022 - Janvier 2023",
+    details: "En tant que développeur au sein de Capgemini, j'ai travaillé sur plusieurs projets d'applications bancaires. Mon rôle consistait à développer de nouvelles fonctionnalités tout en respectant les exigences de sécurité et de performance propres au secteur bancaire."
+  },
+  {
+    id: 4,
+    title: "MyPetsLife",
+    description: "Développement de nouvelles fonctionnalités pour une plateforme de gestion des soins des animaux.",
+    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
+    technologies: ["Express.js", "React.js"],
+    company: "MyPetsLife",
+    period: "Septembre 2020 - Décembre 2020",
+    details: "Ce stage m'a permis de participer activement au cycle de conception et développement de nouvelles fonctionnalités, d'explorer des approches innovantes et de travailler en autonomie sur des solutions adaptées aux besoins des utilisateurs."
   }
 ];
 
