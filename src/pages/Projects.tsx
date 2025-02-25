@@ -1,16 +1,10 @@
-
 import { FC, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Github, Globe, Filter } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import './Project.css';
 
 interface Project {
   id: number;
@@ -52,9 +46,9 @@ const projects: Project[] = [
 ];
 
 const Projects: FC = () => {
-  const [selectedTech, setSelectedTech] = useState<string>('');
+  const [selectedTech, setSelectedTech] = useState<string>(''); // Selected technology for filter
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [visibleProjects, setVisibleProjects] = useState<Project[]>([]);
+  const [visibleProjects, setVisibleProjects] = useState<Project[]>(projects); // Initially show all projects
 
   // Get unique technologies from all projects
   const allTechnologies = Array.from(
@@ -63,9 +57,11 @@ const Projects: FC = () => {
 
   // Filter projects based on selected technology
   useEffect(() => {
+    console.log('Filtering projects with tech:', selectedTech); // Debug logging
     const filtered = selectedTech
       ? projects.filter(project => project.technologies.includes(selectedTech))
       : projects;
+    console.log('Filtered projects:', filtered); // Debug logging
     setVisibleProjects(filtered);
   }, [selectedTech]);
 
@@ -96,12 +92,13 @@ const Projects: FC = () => {
           ))}
         </div>
       </div>
-      
+
+      {/* Display Projects */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {visibleProjects.map((project, index) => (
           <Card 
             key={project.id} 
-            className="overflow-hidden hover:shadow-lg transition-all duration-300 opacity-0 animate-fade-in"
+            className="overflow-hidden hover:opacity-100 hover:shadow-lg transition-all duration-300 animate-fade-in"
             style={{ 
               animationDelay: `${index * 150}ms`,
               animationFillMode: 'forwards'

@@ -26,6 +26,18 @@
     transform: rotate(360deg);
   }
 }
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+  
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in-out;
+}
 
 @media (prefers-reduced-motion: no-preference) {
   a:nth-of-type(2) .logo {
