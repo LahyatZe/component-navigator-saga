@@ -1,5 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { ArrowDown, Trophy, Award, Star } from 'lucide-react';
+import { useUser, SignedIn, SignedOut } from '@clerk/clerk-react';
 import About from './About';
 import Projects from './Projects';
 import Contact from './Contact';
@@ -48,6 +49,7 @@ const questions = [
 ];
 
 const Home: FC = () => {
+  const { user } = useUser();
   const [scrollY, setScrollY] = useState(0);
   const [currentLevel, setCurrentLevel] = useState(1);
   const [hasViewedCV, setHasViewedCV] = useState(false);
@@ -121,6 +123,10 @@ const Home: FC = () => {
     toast.success("Félicitations ! Vous avez débloqué le niveau 2 !");
     setCurrentLevel(2);
     setShowQuiz(true);
+
+    if (user) {
+      toast.success(`Progression sauvegardée pour ${user.firstName}`);
+    }
   };
 
   const handleQuizAnswer = (correct: boolean) => {
@@ -149,7 +155,6 @@ const Home: FC = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
       <div 
         className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/10 to-background relative overflow-hidden"
         style={{ backgroundPosition: `50% ${scrollY * 0.5}px` }}
@@ -159,15 +164,20 @@ const Home: FC = () => {
             className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent transform transition-all duration-1000"
             style={{ transform: `translateY(${scrollY * 0.2}px)`, opacity: 1 - (scrollY * 0.001) }}
           >
-            Bienvenue sur Mon Portfolio
+            {user ? `Bienvenue ${user.firstName}` : 'Bienvenue sur Mon Portfolio'}
           </h1>
-          <p 
-            className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto transform transition-all duration-1000"
-            style={{ transform: `translateY(${scrollY * 0.3}px)`, opacity: 1 - (scrollY * 0.002) }}
-          >
-            Développeur passionné spécialisé dans le développement web et les solutions d'entreprise
-          </p>
           
+          <SignedIn>
+            <p className="text-xl text-muted-foreground mb-8">
+              Continuez votre exploration de mon parcours
+            </p>
+          </SignedIn>
+          <SignedOut>
+            <p className="text-xl text-muted-foreground mb-8">
+              Connectez-vous pour sauvegarder votre progression
+            </p>
+          </SignedOut>
+
           <div className="flex justify-center gap-4 mb-8">
             <Badge variant="secondary" className="flex items-center gap-2">
               <Trophy className="w-4 h-4" />
@@ -177,6 +187,12 @@ const Home: FC = () => {
               <Star className="w-4 h-4" />
               {unlockedYears.length} / {timelineItems.length} Étapes
             </Badge>
+            {user && (
+              <Badge variant="default" className="flex items-center gap-2">
+                <Award className="w-4 h-4" />
+                Utilisateur Premium
+              </Badge>
+            )}
           </div>
 
           <Button onClick={handleCVView} className="mb-8">
@@ -193,7 +209,6 @@ const Home: FC = () => {
         <ArrowDown className="w-6 h-6 text-primary" />
       </button>
 
-      {/* Timeline Section */}
       <section id="timeline" className="py-20 bg-gradient-to-b from-background to-primary/5">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -231,22 +246,18 @@ const Home: FC = () => {
         </div>
       </section>
 
-      {/* About Section */}
       <section id="about" className="py-20">
         <About />
       </section>
 
-      {/* Projects Section */}
       <section id="projects" className="py-20">
         <Projects />
       </section>
 
-      {/* Contact Section */}
       <section id="contact" className="py-20">
         <Contact />
       </section>
 
-      {/* Quiz Modal */}
       {showQuiz && (
         <QuizModal
           isOpen={showQuiz}
