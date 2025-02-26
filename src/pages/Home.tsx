@@ -1,15 +1,59 @@
-
 import { FC, useEffect, useState } from 'react';
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, Trophy, Award, Star } from 'lucide-react';
 import About from './About';
 import Projects from './Projects';
 import Contact from './Contact';
 import { toast } from 'sonner';
+import QuizModal from '@/components/QuizModal';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
+const questions = [
+  {
+    id: 1,
+    level: 1,
+    question: "Quel a été mon premier diplôme ?",
+    options: [
+      "Bac S",
+      "Bac ES",
+      "Bac Pro",
+      "Bac L"
+    ],
+    correctAnswer: 1
+  },
+  {
+    id: 2,
+    level: 2,
+    question: "Dans quelle entreprise ai-je effectué mon alternance ?",
+    options: [
+      "Sam Outillage",
+      "My Pets Life",
+      "Capgemini Technologies & Services",
+      "IGSI Calliope"
+    ],
+    correctAnswer: 2
+  },
+  {
+    id: 3,
+    level: 3,
+    question: "Quel est mon dernier titre RNCP obtenu ?",
+    options: [
+      "Niveau 5 - Développeur Web",
+      "Niveau 6 - Concepteur Développeur",
+      "Niveau 7 - Expert IT",
+      "Niveau 4 - Technicien"
+    ],
+    correctAnswer: 1
+  }
+];
 
 const Home: FC = () => {
   const [scrollY, setScrollY] = useState(0);
   const [currentLevel, setCurrentLevel] = useState(1);
   const [hasViewedCV, setHasViewedCV] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [currentQuestionId, setCurrentQuestionId] = useState(1);
+  const [unlockedYears, setUnlockedYears] = useState<string[]>(["2018"]);
 
   const timelineItems = [
     {
@@ -76,6 +120,31 @@ const Home: FC = () => {
     setHasViewedCV(true);
     toast.success("Félicitations ! Vous avez débloqué le niveau 2 !");
     setCurrentLevel(2);
+    setShowQuiz(true);
+  };
+
+  const handleQuizAnswer = (correct: boolean) => {
+    if (correct) {
+      const nextLevel = currentLevel + 1;
+      setCurrentLevel(nextLevel);
+      setCurrentQuestionId(nextLevel);
+      
+      const yearsToUnlock = timelineItems
+        .filter(item => parseInt(item.year) <= 2018 + (nextLevel * 2))
+        .map(item => item.year);
+      setUnlockedYears(yearsToUnlock);
+      
+      toast.success(`Félicitations ! Vous avez débloqué le niveau ${nextLevel} !`);
+      
+      if (nextLevel > 3) {
+        toast.success("🏆 Vous avez débloqué tout mon parcours !", {
+          duration: 5000,
+        });
+      }
+    } else {
+      toast.error("Ce n'est pas la bonne réponse, essayez encore !");
+    }
+    setShowQuiz(false);
   };
 
   return (
@@ -98,6 +167,21 @@ const Home: FC = () => {
           >
             Développeur passionné spécialisé dans le développement web et les solutions d'entreprise
           </p>
+          
+          <div className="flex justify-center gap-4 mb-8">
+            <Badge variant="secondary" className="flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              Niveau {currentLevel}
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              {unlockedYears.length} / {timelineItems.length} Étapes
+            </Badge>
+          </div>
+
+          <Button onClick={handleCVView} className="mb-8">
+            Consulter mon CV pour débloquer la suite
+          </Button>
         </div>
       </div>
       
@@ -121,7 +205,13 @@ const Home: FC = () => {
             {timelineItems.map((item, index) => (
               <div 
                 key={index}
-                className={`flex items-center mb-8 opacity-1 ${scrollY > 500 + index * 100 ? 'animate-fade-in' : ''}`}
+                className={`flex items-center mb-8 transition-all duration-500 ${
+                  unlockedYears.includes(item.year) 
+                    ? 'opacity-100' 
+                    : 'opacity-30 filter blur-sm pointer-events-none'
+                } ${
+                  scrollY > 500 + index * 100 ? 'animate-fade-in' : ''
+                }`}
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 <div className={`w-1/2 pr-8 text-right ${index % 2 === 1 ? 'order-2' : ''}`}>
@@ -155,6 +245,17 @@ const Home: FC = () => {
       <section id="contact" className="py-20">
         <Contact />
       </section>
+
+      {/* Quiz Modal */}
+      {showQuiz && (
+        <QuizModal
+          isOpen={showQuiz}
+          onClose={() => setShowQuiz(false)}
+          onAnswer={handleQuizAnswer}
+          currentQuestion={questions.find(q => q.id === currentQuestionId) || questions[0]}
+          level={currentLevel}
+        />
+      )}
     </div>
   );
 };
