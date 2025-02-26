@@ -3,6 +3,7 @@ import { ArrowDown } from 'lucide-react';
 import About from './About';
 import Projects from './Projects';
 import Contact from './Contact';
+import MemoryGame from '@/components/MemoryGame';
 
 const Home: FC = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -23,7 +24,6 @@ const Home: FC = () => {
     }
   };
 
-  // Données du parcours (triées par année ascendante)
   const timelineItems = [
     {
       year: "2018",
@@ -99,6 +99,16 @@ const Home: FC = () => {
       >
         <ArrowDown className="w-6 h-6 text-primary" />
       </button>
+
+      {/* Fun Interactive Section */}
+      <section className="py-20 bg-gradient-to-b from-background to-primary/5">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            Un Peu de Fun !
+          </h2>
+          <MemoryGame />
+        </div>
+      </section>
 
       {/* Timeline Section */}
       <section id="timeline" className="py-20 bg-gradient-to-b from-background to-primary/5">
