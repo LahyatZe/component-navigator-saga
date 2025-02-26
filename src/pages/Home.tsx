@@ -9,6 +9,48 @@ import QuizModal from '@/components/QuizModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
+interface Section {
+  id: string;
+  title: string;
+  level: number;
+  component: React.ReactNode;
+}
+
+const sections: Section[] = [
+  {
+    id: 'hero',
+    title: 'Accueil',
+    level: 0,
+    component: null
+  },
+  {
+    id: 'timeline',
+    title: 'Parcours',
+    level: 1,
+    component: null
+  },
+  {
+    id: 'about',
+    title: 'À propos',
+    level: 2,
+    component: <About />
+  },
+  {
+    id: 'projects',
+    title: 'Projets',
+    level: 3,
+    component: <Projects />
+  },
+  {
+    id: 'contact',
+    title: 'Contact',
+    level: 4,
+    component: <Contact />
+  }
+];
+
+const ADMIN_EMAIL = "admin@example.com";
+
 const questions = [
   {
     id: 1,
@@ -51,106 +93,49 @@ const questions = [
 const Home: FC = () => {
   const { user } = useUser();
   const [scrollY, setScrollY] = useState(0);
-  const [currentLevel, setCurrentLevel] = useState(1);
-  const [hasViewedCV, setHasViewedCV] = useState(false);
+  const [currentLevel, setCurrentLevel] = useState(0);
   const [showQuiz, setShowQuiz] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(1);
-  const [unlockedYears, setUnlockedYears] = useState<string[]>(["2018"]);
+  const [unlockedYears, setUnlockedYears] = useState<string[]>([]);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
-  const timelineItems = [
-    {
-      year: "2018",
-      title: "Baccalauréat Économie et Sociale",
-      company: "Lycée Honoré d'Urfé",
-      description: "Études en économie et sciences sociales.",
-    },
-    {
-      year: "2020",
-      title: "Titre RNCP 5 - Développeur Web & Mobile",
-      company: "Human Booster",
-      description: "Formation en développement web full-stack.",
-    },
-    {
-      year: "2020",
-      title: "Stage Développeur Web Full-Stack",
-      company: "My Pets Life",
-      description: "Développement d'une plateforme web de gestion d'animaux.",
-    },
-    {
-      year: "2022",
-      title: "Alternant Consultant Métier",
-      company: "Capgemini Technologies & Services",
-      description: "Développement d'un produit d'entrée en relation pour Crédit Agricole.",
-    },
-    {
-      year: "2023",
-      title: "Titre RNCP 6 - Concepteur Développeur d'Application",
-      company: "EPSI Montpellier",
-      description: "Formation en conception et développement d'applications.",
-    },
-    {
-      year: "2023",
-      title: "Développeur Web Full-Stack",
-      company: "Sam Outillage",
-      description: "Développement et amélioration de la solution Sam Tool Supervisor.",
-    },
-    {
-      year: "2024",
-      title: "Développeur Full-Stack",
-      company: "IGSI Calliope by Parthena Consultant",
-      description: "Développement d'une PWA de gestion d'intervention intégrée à Sage 100.",
-    }
-  ];
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL;
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-
+    const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleCVView = () => {
-    setHasViewedCV(true);
-    toast.success("Félicitations ! Vous avez débloqué le niveau 2 !");
-    setCurrentLevel(2);
-    setShowQuiz(true);
-
-    if (user) {
-      toast.success(`Progression sauvegardée pour ${user.firstName}`);
-    }
-  };
-
   const handleQuizAnswer = (correct: boolean) => {
     if (correct) {
       const nextLevel = currentLevel + 1;
-      setCurrentLevel(nextLevel);
-      setCurrentQuestionId(nextLevel);
-      
-      const yearsToUnlock = timelineItems
-        .filter(item => parseInt(item.year) <= 2018 + (nextLevel * 2))
-        .map(item => item.year);
-      setUnlockedYears(yearsToUnlock);
-      
-      toast.success(`Félicitations ! Vous avez débloqué le niveau ${nextLevel} !`);
-      
-      if (nextLevel > 3) {
-        toast.success("🏆 Vous avez débloqué tout mon parcours !", {
-          duration: 5000,
-        });
+      if (nextLevel <= 4) {
+        setCurrentLevel(nextLevel);
+        setCurrentQuestionId(nextLevel);
+        
+        if (nextLevel === 1) {
+          setUnlockedYears(["2018", "2019"]);
+        } else if (nextLevel === 2) {
+          setUnlockedYears(["2018", "2019", "2020", "2021"]);
+        } else if (nextLevel === 3) {
+          setUnlockedYears(["2018", "2019", "2020", "2021", "2022"]);
+        } else {
+          setUnlockedYears(["2018", "2019", "2020", "2021", "2022", "2023", "2024"]);
+        }
+        
+        toast.success(`Niveau ${nextLevel} débloqué !`);
       }
     } else {
       toast.error("Ce n'est pas la bonne réponse, essayez encore !");
     }
     setShowQuiz(false);
+  };
+
+  const startQuiz = () => {
+    if (currentLevel < 4) {
+      setShowQuiz(true);
+    }
   };
 
   return (
@@ -161,20 +146,19 @@ const Home: FC = () => {
       >
         <div className="text-center px-4 relative z-10">
           <h1 
-            className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent transform transition-all duration-1000"
-            style={{ transform: `translateY(${scrollY * 0.2}px)`, opacity: 1 - (scrollY * 0.001) }}
+            className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"
           >
             {user ? `Bienvenue ${user.firstName}` : 'Bienvenue sur Mon Portfolio'}
           </h1>
           
           <SignedIn>
             <p className="text-xl text-muted-foreground mb-8">
-              Continuez votre exploration de mon parcours
+              Niveau actuel : {currentLevel} / 4
             </p>
           </SignedIn>
           <SignedOut>
             <p className="text-xl text-muted-foreground mb-8">
-              Connectez-vous pour sauvegarder votre progression
+              Connectez-vous pour progresser
             </p>
           </SignedOut>
 
@@ -185,78 +169,41 @@ const Home: FC = () => {
             </Badge>
             <Badge variant="outline" className="flex items-center gap-2">
               <Star className="w-4 h-4" />
-              {unlockedYears.length} / {timelineItems.length} Étapes
+              {unlockedYears.length} / 7 Années
             </Badge>
-            {user && (
-              <Badge variant="default" className="flex items-center gap-2">
+            {isAdmin && (
+              <Badge 
+                variant="default" 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => setShowAdminPanel(true)}
+              >
                 <Award className="w-4 h-4" />
-                Utilisateur Premium
+                Administration
               </Badge>
             )}
           </div>
 
-          <Button onClick={handleCVView} className="mb-8">
-            Consulter mon CV pour débloquer la suite
-          </Button>
+          {user && currentLevel < 4 && (
+            <Button onClick={startQuiz} className="mb-8">
+              Passer au niveau suivant
+            </Button>
+          )}
         </div>
       </div>
-      
-      <button
-        onClick={() => scrollToSection('timeline')}
-        className="animate-bounce absolute bottom-8 left-1/2 transform -translate-x-1/2 p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-        aria-label="Scroll to content"
-      >
-        <ArrowDown className="w-6 h-6 text-primary" />
-      </button>
 
-      <section id="timeline" className="py-20 bg-gradient-to-b from-background to-primary/5">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Mon Parcours
-          </h2>
-          <div className="relative">
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-primary/20" />
-            
-            {timelineItems.map((item, index) => (
-              <div 
-                key={index}
-                className={`flex items-center mb-8 transition-all duration-500 ${
-                  unlockedYears.includes(item.year) 
-                    ? 'opacity-100' 
-                    : 'opacity-30 filter blur-sm pointer-events-none'
-                } ${
-                  scrollY > 500 + index * 100 ? 'animate-fade-in' : ''
-                }`}
-                style={{ animationDelay: `${index * 0.2}s` }}
-              >
-                <div className={`w-1/2 pr-8 text-right ${index % 2 === 1 ? 'order-2' : ''}`}>
-                  <h3 className="font-bold text-xl mb-2">{item.title}</h3>
-                  <p className="text-primary">{item.company}</p>
-                  <p className="text-muted-foreground">{item.description}</p>
-                </div>
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-primary rounded-full" />
-                <div className={`w-1/2 pl-8 ${index % 2 === 1 ? 'order-1 text-right' : ''}`}>
-                  <span className={`text-2xl font-bold text-primary ${index % 2 === 0 ? 'pr-8' : 'pr-8'}`}>
-                    {item.year}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="about" className="py-20">
-        <About />
-      </section>
-
-      <section id="projects" className="py-20">
-        <Projects />
-      </section>
-
-      <section id="contact" className="py-20">
-        <Contact />
-      </section>
+      {sections.map((section, index) => (
+        currentLevel >= section.level && (
+          <section 
+            key={section.id} 
+            id={section.id} 
+            className={`py-20 transition-all duration-500 ${
+              currentLevel < section.level ? 'opacity-30 filter blur-sm pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            {section.component}
+          </section>
+        )
+      ))}
 
       {showQuiz && (
         <QuizModal
@@ -264,7 +211,14 @@ const Home: FC = () => {
           onClose={() => setShowQuiz(false)}
           onAnswer={handleQuizAnswer}
           currentQuestion={questions.find(q => q.id === currentQuestionId) || questions[0]}
-          level={currentLevel}
+          level={currentLevel + 1}
+        />
+      )}
+
+      {showAdminPanel && (
+        <AdminPanel
+          isOpen={showAdminPanel}
+          onClose={() => setShowAdminPanel(false)}
         />
       )}
     </div>
