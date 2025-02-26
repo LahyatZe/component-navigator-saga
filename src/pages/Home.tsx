@@ -1,12 +1,60 @@
+
 import { FC, useEffect, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
 import About from './About';
 import Projects from './Projects';
 import Contact from './Contact';
-import MemoryGame from '@/components/MemoryGame';
+import { toast } from 'sonner';
 
 const Home: FC = () => {
   const [scrollY, setScrollY] = useState(0);
+  const [currentLevel, setCurrentLevel] = useState(1);
+  const [hasViewedCV, setHasViewedCV] = useState(false);
+
+  const timelineItems = [
+    {
+      year: "2018",
+      title: "Baccalauréat Économie et Sociale",
+      company: "Lycée Honoré d'Urfé",
+      description: "Études en économie et sciences sociales.",
+    },
+    {
+      year: "2020",
+      title: "Titre RNCP 5 - Développeur Web & Mobile",
+      company: "Human Booster",
+      description: "Formation en développement web full-stack.",
+    },
+    {
+      year: "2020",
+      title: "Stage Développeur Web Full-Stack",
+      company: "My Pets Life",
+      description: "Développement d'une plateforme web de gestion d'animaux.",
+    },
+    {
+      year: "2022",
+      title: "Alternant Consultant Métier",
+      company: "Capgemini Technologies & Services",
+      description: "Développement d'un produit d'entrée en relation pour Crédit Agricole.",
+    },
+    {
+      year: "2023",
+      title: "Titre RNCP 6 - Concepteur Développeur d'Application",
+      company: "EPSI Montpellier",
+      description: "Formation en conception et développement d'applications.",
+    },
+    {
+      year: "2023",
+      title: "Développeur Web Full-Stack",
+      company: "Sam Outillage",
+      description: "Développement et amélioration de la solution Sam Tool Supervisor.",
+    },
+    {
+      year: "2024",
+      title: "Développeur Full-Stack",
+      company: "IGSI Calliope by Parthena Consultant",
+      description: "Développement d'une PWA de gestion d'intervention intégrée à Sage 100.",
+    }
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,50 +72,11 @@ const Home: FC = () => {
     }
   };
 
-  const timelineItems = [
-    {
-      year: "2018",
-      title: "Baccalauréat Économie et Sociale",
-      company: "Lycée Honoré d’Urfé",
-      description: "Études en économie et sciences sociales.",
-    },
-    {
-      year: "2020",
-      title: "Titre RNCP 5 - Développeur Web & Mobile",
-      company: "Human Booster",
-      description: "Formation en développement web full-stack.",
-    },
-    {
-      year: "2020",
-      title: "Stage Développeur Web Full-Stack",
-      company: "My Pets Life",
-      description: "Développement d'une plateforme web de gestion d’animaux.",
-    },
-    {
-      year: "2022",
-      title: "Alternant Consultant Métier",
-      company: "Capgemini Technologies & Services",
-      description: "Développement d’un produit d'entrée en relation pour Crédit Agricole.",
-    },
-    {
-      year: "2023",
-      title: "Titre RNCP 6 - Concepteur Développeur d'Application",
-      company: "EPSI Montpellier",
-      description: "Formation en conception et développement d’applications.",
-    },
-    {
-      year: "2023",
-      title: "Développeur Web Full-Stack",
-      company: "Sam Outillage",
-      description: "Développement et amélioration de la solution Sam Tool Supervisor.",
-    },
-    {
-      year: "2024",
-      title: "Développeur Full-Stack",
-      company: "IGSI Calliope by Parthena Consultant",
-      description: "Développement d'une PWA de gestion d'intervention intégrée à Sage 100.",
-    }
-  ];
+  const handleCVView = () => {
+    setHasViewedCV(true);
+    toast.success("Félicitations ! Vous avez débloqué le niveau 2 !");
+    setCurrentLevel(2);
+  };
 
   return (
     <div className="min-h-screen">
@@ -99,16 +108,6 @@ const Home: FC = () => {
       >
         <ArrowDown className="w-6 h-6 text-primary" />
       </button>
-
-      {/* Fun Interactive Section */}
-      <section className="py-20 bg-gradient-to-b from-background to-primary/5">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Un Peu de Fun !
-          </h2>
-          <MemoryGame />
-        </div>
-      </section>
 
       {/* Timeline Section */}
       <section id="timeline" className="py-20 bg-gradient-to-b from-background to-primary/5">
