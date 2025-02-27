@@ -1,3 +1,4 @@
+
 import { FC, useEffect, useState } from 'react';
 import { ArrowDown, Trophy, Award, Star } from 'lucide-react';
 import { useUser, SignedIn, SignedOut } from '@clerk/clerk-react';
@@ -6,6 +7,7 @@ import Projects from './Projects';
 import Contact from './Contact';
 import { toast } from 'sonner';
 import QuizModal from '@/components/QuizModal';
+import AdminPanel from '@/components/AdminPanel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 

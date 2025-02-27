@@ -1,8 +1,53 @@
-import { FC } from "react";
-import { useTheme } from "next-themes"; 
+
+import { FC, useEffect } from "react";
+import { useTheme } from "next-themes";
+import { 
+  SignedIn, 
+  SignedOut, 
+  SignInButton, 
+  SignUpButton, 
+  UserButton,
+  useUser
+} from "@clerk/clerk-react";
+import { Button } from "@/components/ui/button";
+import { Sun, Moon, User } from "lucide-react";
 
 const Navbar: FC = () => {
   const { theme, setTheme } = useTheme();
+  const { user, isSignedIn } = useUser();
+
+  // Collecte de statistiques
+  useEffect(() => {
+    if (isSignedIn && user) {
+      // Enregistrement de la visite
+      console.log("Visite enregistrée:", {
+        userId: user.id,
+        timestamp: new Date().toISOString(),
+        page: window.location.pathname
+      });
+      
+      // Dans un cas réel, ces données seraient envoyées à un service d'analyse
+    }
+  }, [isSignedIn, user]);
+
+  // Suivi des interactions utilisateur
+  useEffect(() => {
+    const trackInteraction = (e: MouseEvent) => {
+      if (isSignedIn && user) {
+        // Enregistrement de l'interaction
+        console.log("Interaction enregistrée:", {
+          userId: user.id,
+          timestamp: new Date().toISOString(),
+          type: e.type,
+          target: (e.target as HTMLElement).tagName,
+          page: window.location.pathname
+        });
+      }
+    };
+
+    window.addEventListener("click", trackInteraction);
+    return () => window.removeEventListener("click", trackInteraction);
+  }, [isSignedIn, user]);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -17,22 +62,22 @@ const Navbar: FC = () => {
         <div className="flex justify-between items-center py-4">
           <div className="flex space-x-8">
             <button 
-              onClick={() => scrollToSection("home")}
+              onClick={() => scrollToSection("hero")}
               className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
             >
-              Home
+              Accueil
             </button>
             <button 
               onClick={() => scrollToSection("about")}
               className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
             >
-              About
+              À propos
             </button>
             <button 
               onClick={() => scrollToSection("projects")}
               className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
             >
-              Projects
+              Projets
             </button>
             <button 
               onClick={() => scrollToSection("contact")}
@@ -42,22 +87,41 @@ const Navbar: FC = () => {
             </button>
           </div>
 
-          {/* Theme Toggle Button */}
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="text-yellow-500">
-                <path d="M12 4v2M12 18v2M18 12h2M4 12H2M16.243 7.757l-1.414 1.414M7.757 16.243l-1.414 1.414M16.243 16.243l-1.414-1.414M7.757 7.757l-1.414-1.414" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="text-yellow-500">
-                <path d="M12 4v2M12 18v2M18 12h2M4 12H2M16.243 7.757l-1.414 1.414M7.757 16.243l-1.414 1.414M16.243 16.243l-1.414-1.414M7.757 7.757l-1.414-1.414" />
-              </svg>
-            )}
-          </button>
+          <div className="flex items-center space-x-4">
+            <SignedIn>
+              <UserButton 
+                afterSignOutUrl="/"
+                userProfileMode="navigation"
+                userProfileUrl="/"
+              />
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <User size={16} />
+                  Se connecter
+                </Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button size="sm" className="flex items-center gap-2">
+                  S'inscrire
+                </Button>
+              </SignUpButton>
+            </SignedOut>
+
+            {/* Theme Toggle Button */}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5 text-yellow-500" />
+              ) : (
+                <Moon className="h-5 w-5 text-blue-700" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </nav>
