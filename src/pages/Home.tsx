@@ -233,41 +233,60 @@ const Home: FC = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(1);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [achievements, setAchievements] = useState([
+  const [achievements, setAchievements] = useState<Achievement[]>([
     {
       id: 'profile_created',
       title: 'Premier Pas',
       description: 'Création de votre profil et connexion réussie',
-      icon: <TrophyIcon className="w-5 h-5 text-yellow-500" />,
-      unlocked: false
+      icon: <Trophy className="w-5 h-5 text-yellow-500" />,
+      unlocked: false,
+      rarity: 'common',
+      category: 'progression'
     },
     {
       id: 'level_1',
       title: 'Apprenti',
       description: 'Vous avez débloqué le niveau 1',
-      icon: <StarIcon className="w-5 h-5 text-blue-500" />,
-      unlocked: false
+      icon: <Star className="w-5 h-5 text-blue-500" />,
+      unlocked: false,
+      rarity: 'common',
+      category: 'progression'
     },
     {
       id: 'level_2',
       title: 'Développeur',
       description: 'Vous avez débloqué le niveau 2',
       icon: <Code className="w-5 h-5 text-green-500" />,
-      unlocked: false
+      unlocked: false,
+      rarity: 'uncommon',
+      category: 'progression'
     },
     {
       id: 'level_3',
       title: 'Expert',
       description: 'Vous avez débloqué le niveau 3',
-      icon: <AwardIcon className="w-5 h-5 text-purple-500" />,
-      unlocked: false
+      icon: <Award className="w-5 h-5 text-purple-500" />,
+      unlocked: false,
+      rarity: 'rare',
+      category: 'progression'
+    },
+    {
+      id: 'level_4',
+      title: 'Maître',
+      description: 'Vous avez débloqué le niveau 4 (niveau maximum)',
+      icon: <Trophy className="w-5 h-5 text-amber-500" />,
+      unlocked: false,
+      rarity: 'epic',
+      category: 'progression'
     },
     {
       id: 'all_sections',
       title: 'Explorateur',
       description: 'Vous avez visité toutes les sections du portfolio',
-      icon: <RocketIcon className="w-5 h-5 text-red-500" />,
-      unlocked: false
+      icon: <Rocket className="w-5 h-5 text-red-500" />,
+      unlocked: false,
+      rarity: 'uncommon',
+      category: 'exploration'
     }
   ]);
   const [levelProgress, setLevelProgress] = useState(0);
