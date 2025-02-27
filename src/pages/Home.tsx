@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from 'react';
-import { ArrowDown, Trophy, Award, Star, Rocket } from 'lucide-react';
+import { ArrowDown, Trophy, Award, Star, Rocket, BookOpen, Heart, Briefcase, Code, Calendar, Mail, Moon, User } from 'lucide-react';
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import About from './About';
 import Projects from './Projects';
@@ -8,14 +8,13 @@ import { toast } from 'sonner';
 import QuizModal from '@/components/QuizModal';
 import AdminPanel from '@/components/AdminPanel';
 import Timeline from '@/components/Timeline';
-import Achievements from '@/components/Achievements';
+import Achievements, { Achievement } from '@/components/Achievements';
 import ProgressGrid from '@/components/ProgressGrid';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
 import { useProgressPersistence } from '@/hooks/useProgressPersistence';
-import { Trophy as TrophyIcon, Star as StarIcon, Code, Award as AwardIcon, Rocket as RocketIcon, BookOpen, Heart, Briefcase } from 'lucide-react';
 
 const questions = [
   {
