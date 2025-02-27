@@ -9,6 +9,7 @@ import { ThemeProvider } from "next-themes";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
+import Labs from "./pages/Labs";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App: FC = () => (
           <Navbar />
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/labs" element={<Labs />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

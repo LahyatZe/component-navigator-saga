@@ -10,11 +10,13 @@ import {
   useUser
 } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, User } from "lucide-react";
+import { Sun, Moon, User, Home, Code, BookOpen, Mail, Rocket } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 const Navbar: FC = () => {
   const { theme, setTheme } = useTheme();
   const { user, isSignedIn } = useUser();
+  const location = useLocation();
 
   // Collecte de statistiques
   useEffect(() => {
@@ -28,7 +30,7 @@ const Navbar: FC = () => {
       
       // Dans un cas réel, ces données seraient envoyées à un service d'analyse
     }
-  }, [isSignedIn, user]);
+  }, [isSignedIn, user, location.pathname]);
 
   // Suivi des interactions utilisateur
   useEffect(() => {
@@ -50,41 +52,77 @@ const Navbar: FC = () => {
   }, [isSignedIn, user]);
 
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    // Si nous sommes sur la page d'accueil, faire défiler vers la section
+    if (location.pathname === '/') {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      // Sinon, rediriger vers la page d'accueil avec un paramètre d'ancre
+      window.location.href = `/#${id}`;
     }
   };
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <nav className="sticky top-0 z-50 w-full backdrop-blur-lg bg-white/75 dark:bg-gray-900/75 border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center py-4">
-          <div className="flex space-x-8">
-            <button 
-              onClick={() => scrollToSection("hero")}
-              className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+          <div className="flex items-center space-x-8">
+            <Link 
+              to="/"
+              className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent"
             >
-              Accueil
-            </button>
-            <button 
-              onClick={() => scrollToSection("about")}
-              className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
-            >
-              À propos
-            </button>
-            <button 
-              onClick={() => scrollToSection("projects")}
-              className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
-            >
-              Projets
-            </button>
-            <button 
-              onClick={() => scrollToSection("contact")}
-              className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
-            >
-              Contact
-            </button>
+              Portfolio
+            </Link>
+            
+            <div className="hidden md:flex space-x-6">
+              <button 
+                onClick={() => scrollToSection("hero")}
+                className={`flex items-center gap-2 transition-colors ${
+                  location.pathname === '/' 
+                    ? 'text-primary hover:text-primary/80' 
+                    : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                }`}
+              >
+                <Home className="w-4 h-4" />
+                Accueil
+              </button>
+              <button 
+                onClick={() => scrollToSection("about")}
+                className="flex items-center gap-2 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+              >
+                <User className="w-4 h-4" />
+                À propos
+              </button>
+              <button 
+                onClick={() => scrollToSection("projects")}
+                className="flex items-center gap-2 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+              >
+                <Code className="w-4 h-4" />
+                Projets
+              </button>
+              <Link 
+                to="/labs"
+                className={`flex items-center gap-2 transition-colors ${
+                  isActive('/labs') 
+                    ? 'text-primary hover:text-primary/80' 
+                    : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                }`}
+              >
+                <Rocket className="w-4 h-4" />
+                Labs
+              </Link>
+              <button 
+                onClick={() => scrollToSection("contact")}
+                className="flex items-center gap-2 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                Contact
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
