@@ -1,71 +1,22 @@
 
 import { FC, useEffect, useState } from 'react';
-import { ArrowDown, Trophy, Award, Star, Rocket, BookOpen, Code, Briefcase, Heart } from 'lucide-react';
-import { useUser, SignedIn, SignedOut } from '@clerk/clerk-react';
+import { ArrowDown, Trophy, Award, Star, Rocket } from 'lucide-react';
+import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import About from './About';
 import Projects from './Projects';
 import Contact from './Contact';
 import { toast } from 'sonner';
 import QuizModal from '@/components/QuizModal';
 import AdminPanel from '@/components/AdminPanel';
+import Timeline from '@/components/Timeline';
+import Achievements from '@/components/Achievements';
+import ProgressGrid from '@/components/ProgressGrid';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
-
-interface Section {
-  id: string;
-  title: string;
-  level: number;
-  component: React.ReactNode;
-  icon: React.ReactNode;
-  description: string;
-}
-
-const sections: Section[] = [
-  {
-    id: 'hero',
-    title: 'Accueil',
-    level: 0,
-    component: null,
-    icon: <Rocket className="w-6 h-6" />,
-    description: "Bienvenue dans mon univers professionnel. C'est ici que commence votre aventure."
-  },
-  {
-    id: 'timeline',
-    title: 'Parcours',
-    level: 1,
-    component: null,
-    icon: <BookOpen className="w-6 h-6" />,
-    description: "Découvrez mon évolution professionnelle et académique à travers les années."
-  },
-  {
-    id: 'about',
-    title: 'À propos',
-    level: 2,
-    component: <About />,
-    icon: <Heart className="w-6 h-6" />,
-    description: "Apprenez-en plus sur ma personnalité, mes motivations et mes centres d'intérêt."
-  },
-  {
-    id: 'projects',
-    title: 'Projets',
-    level: 3,
-    component: <Projects />,
-    icon: <Code className="w-6 h-6" />,
-    description: "Explorez mes réalisations techniques et projets professionnels."
-  },
-  {
-    id: 'contact',
-    title: 'Contact',
-    level: 4,
-    component: <Contact />,
-    icon: <Briefcase className="w-6 h-6" />,
-    description: "Comment me contacter pour des opportunités ou des collaborations."
-  }
-];
-
-const ADMIN_EMAIL = "sohaib.zeghouani@gmail.com";
+import { useProgressPersistence } from '@/hooks/useProgressPersistence';
+import { Trophy as TrophyIcon, Star as StarIcon, Code, Award as AwardIcon, Rocket as RocketIcon, BookOpen, Heart, Briefcase } from 'lucide-react';
 
 // Questions étendues pour chaque niveau
 const questions = [
@@ -179,35 +130,131 @@ const questions = [
   }
 ];
 
-interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  unlocked: boolean;
-}
+// Événements de la frise chronologique
+const timelineEvents = [
+  {
+    id: "timeline-1",
+    year: "2018",
+    title: "Baccalauréat ES",
+    subtitle: "Lycée Jean Monnet, Saint-Étienne",
+    description: "Obtention du baccalauréat économique et social avec mention, option mathématiques.",
+    type: "education" as const
+  },
+  {
+    id: "timeline-2",
+    year: "2019",
+    title: "Début d'études en informatique",
+    subtitle: "IUT de Saint-Étienne",
+    description: "Premier pas dans l'univers du développement informatique avec des projets pratiques en programmation.",
+    type: "education" as const
+  },
+  {
+    id: "timeline-3",
+    year: "2020",
+    title: "Stage chez MyPetsLife",
+    subtitle: "Développeur web junior",
+    description: "Développement d'une application web avec Express.js et React.js pour une startup de services pour animaux de compagnie.",
+    type: "work" as const
+  },
+  {
+    id: "timeline-4",
+    year: "2021",
+    title: "Alternance chez Capgemini",
+    subtitle: "Développeur full-stack",
+    description: "Participation au développement d'applications bancaires sécurisées avec des technologies modernes.",
+    type: "work" as const
+  },
+  {
+    id: "timeline-5",
+    year: "2022",
+    title: "Titre RNCP Niveau 5",
+    subtitle: "Développeur Web",
+    description: "Obtention du titre professionnel reconnu attestant de mes compétences en développement web moderne.",
+    type: "certification" as const
+  },
+  {
+    id: "timeline-6",
+    year: "2023",
+    title: "Projet Sam Tool Supervisor",
+    subtitle: "Développeur principal",
+    description: "Conception et développement d'un logiciel de supervision pour suivre l'activité de contenants automatisés intelligents.",
+    type: "work" as const
+  },
+  {
+    id: "timeline-7",
+    year: "2024",
+    title: "Projet ICY - Solution de gestion",
+    subtitle: "Lead Developer",
+    description: "Développement d'une application PWA avec Angular pour la gestion d'interventions techniques en milieu industriel.",
+    type: "work" as const
+  }
+];
+
+// Sections du site
+const sections = [
+  {
+    id: 'hero',
+    title: 'Accueil',
+    level: 0,
+    component: null,
+    icon: <Rocket className="w-6 h-6" />,
+    description: "Bienvenue dans mon univers professionnel. C'est ici que commence votre aventure."
+  },
+  {
+    id: 'timeline',
+    title: 'Parcours',
+    level: 1,
+    component: null,
+    icon: <BookOpen className="w-6 h-6" />,
+    description: "Découvrez mon évolution professionnelle et académique à travers les années."
+  },
+  {
+    id: 'about',
+    title: 'À propos',
+    level: 2,
+    component: <About />,
+    icon: <Heart className="w-6 h-6" />,
+    description: "Apprenez-en plus sur ma personnalité, mes motivations et mes centres d'intérêt."
+  },
+  {
+    id: 'projects',
+    title: 'Projets',
+    level: 3,
+    component: <Projects />,
+    icon: <Code className="w-6 h-6" />,
+    description: "Explorez mes réalisations techniques et projets professionnels."
+  },
+  {
+    id: 'contact',
+    title: 'Contact',
+    level: 4,
+    component: <Contact />,
+    icon: <Briefcase className="w-6 h-6" />,
+    description: "Comment me contacter pour des opportunités ou des collaborations."
+  }
+];
+
+const ADMIN_EMAIL = "sohaib.zeghouani@gmail.com";
 
 const Home: FC = () => {
-  const { user } = useUser();
+  const { progress, saveProgress, isLoaded } = useProgressPersistence();
   const [scrollY, setScrollY] = useState(0);
-  const [currentLevel, setCurrentLevel] = useState(0);
   const [showQuiz, setShowQuiz] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(1);
-  const [unlockedYears, setUnlockedYears] = useState<string[]>([]);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [achievements, setAchievements] = useState<Achievement[]>([
+  const [achievements, setAchievements] = useState([
     {
       id: 'profile_created',
       title: 'Premier Pas',
       description: 'Création de votre profil et connexion réussie',
-      icon: <Trophy className="w-5 h-5 text-yellow-500" />,
+      icon: <TrophyIcon className="w-5 h-5 text-yellow-500" />,
       unlocked: false
     },
     {
       id: 'level_1',
       title: 'Apprenti',
       description: 'Vous avez débloqué le niveau 1',
-      icon: <Star className="w-5 h-5 text-blue-500" />,
+      icon: <StarIcon className="w-5 h-5 text-blue-500" />,
       unlocked: false
     },
     {
@@ -221,54 +268,54 @@ const Home: FC = () => {
       id: 'level_3',
       title: 'Expert',
       description: 'Vous avez débloqué le niveau 3',
-      icon: <Award className="w-5 h-5 text-purple-500" />,
+      icon: <AwardIcon className="w-5 h-5 text-purple-500" />,
       unlocked: false
     },
     {
       id: 'all_sections',
       title: 'Explorateur',
       description: 'Vous avez visité toutes les sections du portfolio',
-      icon: <Rocket className="w-5 h-5 text-red-500" />,
+      icon: <RocketIcon className="w-5 h-5 text-red-500" />,
       unlocked: false
     }
   ]);
   const [levelProgress, setLevelProgress] = useState(0);
-  const [quizHistory, setQuizHistory] = useState<{level: number, correct: boolean}[]>([]);
   const navigate = useNavigate();
-
+  
+  const { user } = useUser();
   const isAdmin = user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL;
 
-  // Recalculer la progression pour le niveau actuel
+  // Mise à jour des achievements basée sur la progression
   useEffect(() => {
-    const correctAnswers = quizHistory.filter(q => q.level === currentLevel + 1 && q.correct).length;
-    const totalQuestions = questions.filter(q => q.level === currentLevel + 1).length;
-    
-    if (totalQuestions > 0) {
-      const progress = Math.min(100, (correctAnswers / totalQuestions) * 100);
-      setLevelProgress(progress);
-    } else {
-      setLevelProgress(0);
-    }
-
-    // Mettre à jour les succès débloqués
-    if (user) {
+    if (isLoaded && user) {
       const updatedAchievements = [...achievements];
       
       // Premier pas
       updatedAchievements[0].unlocked = true;
       
       // Niveaux débloqués
-      if (currentLevel >= 1) updatedAchievements[1].unlocked = true;
-      if (currentLevel >= 2) updatedAchievements[2].unlocked = true;
-      if (currentLevel >= 3) updatedAchievements[3].unlocked = true;
+      if (progress.currentLevel >= 1) updatedAchievements[1].unlocked = true;
+      if (progress.currentLevel >= 2) updatedAchievements[2].unlocked = true;
+      if (progress.currentLevel >= 3) updatedAchievements[3].unlocked = true;
       
       // Explorateur
-      const visitedAllSections = currentLevel >= 4;
+      const visitedAllSections = progress.currentLevel >= 4;
       updatedAchievements[4].unlocked = visitedAllSections;
       
       setAchievements(updatedAchievements);
+      
+      // Calcul de progression vers le niveau suivant
+      const correctAnswers = progress.quizHistory.filter(q => q.level === progress.currentLevel + 1 && q.correct).length;
+      const totalQuestions = questions.filter(q => q.level === progress.currentLevel + 1).length;
+      
+      if (totalQuestions > 0) {
+        const progressValue = Math.min(100, (correctAnswers / totalQuestions) * 100);
+        setLevelProgress(progressValue);
+      } else {
+        setLevelProgress(0);
+      }
     }
-  }, [currentLevel, quizHistory, user]);
+  }, [isLoaded, progress, user]);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -276,61 +323,53 @@ const Home: FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Effet pour enregistrer les actions de l'utilisateur
-  useEffect(() => {
-    if (user) {
-      console.log("Session utilisateur enregistrée:", {
-        userId: user.id,
-        email: user.primaryEmailAddress?.emailAddress,
-        level: currentLevel,
-        unlockedYears,
-        achievements: achievements.filter(a => a.unlocked).map(a => a.id),
-        timestamp: new Date().toISOString()
-      });
-    }
-  }, [user, currentLevel, unlockedYears, achievements]);
-
   const handleQuizAnswer = (correct: boolean) => {
     // Enregistrer la réponse au quiz
-    setQuizHistory(prev => [...prev, { level: currentLevel + 1, correct }]);
+    const updatedQuizHistory = [...progress.quizHistory, { level: progress.currentLevel + 1, correct }];
+    saveProgress({ quizHistory: updatedQuizHistory });
     
     if (correct) {
       // Si nous avons répondu correctement à suffisamment de questions de ce niveau
-      const questionsForLevel = questions.filter(q => q.level === currentLevel + 1);
-      const correctAnswersForLevel = quizHistory.filter(q => q.level === currentLevel + 1 && q.correct).length + 1; // +1 pour la réponse actuelle
+      const questionsForLevel = questions.filter(q => q.level === progress.currentLevel + 1);
+      const correctAnswersForLevel = progress.quizHistory.filter(q => q.level === progress.currentLevel + 1 && q.correct).length + 1; // +1 pour la réponse actuelle
       
       if (correctAnswersForLevel >= Math.ceil(questionsForLevel.length / 2)) {
         // Passage au niveau suivant si on a répondu correctement à au moins 50% des questions
-        const nextLevel = currentLevel + 1;
+        const nextLevel = progress.currentLevel + 1;
         if (nextLevel <= 4) {
-          setCurrentLevel(nextLevel);
-          
           // Mise à jour des années débloquées
+          let newUnlockedYears: string[] = [];
+          
           if (nextLevel === 1) {
-            setUnlockedYears(["2018", "2019"]);
+            newUnlockedYears = ["2018", "2019"];
             toast.success(`Niveau ${nextLevel} débloqué ! Vous avez accès aux années 2018-2019`, {
               duration: 5000,
               icon: <Trophy className="w-5 h-5 text-yellow-500" />
             });
           } else if (nextLevel === 2) {
-            setUnlockedYears(["2018", "2019", "2020", "2021"]);
+            newUnlockedYears = ["2018", "2019", "2020", "2021"];
             toast.success(`Niveau ${nextLevel} débloqué ! Vous avez accès aux années 2018-2021`, {
               duration: 5000,
               icon: <Star className="w-5 h-5 text-blue-500" />
             });
           } else if (nextLevel === 3) {
-            setUnlockedYears(["2018", "2019", "2020", "2021", "2022"]);
+            newUnlockedYears = ["2018", "2019", "2020", "2021", "2022"];
             toast.success(`Niveau ${nextLevel} débloqué ! Vous avez accès aux années 2018-2022`, {
               duration: 5000,
               icon: <Code className="w-5 h-5 text-green-500" />
             });
           } else {
-            setUnlockedYears(["2018", "2019", "2020", "2021", "2022", "2023", "2024"]);
+            newUnlockedYears = ["2018", "2019", "2020", "2021", "2022", "2023", "2024"];
             toast.success(`Niveau ${nextLevel} débloqué ! Vous avez accès à toutes les années`, {
               duration: 5000,
               icon: <Award className="w-5 h-5 text-purple-500" />
             });
           }
+          
+          saveProgress({ 
+            currentLevel: nextLevel,
+            unlockedYears: newUnlockedYears
+          });
           
           // Trouver la prochaine question disponible pour le nouveau niveau
           const nextLevelQuestions = questions.filter(q => q.level === nextLevel + 1);
@@ -350,8 +389,8 @@ const Home: FC = () => {
         
         // Passer à la question suivante du même niveau
         const remainingQuestions = questions.filter(q => 
-          q.level === currentLevel + 1 && 
-          !quizHistory.some(history => history.level === q.level && history.correct && questions.find(qu => qu.id === currentQuestionId)?.id === q.id)
+          q.level === progress.currentLevel + 1 && 
+          !progress.quizHistory.some(history => history.level === q.level && history.correct && questions.find(qu => qu.id === currentQuestionId)?.id === q.id)
         );
         
         if (remainingQuestions.length > 0) {
@@ -369,10 +408,10 @@ const Home: FC = () => {
   };
 
   const startQuiz = () => {
-    if (currentLevel < 4) {
+    if (progress.currentLevel < 4) {
       // Trouver une question du niveau actuel + 1 qui n'a pas encore été répondue correctement
-      const levelQuestions = questions.filter(q => q.level === currentLevel + 1);
-      const answeredCorrectly = quizHistory
+      const levelQuestions = questions.filter(q => q.level === progress.currentLevel + 1);
+      const answeredCorrectly = progress.quizHistory
         .filter(h => h.correct)
         .map(h => {
           const question = questions.find(q => q.level === h.level && q.id === currentQuestionId);
@@ -399,6 +438,14 @@ const Home: FC = () => {
     navigate('/labs');
   };
 
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Chargement...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <div 
@@ -416,15 +463,15 @@ const Home: FC = () => {
             <div className="mb-8">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <p className="text-xl text-muted-foreground">
-                  Niveau {currentLevel} / 4
+                  Niveau {progress.currentLevel} / 4
                 </p>
-                {currentLevel < 4 && (
+                {progress.currentLevel < 4 && (
                   <Badge variant="outline" className="text-xs">
-                    {Math.round(levelProgress)}% vers le niveau {currentLevel + 1}
+                    {Math.round(levelProgress)}% vers le niveau {progress.currentLevel + 1}
                   </Badge>
                 )}
               </div>
-              {currentLevel < 4 && (
+              {progress.currentLevel < 4 && (
                 <Progress value={levelProgress} className="w-full max-w-md mx-auto" />
               )}
             </div>
@@ -438,11 +485,11 @@ const Home: FC = () => {
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             <Badge variant="secondary" className="flex items-center gap-2">
               <Trophy className="w-4 h-4" />
-              Niveau {currentLevel}
+              Niveau {progress.currentLevel}
             </Badge>
             <Badge variant="outline" className="flex items-center gap-2">
               <Star className="w-4 h-4" />
-              {unlockedYears.length} / 7 Années
+              {progress.unlockedYears.length} / 7 Années
             </Badge>
             <Badge variant="default" className="flex items-center gap-2">
               <Award className="w-4 h-4" />
@@ -461,7 +508,7 @@ const Home: FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {user && currentLevel < 4 && (
+            {user && progress.currentLevel < 4 && (
               <Button onClick={startQuiz} className="flex items-center gap-2">
                 <Trophy className="w-4 h-4" />
                 Répondre à un quiz
@@ -475,7 +522,7 @@ const Home: FC = () => {
               <Rocket className="w-4 h-4" />
               Explorer mes Labs
             </Button>
-            {currentLevel >= 3 && (
+            {progress.currentLevel >= 3 && (
               <Button 
                 variant="secondary" 
                 onClick={() => scrollToSection("contact")}
@@ -494,79 +541,28 @@ const Home: FC = () => {
         </div>
       </div>
 
+      {/* Frise chronologique - Parcours */}
+      {progress.currentLevel >= 1 && (
+        <section id="timeline" className="py-16 bg-secondary/5">
+          <Timeline events={timelineEvents} unlockedYears={progress.unlockedYears} />
+        </section>
+      )}
+
       {/* Carte des sections débloquées */}
-      <div className="container mx-auto px-4 py-12">
-        <h2 className="text-3xl font-bold mb-8 text-center">Votre progression</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sections.map((section, index) => (
-            <div 
-              key={section.id}
-              className={`border rounded-lg p-6 transition-all duration-500 ${
-                currentLevel >= section.level 
-                  ? 'bg-card hover:shadow-md cursor-pointer' 
-                  : 'opacity-40 filter blur-[1px] pointer-events-none bg-gray-100 dark:bg-gray-800'
-              }`}
-              onClick={() => scrollToSection(section.id)}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`p-3 rounded-full ${
-                  currentLevel >= section.level ? 'bg-primary/10 text-primary' : 'bg-gray-200 dark:bg-gray-700'
-                }`}>
-                  {section.icon}
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">{section.title}</h3>
-                  <p className="text-sm text-muted-foreground">Niveau {section.level}</p>
-                </div>
-              </div>
-              <p className="text-muted-foreground">{section.description}</p>
-              {currentLevel < section.level && (
-                <Badge variant="outline" className="mt-4">
-                  Débloqué au niveau {section.level}
-                </Badge>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      <ProgressGrid sections={sections} currentLevel={progress.currentLevel} />
 
       {/* Succès débloqués */}
-      {user && (
-        <div className="bg-secondary/20 py-12">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-8 text-center">Succès débloqués</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {achievements.map((achievement) => (
-                <div
-                  key={achievement.id}
-                  className={`border rounded-lg p-4 transition-all ${
-                    achievement.unlocked 
-                      ? 'bg-card hover:shadow-md' 
-                      : 'opacity-50 bg-muted'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 rounded-full bg-primary/10">
-                      {achievement.icon}
-                    </div>
-                    <h3 className="font-medium">{achievement.title}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{achievement.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {user && <Achievements achievements={achievements} />}
 
       {/* Sections principales */}
       {sections.map((section) => (
-        currentLevel >= section.level && section.component && (
+        section.id !== 'timeline' && // Exclure la frise chronologique car elle est déjà affichée
+        progress.currentLevel >= section.level && section.component && (
           <section 
             key={section.id} 
             id={section.id} 
             className={`py-20 transition-all duration-500 ${
-              currentLevel < section.level ? 'opacity-30 filter blur-sm pointer-events-none' : 'opacity-100'
+              progress.currentLevel < section.level ? 'opacity-30 filter blur-sm pointer-events-none' : 'opacity-100'
             }`}
           >
             {section.component}
@@ -580,7 +576,7 @@ const Home: FC = () => {
           onClose={() => setShowQuiz(false)}
           onAnswer={handleQuizAnswer}
           currentQuestion={questions.find(q => q.id === currentQuestionId) || questions[0]}
-          level={currentLevel + 1}
+          level={progress.currentLevel + 1}
         />
       )}
 
