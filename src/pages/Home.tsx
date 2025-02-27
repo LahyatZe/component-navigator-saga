@@ -1,7 +1,6 @@
-
 import { FC, useEffect, useState } from 'react';
 import { ArrowDown, Trophy, Award, Star, Rocket } from 'lucide-react';
-import { SignedIn, SignedOut } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import About from './About';
 import Projects from './Projects';
 import Contact from './Contact';
@@ -18,9 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProgressPersistence } from '@/hooks/useProgressPersistence';
 import { Trophy as TrophyIcon, Star as StarIcon, Code, Award as AwardIcon, Rocket as RocketIcon, BookOpen, Heart, Briefcase } from 'lucide-react';
 
-// Questions étendues pour chaque niveau
 const questions = [
-  // Niveau 1
   {
     id: 1,
     level: 1,
@@ -47,7 +44,6 @@ const questions = [
     correctAnswer: 2,
     explanation: "J'ai commencé mes études supérieures à Saint-Étienne, où j'ai développé mes premières compétences en développement."
   },
-  // Niveau 2
   {
     id: 3,
     level: 2,
@@ -74,7 +70,6 @@ const questions = [
     correctAnswer: 2,
     explanation: "J'ai principalement utilisé Express.js et React.js lors de mon stage chez MyPetsLife pour développer leur plateforme."
   },
-  // Niveau 3
   {
     id: 5,
     level: 3,
@@ -101,11 +96,10 @@ const questions = [
     correctAnswer: 1,
     explanation: "En 2023, j'ai travaillé sur le logiciel de supervision Sam Tool Supervisor pour suivre l'activité de contenants automatisés intelligents."
   },
-  // Niveau 4
   {
     id: 7,
     level: 4,
-    question: "Quelle est la technologie principale que j'ai utilisée pour ICY - Solution de gestion d'intervention ?",
+    question: "Quelle technologie principale que j'ai utilisée pour ICY - Solution de gestion d'intervention ?",
     options: [
       "React",
       "Vue.js",
@@ -130,7 +124,6 @@ const questions = [
   }
 ];
 
-// Événements de la frise chronologique
 const timelineEvents = [
   {
     id: "timeline-1",
@@ -190,7 +183,6 @@ const timelineEvents = [
   }
 ];
 
-// Sections du site
 const sections = [
   {
     id: 'hero',
@@ -285,26 +277,21 @@ const Home: FC = () => {
   const { user } = useUser();
   const isAdmin = user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL;
 
-  // Mise à jour des achievements basée sur la progression
   useEffect(() => {
     if (isLoaded && user) {
       const updatedAchievements = [...achievements];
       
-      // Premier pas
       updatedAchievements[0].unlocked = true;
       
-      // Niveaux débloqués
       if (progress.currentLevel >= 1) updatedAchievements[1].unlocked = true;
       if (progress.currentLevel >= 2) updatedAchievements[2].unlocked = true;
       if (progress.currentLevel >= 3) updatedAchievements[3].unlocked = true;
       
-      // Explorateur
       const visitedAllSections = progress.currentLevel >= 4;
       updatedAchievements[4].unlocked = visitedAllSections;
       
       setAchievements(updatedAchievements);
       
-      // Calcul de progression vers le niveau suivant
       const correctAnswers = progress.quizHistory.filter(q => q.level === progress.currentLevel + 1 && q.correct).length;
       const totalQuestions = questions.filter(q => q.level === progress.currentLevel + 1).length;
       
@@ -324,20 +311,16 @@ const Home: FC = () => {
   }, []);
 
   const handleQuizAnswer = (correct: boolean) => {
-    // Enregistrer la réponse au quiz
     const updatedQuizHistory = [...progress.quizHistory, { level: progress.currentLevel + 1, correct }];
     saveProgress({ quizHistory: updatedQuizHistory });
     
     if (correct) {
-      // Si nous avons répondu correctement à suffisamment de questions de ce niveau
       const questionsForLevel = questions.filter(q => q.level === progress.currentLevel + 1);
-      const correctAnswersForLevel = progress.quizHistory.filter(q => q.level === progress.currentLevel + 1 && q.correct).length + 1; // +1 pour la réponse actuelle
+      const correctAnswersForLevel = progress.quizHistory.filter(q => q.level === progress.currentLevel + 1 && q.correct).length + 1;
       
       if (correctAnswersForLevel >= Math.ceil(questionsForLevel.length / 2)) {
-        // Passage au niveau suivant si on a répondu correctement à au moins 50% des questions
         const nextLevel = progress.currentLevel + 1;
         if (nextLevel <= 4) {
-          // Mise à jour des années débloquées
           let newUnlockedYears: string[] = [];
           
           if (nextLevel === 1) {
@@ -371,7 +354,6 @@ const Home: FC = () => {
             unlockedYears: newUnlockedYears
           });
           
-          // Trouver la prochaine question disponible pour le nouveau niveau
           const nextLevelQuestions = questions.filter(q => q.level === nextLevel + 1);
           if (nextLevelQuestions.length > 0) {
             setCurrentQuestionId(nextLevelQuestions[0].id);
@@ -387,14 +369,12 @@ const Home: FC = () => {
           duration: 3000
         });
         
-        // Passer à la question suivante du même niveau
         const remainingQuestions = questions.filter(q => 
           q.level === progress.currentLevel + 1 && 
           !progress.quizHistory.some(history => history.level === q.level && history.correct && questions.find(qu => qu.id === currentQuestionId)?.id === q.id)
         );
         
         if (remainingQuestions.length > 0) {
-          // Prendre une question aléatoire parmi celles restantes
           const randomQuestion = remainingQuestions[Math.floor(Math.random() * remainingQuestions.length)];
           setCurrentQuestionId(randomQuestion.id);
         }
@@ -409,7 +389,6 @@ const Home: FC = () => {
 
   const startQuiz = () => {
     if (progress.currentLevel < 4) {
-      // Trouver une question du niveau actuel + 1 qui n'a pas encore été répondue correctement
       const levelQuestions = questions.filter(q => q.level === progress.currentLevel + 1);
       const answeredCorrectly = progress.quizHistory
         .filter(h => h.correct)
@@ -421,11 +400,9 @@ const Home: FC = () => {
       const unansweredQuestions = levelQuestions.filter(q => !answeredCorrectly.includes(q.id));
       
       if (unansweredQuestions.length > 0) {
-        // Prendre une question aléatoire parmi celles non répondues
         const randomQuestion = unansweredQuestions[Math.floor(Math.random() * unansweredQuestions.length)];
         setCurrentQuestionId(randomQuestion.id);
       } else if (levelQuestions.length > 0) {
-        // Si toutes les questions ont été répondues, prendre une question aléatoire
         const randomQuestion = levelQuestions[Math.floor(Math.random() * levelQuestions.length)];
         setCurrentQuestionId(randomQuestion.id);
       }
@@ -541,23 +518,18 @@ const Home: FC = () => {
         </div>
       </div>
 
-      {/* Frise chronologique - Parcours */}
       {progress.currentLevel >= 1 && (
         <section id="timeline" className="py-16 bg-secondary/5">
           <Timeline events={timelineEvents} unlockedYears={progress.unlockedYears} />
         </section>
       )}
 
-      {/* Carte des sections débloquées */}
       <ProgressGrid sections={sections} currentLevel={progress.currentLevel} />
 
-      {/* Succès débloqués */}
       {user && <Achievements achievements={achievements} />}
 
-      {/* Sections principales */}
       {sections.map((section) => (
-        section.id !== 'timeline' && // Exclure la frise chronologique car elle est déjà affichée
-        progress.currentLevel >= section.level && section.component && (
+        section.id !== 'timeline' && (
           <section 
             key={section.id} 
             id={section.id} 
@@ -590,7 +562,6 @@ const Home: FC = () => {
   );
 };
 
-// Fonction utilitaire pour faire défiler jusqu'à une section
 const scrollToSection = (id: string) => {
   const element = document.getElementById(id);
   if (element) {
