@@ -51,7 +51,7 @@ const sections: Section[] = [
   }
 ];
 
-const ADMIN_EMAIL = "admin@example.com";
+const ADMIN_EMAIL = "sohaib.zeghouani@gmail.com";
 
 const questions = [
   {
