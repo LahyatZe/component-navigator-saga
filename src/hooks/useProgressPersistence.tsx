@@ -23,6 +23,11 @@ export const useProgressPersistence = () => {
 
   // Chargement de la progression depuis localStorage
   useEffect(() => {
+    // Initialiser isLoaded à false lors du premier rendu ou lorsque l'état de connexion change
+    if (!isLoaded) {
+      setIsLoaded(false);
+    }
+    
     if (isSignedIn && user) {
       const userId = user.id;
       const savedProgress = localStorage.getItem(`portfolio_progress_${userId}`);
@@ -37,6 +42,9 @@ export const useProgressPersistence = () => {
         }
       }
       
+      setIsLoaded(true);
+    } else if (isSignedIn === false) {
+      // L'utilisateur n'est définitivement pas connecté
       setIsLoaded(true);
     }
   }, [isSignedIn, user]);

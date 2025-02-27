@@ -1,3 +1,4 @@
+
 import { FC, useEffect, useState } from 'react';
 import { ArrowDown, Trophy, Award, Star, Rocket, BookOpen, Heart, Briefcase, Code, Calendar, Mail, Moon, User } from 'lucide-react';
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
@@ -225,6 +226,46 @@ const sections = [
   }
 ];
 
+// Composant hero pour les utilisateurs non connectés
+const GuestHero: FC = () => {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/10 to-background text-center px-4 py-20">
+      <Badge variant="outline" className="mb-4">Portfolio interactif</Badge>
+      <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+        Bienvenue sur Mon Portfolio
+      </h1>
+      <p className="text-xl text-muted-foreground mb-8 max-w-2xl">
+        Connectez-vous pour progresser dans cette aventure interactive et découvrir l'ensemble de mon parcours.
+      </p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-8">
+        <div className="bg-card border rounded-lg p-6 hover:shadow-md transition-all">
+          <Trophy className="w-10 h-10 text-yellow-500 mb-4 mx-auto" />
+          <h3 className="font-semibold text-lg mb-2">Système de progression</h3>
+          <p className="text-muted-foreground">Débloquez du contenu en répondant aux quiz et en explorant le portfolio</p>
+        </div>
+        
+        <div className="bg-card border rounded-lg p-6 hover:shadow-md transition-all">
+          <Award className="w-10 h-10 text-purple-500 mb-4 mx-auto" />
+          <h3 className="font-semibold text-lg mb-2">Badges et succès</h3>
+          <p className="text-muted-foreground">Collectionnez des badges et des succès en interagissant avec le contenu</p>
+        </div>
+        
+        <div className="bg-card border rounded-lg p-6 hover:shadow-md transition-all">
+          <Rocket className="w-10 h-10 text-blue-500 mb-4 mx-auto" />
+          <h3 className="font-semibold text-lg mb-2">Contenu exclusif</h3>
+          <p className="text-muted-foreground">Accédez à du contenu exclusif en progressant dans les niveaux</p>
+        </div>
+      </div>
+      
+      <div className="mt-12">
+        <ArrowDown className="w-8 h-8 mx-auto animate-bounce text-primary" />
+        <p className="text-sm text-muted-foreground">Découvrez le contenu de base en défilant</p>
+      </div>
+    </div>
+  );
+};
+
 const ADMIN_EMAIL = "sohaib.zeghouani@gmail.com";
 
 const Home: FC = () => {
@@ -233,6 +274,15 @@ const Home: FC = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(1);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [levelProgress, setLevelProgress] = useState(0);
+  const navigate = useNavigate();
+  
+  const { user, isSignedIn, isLoaded: isUserLoaded } = useUser();
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL;
+
+  // Affichage de chargement si les données ne sont pas encore chargées
+  const isDataReady = isUserLoaded && (isSignedIn ? isLoaded : true);
+
   const [achievements, setAchievements] = useState<Achievement[]>([
     {
       id: 'profile_created',
@@ -289,11 +339,6 @@ const Home: FC = () => {
       category: 'exploration'
     }
   ]);
-  const [levelProgress, setLevelProgress] = useState(0);
-  const navigate = useNavigate();
-  
-  const { user } = useUser();
-  const isAdmin = user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL;
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -433,28 +478,33 @@ const Home: FC = () => {
     navigate('/labs');
   };
 
-  if (!isLoaded) {
+  // Affichage de chargement pendant que les données se chargent
+  if (!isDataReady) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Chargement...</p>
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen">
-      <div 
-        className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/10 to-background relative overflow-hidden"
-        style={{ backgroundPosition: `50% ${scrollY * 0.5}px` }}
-      >
-        <div className="text-center px-4 relative z-10 max-w-4xl">
-          <h1 
-            className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"
-          >
-            {user ? `Bienvenue ${user.firstName}` : 'Bienvenue sur Mon Portfolio'}
-          </h1>
-          
-          <SignedIn>
+      {/* Affichage différent selon que l'utilisateur est connecté ou non */}
+      <SignedIn>
+        <div 
+          className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/10 to-background relative overflow-hidden"
+          style={{ backgroundPosition: `50% ${scrollY * 0.5}px` }}
+        >
+          <div className="text-center px-4 relative z-10 max-w-4xl">
+            <h1 
+              className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"
+            >
+              {user ? `Bienvenue ${user.firstName}` : 'Bienvenue sur Mon Portfolio'}
+            </h1>
+            
             <div className="mb-8">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <p className="text-xl text-muted-foreground">
@@ -470,95 +520,107 @@ const Home: FC = () => {
                 <Progress value={levelProgress} className="w-full max-w-md mx-auto" />
               )}
             </div>
-          </SignedIn>
-          <SignedOut>
-            <p className="text-xl text-muted-foreground mb-8">
-              Connectez-vous pour progresser dans cette aventure interactive
-            </p>
-          </SignedOut>
 
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Badge variant="secondary" className="flex items-center gap-2">
-              <Trophy className="w-4 h-4" />
-              Niveau {progress.currentLevel}
-            </Badge>
-            <Badge variant="outline" className="flex items-center gap-2">
-              <Star className="w-4 h-4" />
-              {progress.unlockedYears.length} / 7 Années
-            </Badge>
-            <Badge variant="default" className="flex items-center gap-2">
-              <Award className="w-4 h-4" />
-              {achievements.filter(a => a.unlocked).length} / {achievements.length} Succès
-            </Badge>
-            {isAdmin && (
-              <Badge 
-                variant="destructive" 
-                className="flex items-center gap-2 cursor-pointer"
-                onClick={() => setShowAdminPanel(true)}
-              >
-                <Award className="w-4 h-4" />
-                Administration
-              </Badge>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {user && progress.currentLevel < 4 && (
-              <Button onClick={startQuiz} className="flex items-center gap-2">
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
+              <Badge variant="secondary" className="flex items-center gap-2">
                 <Trophy className="w-4 h-4" />
-                Répondre à un quiz
-              </Button>
-            )}
-            <Button 
-              variant="outline" 
-              onClick={goToLabs}
-              className="flex items-center gap-2"
-            >
-              <Rocket className="w-4 h-4" />
-              Explorer mes Labs
-            </Button>
-            {progress.currentLevel >= 3 && (
+                Niveau {progress.currentLevel}
+              </Badge>
+              <Badge variant="outline" className="flex items-center gap-2">
+                <Star className="w-4 h-4" />
+                {progress.unlockedYears.length} / 7 Années
+              </Badge>
+              <Badge variant="default" className="flex items-center gap-2">
+                <Award className="w-4 h-4" />
+                {achievements.filter(a => a.unlocked).length} / {achievements.length} Succès
+              </Badge>
+              {isAdmin && (
+                <Badge 
+                  variant="destructive" 
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => setShowAdminPanel(true)}
+                >
+                  <Award className="w-4 h-4" />
+                  Administration
+                </Badge>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              {user && progress.currentLevel < 4 && (
+                <Button onClick={startQuiz} className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4" />
+                  Répondre à un quiz
+                </Button>
+              )}
               <Button 
-                variant="secondary" 
-                onClick={() => scrollToSection("contact")}
+                variant="outline" 
+                onClick={goToLabs}
                 className="flex items-center gap-2"
               >
-                <Briefcase className="w-4 h-4" />
-                Discuter d'opportunités
+                <Rocket className="w-4 h-4" />
+                Explorer mes Labs
               </Button>
-            )}
-          </div>
+              {progress.currentLevel >= 3 && (
+                <Button 
+                  variant="secondary" 
+                  onClick={() => scrollToSection("contact")}
+                  className="flex items-center gap-2"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  Discuter d'opportunités
+                </Button>
+              )}
+            </div>
 
-          <div className="mt-12">
-            <ArrowDown className="w-8 h-8 mx-auto animate-bounce text-primary" />
-            <p className="text-sm text-muted-foreground">Découvrez mon parcours en défilant</p>
+            <div className="mt-12">
+              <ArrowDown className="w-8 h-8 mx-auto animate-bounce text-primary" />
+              <p className="text-sm text-muted-foreground">Découvrez mon parcours en défilant</p>
+            </div>
           </div>
         </div>
-      </div>
+      </SignedIn>
+      
+      <SignedOut>
+        <GuestHero />
+      </SignedOut>
 
-      {progress.currentLevel >= 1 && (
+      {/* Timeline - uniquement pour les utilisateurs connectés avec niveau suffisant */}
+      {isSignedIn && isLoaded && progress.currentLevel >= 1 && (
         <section id="timeline" className="py-16 bg-secondary/5">
           <Timeline events={timelineEvents} unlockedYears={progress.unlockedYears} />
         </section>
       )}
 
-      <ProgressGrid sections={sections} currentLevel={progress.currentLevel} />
+      {/* Grille de progression - uniquement pour les utilisateurs connectés */}
+      {isSignedIn && isLoaded && (
+        <ProgressGrid sections={sections} currentLevel={progress.currentLevel} />
+      )}
 
-      {user && <Achievements achievements={achievements} />}
+      {/* Badges - uniquement pour les utilisateurs connectés */}
+      {isSignedIn && isLoaded && (
+        <Achievements achievements={achievements} />
+      )}
 
-      {sections.map((section) => (
-        section.id !== 'timeline' && (
+      {/* Sections du portfolio - visible par tous mais certaines sections limitées par niveau */}
+      {sections.map((section) => {
+        if (section.id === 'timeline') return null; // La timeline est gérée séparément
+        
+        // Déterminer si la section doit être affichée en fonction du niveau
+        const isAccessible = !isSignedIn || (isLoaded && progress.currentLevel >= section.level);
+        
+        return (
           <section 
             key={section.id} 
             id={section.id} 
             className={`py-20 transition-all duration-500 ${
-              progress.currentLevel < section.level ? 'opacity-30 filter blur-sm pointer-events-none' : 'opacity-100'
+              isAccessible ? 'opacity-100' : 'opacity-30 filter blur-sm pointer-events-none'
             }`}
           >
             {section.component}
           </section>
-        )
-      ))}
+        );
+      })}
 
       {showQuiz && (
         <QuizModal
