@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Course, UserProgress } from '@/types/course';
+import { getUserProgress, saveUserProgress } from '@/services/courseService';
+import { toast } from 'sonner';
 
 export const useCourseProgress = (courseId?: string) => {
   const { user, isSignedIn } = useUser();
@@ -9,52 +11,78 @@ export const useCourseProgress = (courseId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadProgress = () => {
+    const loadProgress = async () => {
       if (!isSignedIn || !user || !courseId) {
         setIsLoading(false);
         return;
       }
 
-      const userId = user.id;
-      const savedProgress = localStorage.getItem(`course_progress_${userId}_${courseId}`);
-      
-      if (savedProgress) {
-        try {
-          const parsedProgress = JSON.parse(savedProgress) as UserProgress;
-          setProgress(parsedProgress);
-        } catch (error) {
-          console.error("Erreur lors du chargement de la progression:", error);
+      try {
+        const userId = user.id;
+        // Try to get progress from Supabase
+        const progressData = await getUserProgress(userId, courseId);
+        
+        if (progressData) {
+          setProgress(progressData);
+        } else {
+          // Initialize a new progress for this course
+          const newProgress: UserProgress = {
+            userId: userId,
+            courseId: courseId,
+            completedLessons: [],
+            completedExercises: [],
+            currentLesson: '', // Will be defined later with the first lesson
+            startedAt: new Date().toISOString(),
+            lastAccessedAt: new Date().toISOString(),
+            completionPercentage: 0
+          };
+          setProgress(newProgress);
+          await saveProgressToStorage(newProgress);
         }
-      } else {
-        // Initialiser une nouvelle progression pour ce cours
-        const newProgress: UserProgress = {
-          userId: userId,
-          courseId: courseId,
-          completedLessons: [],
-          completedExercises: [],
-          currentLesson: '', // Sera défini plus tard avec la première leçon
-          startedAt: new Date().toISOString(),
-          lastAccessedAt: new Date().toISOString(),
-          completionPercentage: 0
-        };
-        setProgress(newProgress);
-        saveProgressToStorage(newProgress);
+      } catch (error) {
+        console.error("Erreur lors du chargement de la progression:", error);
+        toast.error("Erreur lors du chargement de votre progression");
+        
+        // Fallback to localStorage if database fails
+        const savedProgress = localStorage.getItem(`course_progress_${user.id}_${courseId}`);
+        if (savedProgress) {
+          try {
+            const parsedProgress = JSON.parse(savedProgress) as UserProgress;
+            setProgress(parsedProgress);
+          } catch (error) {
+            console.error("Erreur lors du parsing de la progression:", error);
+          }
+        }
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     loadProgress();
   }, [isSignedIn, user, courseId]);
 
-  const saveProgressToStorage = (progressData: UserProgress) => {
+  const saveProgressToStorage = async (progressData: UserProgress) => {
     if (!isSignedIn || !user) return;
     
-    const userId = user.id;
-    localStorage.setItem(
-      `course_progress_${userId}_${progressData.courseId}`,
-      JSON.stringify(progressData)
-    );
+    try {
+      // Save to Supabase
+      await saveUserProgress(progressData);
+      
+      // Also cache in localStorage as backup
+      localStorage.setItem(
+        `course_progress_${progressData.userId}_${progressData.courseId}`,
+        JSON.stringify(progressData)
+      );
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde de la progression:", error);
+      toast.error("Erreur lors de la sauvegarde de votre progression");
+      
+      // Fallback to localStorage only
+      localStorage.setItem(
+        `course_progress_${progressData.userId}_${progressData.courseId}`,
+        JSON.stringify(progressData)
+      );
+    }
   };
 
   const updateProgress = (updates: Partial<UserProgress>) => {
@@ -73,7 +101,7 @@ export const useCourseProgress = (courseId?: string) => {
   const markLessonAsCompleted = (lessonId: string, course: Course) => {
     if (!progress) return;
     
-    // Vérifier si la leçon existe dans le cours
+    // Verify if the lesson exists in the course
     const lessonExists = course.modules.some(module => 
       module.lessons.some(lesson => lesson.id === lessonId)
     );
@@ -83,11 +111,11 @@ export const useCourseProgress = (courseId?: string) => {
       return;
     }
     
-    // Ajouter la leçon aux leçons complétées si elle n'y est pas déjà
+    // Add the lesson to completed lessons if it's not already there
     if (!progress.completedLessons.includes(lessonId)) {
       const completedLessons = [...progress.completedLessons, lessonId];
       
-      // Calculer le nouveau pourcentage de progression
+      // Calculate the new completion percentage
       const totalLessons = course.modules.reduce(
         (total, module) => total + module.lessons.length, 
         0
@@ -107,7 +135,7 @@ export const useCourseProgress = (courseId?: string) => {
   const markExerciseAsCompleted = (exerciseId: string, course: Course) => {
     if (!progress) return;
     
-    // Vérifier si l'exercice existe dans le cours
+    // Verify if the exercise exists in the course
     const exerciseExists = course.modules.some(module => 
       module.lessons.some(lesson => 
         lesson.exercises.some(exercise => exercise.id === exerciseId)
@@ -119,7 +147,7 @@ export const useCourseProgress = (courseId?: string) => {
       return;
     }
     
-    // Ajouter l'exercice aux exercices complétés s'il n'y est pas déjà
+    // Add the exercise to completed exercises if it's not already there
     if (!progress.completedExercises.includes(exerciseId)) {
       const completedExercises = [...progress.completedExercises, exerciseId];
       updateProgress({ completedExercises });
