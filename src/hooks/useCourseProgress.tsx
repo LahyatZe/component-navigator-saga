@@ -34,7 +34,11 @@ export const useCourseProgress = (courseId?: string) => {
             currentLesson: '', // Will be defined later with the first lesson
             startedAt: new Date().toISOString(),
             lastAccessedAt: new Date().toISOString(),
-            completionPercentage: 0
+            completionPercentage: 0,
+            quizScores: {},
+            certificateIssued: false,
+            notes: {},
+            bookmarks: []
           };
           setProgress(newProgress);
           await saveProgressToStorage(newProgress);

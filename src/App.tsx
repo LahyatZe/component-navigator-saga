@@ -52,7 +52,7 @@ function App() {
         </Routes>
         
         {isAdminOpen && (
-          <AdminPanel>
+          <AdminPanel isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)}>
             <AdminDataMigration />
           </AdminPanel>
         )}
