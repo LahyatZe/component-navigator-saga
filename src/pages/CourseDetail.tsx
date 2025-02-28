@@ -1,4 +1,3 @@
-
 import { FC, useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
@@ -200,7 +199,9 @@ const CourseDetail: FC = () => {
                 </CardDescription>
               </div>
               {isExerciseCompleted(selectedExercise.id) && (
-                <Badge variant="success" className="bg-green-500">Complété</Badge>
+                <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                  Complété <Check className="ml-1 h-3 w-3" />
+                </Badge>
               )}
             </div>
           </CardHeader>
@@ -551,4 +552,3 @@ const CourseDetail: FC = () => {
 };
 
 export default CourseDetail;
-
