@@ -6,7 +6,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-reac
 import { ModeToggle } from "./ModeToggle";
 import { Icons } from "./icons";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, BookOpen, GraduationCap, Users, LayoutDashboard, Flask } from "lucide-react";
+import { Menu, X, BookOpen, GraduationCap, Users, LayoutDashboard, FlaskConical } from "lucide-react";
 
 const Navbar: FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -18,7 +18,7 @@ const Navbar: FC = () => {
     { href: "/courses", label: "Cours", icon: <BookOpen className="w-4 h-4 mr-2" /> },
     { href: "/dashboard", label: "Tableau de bord", icon: <LayoutDashboard className="w-4 h-4 mr-2" /> },
     { href: "/community", label: "Communauté", icon: <Users className="w-4 h-4 mr-2" /> },
-    { href: "/labs", label: "Labs", icon: <Flask className="w-4 h-4 mr-2" /> }
+    { href: "/labs", label: "Labs", icon: <FlaskConical className="w-4 h-4 mr-2" /> }
   ];
 
   useEffect(() => {
