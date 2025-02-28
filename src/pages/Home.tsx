@@ -636,7 +636,9 @@ const Home: FC = () => {
         <AdminPanel
           isOpen={showAdminPanel}
           onClose={() => setShowAdminPanel(false)}
-        />
+        >
+          <div>Admin panel content</div>
+        </AdminPanel>
       )}
     </div>
   );
