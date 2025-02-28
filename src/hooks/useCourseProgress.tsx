@@ -23,7 +23,28 @@ export const useCourseProgress = (courseId?: string) => {
         const progressData = await getUserProgress(userId, courseId);
         
         if (progressData) {
-          setProgress(progressData);
+          // Convert JSON data to proper types before setting state
+          const typedProgress: UserProgress = {
+            userId: progressData.userId,
+            courseId: progressData.courseId,
+            completedLessons: progressData.completedLessons || [],
+            completedExercises: progressData.completedExercises || [],
+            currentLesson: progressData.currentLesson || '',
+            startedAt: progressData.startedAt || new Date().toISOString(),
+            lastAccessedAt: progressData.lastAccessedAt || new Date().toISOString(),
+            completionPercentage: progressData.completionPercentage || 0,
+            // Ensure quizScores is properly typed as Record<string, number>
+            quizScores: typeof progressData.quizScores === 'object' ? 
+              progressData.quizScores as Record<string, number> : {},
+            certificateIssued: !!progressData.certificateIssued,
+            // Ensure notes is properly typed as Record<string, string>
+            notes: typeof progressData.notes === 'object' ? 
+              progressData.notes as Record<string, string> : {},
+            bookmarks: Array.isArray(progressData.bookmarks) ? 
+              progressData.bookmarks : []
+          };
+          
+          setProgress(typedProgress);
         } else {
           // Initialize a new progress for this course
           const newProgress: UserProgress = {

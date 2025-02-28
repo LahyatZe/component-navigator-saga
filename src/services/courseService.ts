@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Course, CourseModule, Lesson, Exercise, Resource, Quiz } from "@/types/course";
+import { Course, CourseModule, Lesson, Exercise, Resource, Quiz, UserProgress, Achievement } from "@/types/course";
 
 // Fetch all published courses
 export const fetchPublishedCourses = async () => {
@@ -201,18 +201,7 @@ export const fetchCourseBySlug = async (slug: string) => {
 };
 
 // Save course progress for a user
-export const saveUserProgress = async (progress: {
-  userId: string;
-  courseId: string;
-  completedLessons: string[];
-  completedExercises: string[];
-  currentLesson: string;
-  completionPercentage: number;
-  quizScores?: Record<string, number>;
-  certificateIssued?: boolean;
-  notes?: Record<string, string>;
-  bookmarks?: string[];
-}) => {
+export const saveUserProgress = async (progress: UserProgress) => {
   const { data, error } = await supabase
     .from('user_progress')
     .upsert({
@@ -221,12 +210,13 @@ export const saveUserProgress = async (progress: {
       completed_lessons: progress.completedLessons,
       completed_exercises: progress.completedExercises,
       current_lesson: progress.currentLesson,
+      started_at: progress.startedAt,
       last_accessed_at: new Date().toISOString(),
       completion_percentage: progress.completionPercentage,
-      quiz_scores: progress.quizScores || {},
-      certificate_issued: progress.certificateIssued || false,
-      notes: progress.notes || {},
-      bookmarks: progress.bookmarks || []
+      quiz_scores: progress.quizScores,
+      certificate_issued: progress.certificateIssued,
+      notes: progress.notes,
+      bookmarks: progress.bookmarks
     }, {
       onConflict: 'user_id,course_id'
     });
@@ -240,7 +230,7 @@ export const saveUserProgress = async (progress: {
 };
 
 // Get user progress for a course
-export const getUserProgress = async (userId: string, courseId: string) => {
+export const getUserProgress = async (userId: string, courseId: string): Promise<UserProgress | null> => {
   const { data, error } = await supabase
     .from('user_progress')
     .select('*')
@@ -257,24 +247,25 @@ export const getUserProgress = async (userId: string, courseId: string) => {
     return null;
   }
 
+  // Transform the data to match our UserProgress type
   return {
     userId: data.user_id,
     courseId: data.course_id,
-    completedLessons: data.completed_lessons,
-    completedExercises: data.completed_exercises,
-    currentLesson: data.current_lesson,
-    startedAt: data.started_at,
-    lastAccessedAt: data.last_accessed_at,
-    completionPercentage: data.completion_percentage,
-    quizScores: data.quiz_scores,
-    certificateIssued: data.certificate_issued,
-    notes: data.notes,
-    bookmarks: data.bookmarks
+    completedLessons: data.completed_lessons || [],
+    completedExercises: data.completed_exercises || [],
+    currentLesson: data.current_lesson || '',
+    startedAt: data.started_at || new Date().toISOString(),
+    lastAccessedAt: data.last_accessed_at || new Date().toISOString(),
+    completionPercentage: data.completion_percentage || 0,
+    quizScores: data.quiz_scores || {},
+    certificateIssued: !!data.certificate_issued,
+    notes: data.notes || {},
+    bookmarks: data.bookmarks || []
   };
 };
 
 // Get achievements for a user
-export const getUserAchievements = async (userId: string) => {
+export const getUserAchievements = async (userId: string): Promise<Achievement[]> => {
   const { data, error } = await supabase
     .from('user_achievements')
     .select(`
