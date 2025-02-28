@@ -10,6 +10,10 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import Labs from "./pages/Labs";
+import Courses from "./pages/Courses";
+import CourseDetail from "./pages/CourseDetail";
+import Dashboard from "./pages/Dashboard";
+import Community from "./pages/Community";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +28,10 @@ const App: FC = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/labs" element={<Labs />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/:slug" element={<CourseDetail />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/community" element={<Community />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
