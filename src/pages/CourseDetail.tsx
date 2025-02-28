@@ -3,7 +3,7 @@ import { FC, useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { courses } from '@/data/courses';
-import { Course, Lesson } from '@/types/course';
+import { Course, Lesson, Exercise } from '@/types/course';
 import { useCourseProgress } from '@/hooks/useCourseProgress';
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -12,8 +12,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react';
-import { ArrowLeft, Book, Check, Clock, Play, User, FileText, Award } from 'lucide-react';
+import { ArrowLeft, Book, Check, Clock, Play, User, FileText, Award, Code } from 'lucide-react';
 import { toast } from 'sonner';
+import { CodeEditor } from '@/components/CodeEditor';
 
 const CourseDetail: FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -22,6 +23,13 @@ const CourseDetail: FC = () => {
   const [course, setCourse] = useState<Course | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [userCode, setUserCode] = useState('');
+  const [exerciseResult, setExerciseResult] = useState<{
+    passed: boolean;
+    message: string;
+    score?: number;
+  } | null>(null);
   
   // Trouver le cours correspondant au slug
   useEffect(() => {
@@ -40,7 +48,7 @@ const CourseDetail: FC = () => {
     }
   }, [slug, navigate]);
   
-  const { progress, isLoading, markLessonAsCompleted, setCurrentLesson } = 
+  const { progress, isLoading, markLessonAsCompleted, markExerciseAsCompleted, setCurrentLesson } = 
     useCourseProgress(course?.id);
   
   useEffect(() => {
@@ -60,6 +68,8 @@ const CourseDetail: FC = () => {
   const handleLessonSelect = (lesson: Lesson) => {
     setSelectedLesson(lesson);
     setActiveTab('content');
+    setSelectedExercise(null);
+    setExerciseResult(null);
   };
   
   const handleMarkAsCompleted = () => {
@@ -72,6 +82,10 @@ const CourseDetail: FC = () => {
   const isLessonCompleted = (lessonId: string) => {
     return progress?.completedLessons.includes(lessonId) || false;
   };
+
+  const isExerciseCompleted = (exerciseId: string) => {
+    return progress?.completedExercises.includes(exerciseId) || false;
+  };
   
   const totalLessons = course.modules.reduce(
     (total, module) => total + module.lessons.length, 
@@ -80,6 +94,179 @@ const CourseDetail: FC = () => {
   
   const completedLessons = progress?.completedLessons.length || 0;
   const completionPercentage = progress?.completionPercentage || 0;
+
+  const handleExerciseSelect = (exercise: Exercise) => {
+    setSelectedExercise(exercise);
+    setUserCode(exercise.codeTemplate || '');
+    setExerciseResult(null);
+  };
+
+  const handleCodeChange = (code: string) => {
+    setUserCode(code);
+  };
+
+  const evaluateExercise = () => {
+    if (!selectedExercise || !course) return;
+
+    try {
+      // Créer une fonction à partir du code utilisateur
+      const userFunction = new Function('return ' + userCode)();
+      
+      // Évaluer le code avec les cas de test
+      let allTestsPassed = true;
+      let failedMessage = '';
+      let score = 0;
+      
+      if (selectedExercise.testCases && selectedExercise.testCases.length > 0) {
+        for (const testCase of selectedExercise.testCases) {
+          try {
+            // Analyser les entrées et sorties attendues
+            const input = JSON.parse(testCase.input);
+            const expectedOutput = JSON.parse(testCase.expectedOutput);
+            
+            // Exécuter la fonction avec les entrées
+            const actualOutput = userFunction(...input);
+            
+            // Comparer les résultats
+            const passed = JSON.stringify(actualOutput) === JSON.stringify(expectedOutput);
+            
+            if (!passed) {
+              allTestsPassed = false;
+              if (testCase.isPublic) {
+                failedMessage = `Échec pour l'entrée: ${testCase.input}. Attendu: ${testCase.expectedOutput}, Reçu: ${JSON.stringify(actualOutput)}`;
+              }
+              break;
+            } else {
+              score += selectedExercise.points || 10;
+            }
+          } catch (e) {
+            allTestsPassed = false;
+            failedMessage = `Erreur d'exécution: ${e.message}`;
+            break;
+          }
+        }
+      } else {
+        // Si pas de cas de test, on compare directement avec la solution
+        allTestsPassed = userCode.trim() === (selectedExercise.solution || '').trim();
+        if (allTestsPassed) {
+          score = selectedExercise.points || 10;
+        } else {
+          failedMessage = 'La solution n\'est pas correcte. Réessayez.';
+        }
+      }
+
+      if (allTestsPassed) {
+        setExerciseResult({
+          passed: true,
+          message: 'Bravo ! Tous les tests sont passés.',
+          score: score
+        });
+        
+        // Marquer l'exercice comme complété
+        markExerciseAsCompleted(selectedExercise.id, course);
+        toast.success('Exercice réussi !');
+      } else {
+        setExerciseResult({
+          passed: false,
+          message: failedMessage || 'Des erreurs ont été détectées.',
+          score: 0
+        });
+      }
+    } catch (error) {
+      setExerciseResult({
+        passed: false,
+        message: `Erreur de syntaxe: ${error.message}`,
+        score: 0
+      });
+    }
+  };
+
+  const renderExerciseView = () => {
+    if (!selectedExercise) return null;
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>{selectedExercise.title}</CardTitle>
+                <CardDescription className="mt-2">
+                  Difficulté: {
+                    selectedExercise.difficulty === 'easy' ? 'Facile' :
+                    selectedExercise.difficulty === 'medium' ? 'Intermédiaire' : 'Difficile'
+                  }
+                  {selectedExercise.points && ` • ${selectedExercise.points} points`}
+                </CardDescription>
+              </div>
+              {isExerciseCompleted(selectedExercise.id) && (
+                <Badge variant="success" className="bg-green-500">Complété</Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium mb-2">Consigne :</h3>
+                <p>{selectedExercise.description}</p>
+              </div>
+              
+              {selectedExercise.hints && selectedExercise.hints.length > 0 && (
+                <div>
+                  <h3 className="font-medium mb-2">Indices :</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {selectedExercise.hints.map((hint, index) => (
+                      <li key={index}>{hint}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              <div>
+                <h3 className="font-medium mb-2">Votre code :</h3>
+                <CodeEditor 
+                  code={userCode} 
+                  onChange={handleCodeChange} 
+                  language="javascript"
+                  height="200px"
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setUserCode(selectedExercise.codeTemplate || '')}
+                >
+                  Réinitialiser
+                </Button>
+                <Button onClick={evaluateExercise}>Vérifier ma réponse</Button>
+              </div>
+              
+              {exerciseResult && (
+                <Card className={`mt-4 border-2 ${exerciseResult.passed ? 'border-green-500' : 'border-red-500'}`}>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-2">
+                      {exerciseResult.passed ? (
+                        <Check className="text-green-500" />
+                      ) : (
+                        <div className="text-red-500">✖</div>
+                      )}
+                      <p className={exerciseResult.passed ? 'text-green-600' : 'text-red-600'}>
+                        {exerciseResult.message}
+                      </p>
+                    </div>
+                    {exerciseResult.passed && exerciseResult.score && (
+                      <p className="mt-2">Score: {exerciseResult.score} points</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -199,6 +386,12 @@ const CourseDetail: FC = () => {
                 <FileText className="w-4 h-4" />
                 <span>Contenu</span>
               </TabsTrigger>
+              {selectedLesson && selectedLesson.exercises.length > 0 && (
+                <TabsTrigger value="exercises" className="flex items-center gap-2">
+                  <Code className="w-4 h-4" />
+                  <span>Exercices</span>
+                </TabsTrigger>
+              )}
             </TabsList>
             
             <TabsContent value="overview">
@@ -298,49 +491,55 @@ const CourseDetail: FC = () => {
                       </div>
                     </SignedIn>
                   </div>
-                  
-                  {selectedLesson.exercises.length > 0 && (
-                    <div>
-                      <h3 className="text-xl font-semibold mb-4">Exercices</h3>
-                      <div className="space-y-4">
-                        {selectedLesson.exercises.map((exercise) => (
-                          <Card key={exercise.id}>
-                            <CardHeader>
-                              <div className="flex justify-between items-center">
-                                <CardTitle>{exercise.title}</CardTitle>
-                                <Badge variant={
-                                  exercise.difficulty === 'easy' ? 'secondary' : 
-                                  exercise.difficulty === 'medium' ? 'default' : 
-                                  'destructive'
-                                }>
-                                  {exercise.difficulty === 'easy' ? 'Facile' : 
-                                   exercise.difficulty === 'medium' ? 'Moyen' : 
-                                   'Difficile'}
-                                </Badge>
-                              </div>
-                              <CardDescription>{exercise.description}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              {exercise.codeTemplate && (
-                                <div className="bg-secondary/20 p-4 rounded-md mb-4 font-mono text-sm overflow-x-auto">
-                                  <pre>{exercise.codeTemplate}</pre>
-                                </div>
-                              )}
-                              <SignedIn>
-                                <Button variant="outline" className="mt-2">
-                                  Commencer l'exercice
-                                </Button>
-                              </SignedIn>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="text-center py-12">
                   <p className="text-lg text-muted-foreground">Sélectionnez une leçon pour commencer.</p>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="exercises">
+              {selectedExercise ? (
+                renderExerciseView()
+              ) : selectedLesson && selectedLesson.exercises.length > 0 ? (
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold mb-4">Exercices disponibles</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedLesson.exercises.map((exercise) => (
+                      <Card key={exercise.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleExerciseSelect(exercise)}>
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg">{exercise.title}</CardTitle>
+                            <Badge variant={
+                              exercise.difficulty === 'easy' ? 'secondary' : 
+                              exercise.difficulty === 'medium' ? 'default' : 
+                              'destructive'
+                            }>
+                              {exercise.difficulty === 'easy' ? 'Facile' : 
+                              exercise.difficulty === 'medium' ? 'Moyen' : 
+                              'Difficile'}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <CardDescription className="line-clamp-2">{exercise.description}</CardDescription>
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="text-sm">{exercise.points || 10} points</span>
+                            {isExerciseCompleted(exercise.id) && (
+                              <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                                Complété <Check className="ml-1 h-3 w-3" />
+                              </Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-lg text-muted-foreground">Aucun exercice disponible pour cette leçon.</p>
                 </div>
               )}
             </TabsContent>
@@ -352,3 +551,4 @@ const CourseDetail: FC = () => {
 };
 
 export default CourseDetail;
+
