@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Course, CourseModule, Lesson, Exercise, Resource, Quiz, UserProgress, Achievement } from "@/types/course";
+import { Course, CourseModule, Lesson, Exercise, Resource, Quiz } from "@/types/course";
 
 // Fetch all published courses
 export const fetchPublishedCourses = async () => {
@@ -198,104 +198,6 @@ export const fetchCourseBySlug = async (slug: string) => {
   };
 
   return course;
-};
-
-// Save course progress for a user
-export const saveUserProgress = async (progress: UserProgress) => {
-  const { data, error } = await supabase
-    .from('user_progress')
-    .upsert({
-      user_id: progress.userId,
-      course_id: progress.courseId,
-      completed_lessons: progress.completedLessons,
-      completed_exercises: progress.completedExercises,
-      current_lesson: progress.currentLesson,
-      started_at: progress.startedAt,
-      last_accessed_at: new Date().toISOString(),
-      completion_percentage: progress.completionPercentage,
-      quiz_scores: progress.quizScores,
-      certificate_issued: progress.certificateIssued,
-      notes: progress.notes,
-      bookmarks: progress.bookmarks
-    }, {
-      onConflict: 'user_id,course_id'
-    });
-
-  if (error) {
-    console.error('Error saving progress:', error);
-    throw new Error(error.message);
-  }
-
-  return data;
-};
-
-// Get user progress for a course
-export const getUserProgress = async (userId: string, courseId: string): Promise<UserProgress | null> => {
-  const { data, error } = await supabase
-    .from('user_progress')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('course_id', courseId)
-    .maybeSingle();
-
-  if (error) {
-    console.error('Error fetching user progress:', error);
-    throw new Error(error.message);
-  }
-
-  if (!data) {
-    return null;
-  }
-
-  // Transform the data to match our UserProgress type with proper type handling
-  return {
-    userId: data.user_id,
-    courseId: data.course_id,
-    completedLessons: data.completed_lessons || [],
-    completedExercises: data.completed_exercises || [],
-    currentLesson: data.current_lesson || '',
-    startedAt: data.started_at || new Date().toISOString(),
-    lastAccessedAt: data.last_accessed_at || new Date().toISOString(),
-    completionPercentage: data.completion_percentage || 0,
-    // Ensure quiz_scores is properly cast to Record<string, number>
-    quizScores: typeof data.quiz_scores === 'object' && data.quiz_scores !== null 
-      ? data.quiz_scores as Record<string, number> 
-      : {},
-    certificateIssued: !!data.certificate_issued,
-    // Ensure notes is properly cast to Record<string, string>
-    notes: typeof data.notes === 'object' && data.notes !== null 
-      ? data.notes as Record<string, string> 
-      : {},
-    bookmarks: data.bookmarks || []
-  };
-};
-
-// Get achievements for a user
-export const getUserAchievements = async (userId: string): Promise<Achievement[]> => {
-  const { data, error } = await supabase
-    .from('user_achievements')
-    .select(`
-      *,
-      achievement:achievement_id(*)
-    `)
-    .eq('user_id', userId);
-
-  if (error) {
-    console.error('Error fetching user achievements:', error);
-    throw new Error(error.message);
-  }
-
-  return data.map(item => ({
-    id: item.achievement.id,
-    title: item.achievement.title,
-    description: item.achievement.description,
-    icon: item.achievement.icon,
-    // Cast condition to the specific union type
-    condition: item.achievement.condition as 'course_completion' | 'exercise_streak' | 'quiz_score' | 'first_login' | 'community_participation',
-    progress: item.progress,
-    isUnlocked: item.is_unlocked,
-    unlockedAt: item.unlocked_at
-  }));
 };
 
 // Update the course with new data

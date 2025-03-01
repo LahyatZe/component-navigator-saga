@@ -1,4 +1,3 @@
-
 import { FC, useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { courses } from '@/data/courses';
@@ -17,7 +16,6 @@ const Courses: FC = () => {
   const [userProgress, setUserProgress] = useState<Record<string, number>>({});
   const [filteredCourses, setFilteredCourses] = useState<CourseType[]>(courses);
   
-  // Charger les progrès de l'utilisateur
   useEffect(() => {
     if (isSignedIn && user) {
       const userId = user.id;
@@ -39,11 +37,9 @@ const Courses: FC = () => {
     }
   }, [isSignedIn, user]);
   
-  // Filtrer les cours en fonction des critères
   useEffect(() => {
     let result = courses;
     
-    // Filtre par terme de recherche
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(course => 
@@ -52,12 +48,10 @@ const Courses: FC = () => {
       );
     }
     
-    // Filtre par niveau
     if (levelFilter !== 'all') {
       result = result.filter(course => course.level === levelFilter);
     }
     
-    // Filtre par catégorie
     if (categoryFilter !== 'all') {
       result = result.filter(course => course.category === categoryFilter);
     }
@@ -150,7 +144,6 @@ const Courses: FC = () => {
         <TabsContent value="recommended">
           {isSignedIn ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* On montre ici les cours recommandés pour l'utilisateur - pour l'exemple, on affiche les cours débutants */}
               {courses
                 .filter(course => course.level === 'beginner')
                 .map(course => (

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Course, UserProgress } from '@/types/course';
-import { getUserProgress, saveUserProgress } from '@/services/courseService';
+import { getUserProgress, saveUserProgress } from '@/services/course';
 import { toast } from 'sonner';
 
 export const useCourseProgress = (courseId?: string) => {

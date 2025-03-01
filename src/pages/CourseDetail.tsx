@@ -14,6 +14,7 @@ import { SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react';
 import { ArrowLeft, Book, Check, Clock, Play, User, FileText, Award, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import { CodeEditor } from '@/components/CodeEditor';
+import { fetchCourseBySlug, getUserProgress, saveUserProgress } from '@/services/course';
 
 const CourseDetail: FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -30,7 +31,6 @@ const CourseDetail: FC = () => {
     score?: number;
   } | null>(null);
   
-  // Trouver le cours correspondant au slug
   useEffect(() => {
     if (!slug) return;
     
@@ -38,7 +38,6 @@ const CourseDetail: FC = () => {
     if (foundCourse) {
       setCourse(foundCourse);
       
-      // Sélectionner la première leçon par défaut
       if (foundCourse.modules.length > 0 && foundCourse.modules[0].lessons.length > 0) {
         setSelectedLesson(foundCourse.modules[0].lessons[0]);
       }
@@ -108,10 +107,8 @@ const CourseDetail: FC = () => {
     if (!selectedExercise || !course) return;
 
     try {
-      // Créer une fonction à partir du code utilisateur
       const userFunction = new Function('return ' + userCode)();
       
-      // Évaluer le code avec les cas de test
       let allTestsPassed = true;
       let failedMessage = '';
       let score = 0;
@@ -119,14 +116,11 @@ const CourseDetail: FC = () => {
       if (selectedExercise.testCases && selectedExercise.testCases.length > 0) {
         for (const testCase of selectedExercise.testCases) {
           try {
-            // Analyser les entrées et sorties attendues
             const input = JSON.parse(testCase.input);
             const expectedOutput = JSON.parse(testCase.expectedOutput);
             
-            // Exécuter la fonction avec les entrées
             const actualOutput = userFunction(...input);
             
-            // Comparer les résultats
             const passed = JSON.stringify(actualOutput) === JSON.stringify(expectedOutput);
             
             if (!passed) {
@@ -145,7 +139,6 @@ const CourseDetail: FC = () => {
           }
         }
       } else {
-        // Si pas de cas de test, on compare directement avec la solution
         allTestsPassed = userCode.trim() === (selectedExercise.solution || '').trim();
         if (allTestsPassed) {
           score = selectedExercise.points || 10;
@@ -161,7 +154,6 @@ const CourseDetail: FC = () => {
           score: score
         });
         
-        // Marquer l'exercice comme complété
         markExerciseAsCompleted(selectedExercise.id, course);
         toast.success('Exercice réussi !');
       } else {
