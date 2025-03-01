@@ -11,7 +11,7 @@ const About: FC = () => {
       <div className="relative overflow-hidden bg-gradient-to-b from-primary/10 to-background py-20">
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center justify-center text-center">
-            <div className="animate-fade-in mb-8">
+            <div className="mb-8">
               <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 À Propos de Moi
               </h1>
