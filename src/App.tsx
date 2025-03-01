@@ -1,8 +1,9 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { ClerkProvider } from '@clerk/clerk-react';
 import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -19,15 +20,28 @@ import AdminPanel from './components/AdminPanel';
 import AdminDataMigration from './components/AdminDataMigration';
 
 // Import your public Clerk key
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_placeholder';
 
 function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isClerkReady, setIsClerkReady] = useState(false);
 
-  // For development, show a message if Clerk key is not found
-  if (!clerkPubKey) {
-    console.warn("Clerk publishable key not found, authentication will not work properly");
-  }
+  useEffect(() => {
+    // Show a warning if using placeholder key
+    if (clerkPubKey === 'pk_test_placeholder') {
+      console.warn("Using placeholder Clerk key - authentication will be limited");
+      toast.warning("Authentication features are limited in preview mode", {
+        duration: 4000,
+      });
+    }
+    
+    // Set clerk as ready after a short delay to ensure proper initialization
+    const timer = setTimeout(() => {
+      setIsClerkReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const toggleAdmin = () => {
     setIsAdminOpen(!isAdminOpen);
@@ -37,19 +51,28 @@ function App() {
     <ClerkProvider publishableKey={clerkPubKey}>
       <HashRouter>
         <Navbar onAdminClick={toggleAdmin} />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/courses/:slug" element={<CourseDetail />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/project/:id" element={<Project />} />
-          <Route path="/labs" element={<Labs />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        {isClerkReady ? (
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/:slug" element={<CourseDetail />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/project/:id" element={<Project />} />
+            <Route path="/labs" element={<Labs />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        ) : (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+              <p className="text-muted-foreground">Chargement du portfolio...</p>
+            </div>
+          </div>
+        )}
         
         {isAdminOpen && (
           <AdminPanel isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)}>
