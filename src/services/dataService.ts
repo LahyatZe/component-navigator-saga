@@ -1,6 +1,6 @@
 
 import { courses } from "@/data/courses";
-import { fetchPublishedCourses, fetchCourseBySlug } from "./courseService";
+import { fetchPublishedCourses, fetchCourseBySlug } from "./course";
 import { Course } from "@/types/course";
 
 // Function to get all courses
