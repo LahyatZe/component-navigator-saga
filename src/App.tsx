@@ -20,25 +20,21 @@ import AdminPanel from './components/AdminPanel';
 import AdminDataMigration from './components/AdminDataMigration';
 
 // Import your public Clerk key
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_placeholder';
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
 
 function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isClerkError, setIsClerkError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if using placeholder key and force non-Clerk mode for preview
-    setIsClerkError(true);
-    
     // Set a small delay to ensure the UI is ready before proceeding
     const timer = setTimeout(() => {
       setIsLoading(false);
       
-      // Only show warning toast if actually using a placeholder key
-      if (clerkPubKey === 'pk_test_placeholder') {
-        console.warn("Using placeholder Clerk key - authentication will be limited");
-        toast.warning("Authentication is disabled in preview. Portfolio functionality is available without login.", {
+      // Only show warning toast if using a placeholder key
+      if (!clerkPubKey || clerkPubKey === 'pk_test_placeholder') {
+        console.warn("Missing or invalid Clerk key - authentication will be limited");
+        toast.warning("Authentication requires a valid Clerk key. Some portfolio functionality may be limited.", {
           duration: 5000,
         });
       }
@@ -51,9 +47,12 @@ function App() {
     setIsAdminOpen(!isAdminOpen);
   };
 
-  // Always use the simplified app without Clerk for preview
-  return (
-    <HashRouter>
+  // Check if we're using a valid Clerk key
+  const hasValidClerkKey = clerkPubKey && clerkPubKey !== 'pk_test_placeholder';
+
+  // If we have a valid Clerk key, use ClerkProvider, otherwise render without it
+  const AppContent = () => (
+    <>
       <Navbar onAdminClick={toggleAdmin} />
       {isLoading ? (
         <div className="min-h-screen flex items-center justify-center">
@@ -85,6 +84,18 @@ function App() {
       )}
       
       <Toaster />
+    </>
+  );
+
+  return (
+    <HashRouter>
+      {hasValidClerkKey ? (
+        <ClerkProvider publishableKey={clerkPubKey}>
+          <AppContent />
+        </ClerkProvider>
+      ) : (
+        <AppContent />
+      )}
     </HashRouter>
   );
 }
