@@ -1,4 +1,3 @@
-
 import { FC, useState } from 'react';
 import { toast } from 'sonner';
 import { Trophy, Star, Code, Award, Rocket } from 'lucide-react';
@@ -248,4 +247,3 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, saveProgress }) => {
 };
 
 export default QuizSection;
-export { questions };
