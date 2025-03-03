@@ -24,7 +24,7 @@ import SignUp from './pages/SignUp';
 function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
 
   useEffect(() => {
     // Set a small delay to ensure the UI is ready before proceeding
@@ -34,6 +34,16 @@ function App() {
     
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    // Redirect authenticated users away from auth pages
+    if (isLoaded && isSignedIn) {
+      const path = window.location.hash;
+      if (path.includes('/sign-in') || path.includes('/sign-up')) {
+        window.location.hash = '/dashboard';
+      }
+    }
+  }, [isSignedIn, isLoaded]);
 
   const toggleAdmin = () => {
     setIsAdminOpen(!isAdminOpen);
@@ -62,8 +72,8 @@ function App() {
             <Route path="/community" element={<Community />} />
             <Route path="/dashboard" element={isSignedIn ? <Dashboard /> : <Navigate to="/sign-in" />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/sign-in/*" element={<SignIn />} />
-            <Route path="/sign-up/*" element={<SignUp />} />
+            <Route path="/sign-in/*" element={!isSignedIn ? <SignIn /> : <Navigate to="/dashboard" />} />
+            <Route path="/sign-up/*" element={!isSignedIn ? <SignUp /> : <Navigate to="/dashboard" />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         )}

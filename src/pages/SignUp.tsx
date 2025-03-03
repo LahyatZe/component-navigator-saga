@@ -1,7 +1,10 @@
 
 import { SignUp as ClerkSignUp } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
 
 export default function SignUp() {
+  const navigate = useNavigate();
+
   return (
     <div className="container mx-auto py-10 flex justify-center">
       <div className="w-full max-w-md">
@@ -11,6 +14,7 @@ export default function SignUp() {
           path="/sign-up"
           signInUrl="/sign-in"
           afterSignUpUrl="/dashboard"
+          navigate={(to) => navigate(to)}
         />
       </div>
     </div>
