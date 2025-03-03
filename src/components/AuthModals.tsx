@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SignIn, SignUp } from "@clerk/clerk-react";
 import {
   Dialog,
@@ -19,6 +19,13 @@ interface AuthModalsProps {
 
 const AuthModals = ({ isOpen, type, onClose }: AuthModalsProps) => {
   const [activeType, setActiveType] = useState<AuthModalType>(type);
+  
+  // Update activeType when type prop changes
+  useEffect(() => {
+    if (isOpen) {
+      setActiveType(type);
+    }
+  }, [isOpen, type]);
 
   // Switch between sign-in and sign-up
   const handleSignInLink = () => {
