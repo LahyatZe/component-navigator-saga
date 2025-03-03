@@ -101,22 +101,26 @@ const AuthModals = ({ isOpen, type, onClose }: AuthModalsProps) => {
             {activeType === "signIn" ? (
               <p>
                 Don't have an account?{" "}
-                <button 
-                  onClick={handleSignUpLink}
+                <a 
+                  href="https://steady-starling-83.accounts.dev/sign-up"
                   className="text-primary hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Sign up
-                </button>
+                </a>
               </p>
             ) : (
               <p>
                 Already have an account?{" "}
-                <button 
-                  onClick={handleSignInLink}
+                <a 
+                  href="https://steady-starling-83.accounts.dev/sign-in"
                   className="text-primary hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Sign in
-                </button>
+                </a>
               </p>
             )}
           </div>
