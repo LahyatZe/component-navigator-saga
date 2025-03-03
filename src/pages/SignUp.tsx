@@ -9,7 +9,7 @@ export default function SignUp() {
         <ClerkSignUp 
           routing="path" 
           path="/"
-          signInUrl="/sign-in"
+          signInUrl="/"
           afterSignUpUrl="/dashboard"
           redirectUrl="/dashboard"
         />
