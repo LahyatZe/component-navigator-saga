@@ -38,7 +38,7 @@ function App() {
   };
 
   return (
-    <ThemeProvider defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <HashRouter>
         <Navbar onAdminClick={toggleAdmin} />
         {isLoading ? (

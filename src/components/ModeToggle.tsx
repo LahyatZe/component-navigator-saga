@@ -10,7 +10,7 @@ import {
 import { useTheme } from "next-themes";
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
+  const { setTheme, theme } = useTheme();
 
   return (
     <DropdownMenu>

@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ModeToggle } from './ModeToggle';
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useAuth, useUser, useClerk } from "@clerk/clerk-react";
 import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
 
 interface NavbarProps {
   onAdminClick?: () => void;
@@ -12,10 +13,17 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
   const { isSignedIn } = useAuth();
   const { user } = useUser();
+  const { signOut } = useClerk();
+  const navigate = useNavigate();
   
   // Check if user has admin role (for demonstration, checking email domain)
   // In a real app, you'd check for a proper admin flag or role
   const isAdmin = isSignedIn && user?.primaryEmailAddress?.emailAddress?.endsWith('@admin.com');
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <nav className="bg-background border-b sticky top-0 z-50">
@@ -62,6 +70,15 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
                     Admin
                   </button>
                 )}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleSignOut}
+                  className="flex items-center gap-1"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </Button>
               </>
             ) : (
               <>
