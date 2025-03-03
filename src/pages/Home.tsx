@@ -1,13 +1,13 @@
-
 import { FC, useEffect, useState } from 'react';
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import AdminPanel from '@/components/AdminPanel';
 import { GuestHero, UserHero } from '@/components/HeroSection';
-import QuizSection, { questions } from '@/components/QuizSection';
+import QuizSection from '@/components/QuizSection';
 import UserProgress, { sections } from '@/components/UserProgress';
 import { useProgressPersistence } from '@/hooks/useProgressPersistence';
 import { useAchievements } from '@/hooks/useAchievements';
+import { questions } from '@/data/quizQuestions';
 
 const ADMIN_EMAIL = "sohaib.zeghouani@gmail.com";
 
@@ -21,17 +21,14 @@ const Home: FC = () => {
   const isAdmin = user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL;
   const { achievements } = useAchievements(progress, user?.id);
 
-  // Affichage de chargement si les données ne sont pas encore chargées
   const isDataReady = isUserLoaded && (isSignedIn ? isLoaded : true);
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Calculate level progress
   useEffect(() => {
     if (isLoaded && user) {
       const correctAnswers = progress.quizHistory.filter(q => q.level === progress.currentLevel + 1 && q.correct).length;
@@ -46,7 +43,6 @@ const Home: FC = () => {
     }
   }, [isLoaded, progress, user]);
 
-  // Affichage de chargement pendant que les données se chargent
   if (!isDataReady) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -60,7 +56,6 @@ const Home: FC = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Affichage différent selon que l'utilisateur est connecté ou non */}
       <SignedIn>
         <UserHero 
           progress={progress}
