@@ -62,8 +62,8 @@ function App() {
             <Route path="/community" element={<Community />} />
             <Route path="/dashboard" element={isSignedIn ? <Dashboard /> : <Navigate to="/sign-in" />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/sign-in" element={<SignIn />} />
-            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/sign-in/*" element={<SignIn />} />
+            <Route path="/sign-up/*" element={<SignUp />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         )}
