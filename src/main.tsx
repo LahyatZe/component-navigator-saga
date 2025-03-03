@@ -16,13 +16,14 @@ if (!PUBLISHABLE_KEY) {
 }
 
 // Get the current origin for the redirect URL
-const redirectUrl = window.location.origin;
+const currentOrigin = window.location.origin;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ClerkProvider 
       publishableKey={PUBLISHABLE_KEY}
-      redirectUrl={redirectUrl}
+      afterSignInUrl={currentOrigin}
+      afterSignUpUrl={currentOrigin}
     >
       <App />
     </ClerkProvider>
