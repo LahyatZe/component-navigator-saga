@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/sonner";
@@ -15,6 +16,7 @@ import Labs from './pages/Labs';
 import Contact from './pages/Contact';
 import Community from './pages/Community';
 import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import AdminPanel from './components/AdminPanel';
 import AdminDataMigration from './components/AdminDataMigration';
@@ -71,6 +73,7 @@ function App() {
               <Route path="/labs" element={<Labs />} />
               <Route path="/community" element={<Community />} />
               <Route path="/dashboard" element={isSignedIn ? <Dashboard /> : <Navigate to="/sign-in" />} />
+              <Route path="/settings" element={isSignedIn ? <Settings /> : <Navigate to="/sign-in" />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/sign-in/*" element={isSignedIn ? <Navigate to="/dashboard" /> : <SignIn />} />
               <Route path="/sign-up/*" element={isSignedIn ? <Navigate to="/dashboard" /> : <SignUp />} />

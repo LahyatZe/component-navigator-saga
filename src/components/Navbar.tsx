@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ModeToggle } from './ModeToggle';
 import { useAuth, useUser, useClerk } from "@clerk/clerk-react";
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 
 interface NavbarProps {
@@ -62,6 +62,10 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
               <>
                 <Link to="/dashboard" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
                   Dashboard
+                </Link>
+                <Link to="/settings" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10 flex items-center">
+                  <Settings className="h-4 w-4 mr-1" />
+                  Settings
                 </Link>
                 {isAdmin && onAdminClick && (
                   <button 
