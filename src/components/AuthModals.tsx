@@ -55,7 +55,7 @@ const AuthModals = ({ isOpen, type, onClose }: AuthModalsProps) => {
             <SignIn 
               routing="path" 
               path="/sign-in"
-              signUpUrl="/sign-up"
+              signUpUrl="https://steady-starling-83.accounts.dev/sign-up"
               afterSignInUrl="/dashboard"
               appearance={{
                 elements: {
@@ -77,7 +77,7 @@ const AuthModals = ({ isOpen, type, onClose }: AuthModalsProps) => {
             <SignUp 
               routing="path" 
               path="/sign-up"
-              signInUrl="/sign-in"
+              signInUrl="https://steady-starling-83.accounts.dev/sign-in"
               afterSignUpUrl="/dashboard"
               appearance={{
                 elements: {
