@@ -27,15 +27,6 @@ const AuthModals = ({ isOpen, type, onClose }: AuthModalsProps) => {
     }
   }, [isOpen, type]);
 
-  // Switch between sign-in and sign-up
-  const handleSignInLink = () => {
-    setActiveType("signIn");
-  };
-
-  const handleSignUpLink = () => {
-    setActiveType("signUp");
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
