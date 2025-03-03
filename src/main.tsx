@@ -5,8 +5,8 @@ import { ClerkProvider } from "@clerk/clerk-react";
 import App from "./App";
 import "./index.css";
 
-// Fix the Clerk publishable key handling
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_steady-starling-83.clerk.accounts.dev";
+// Use the correct publishable key format
+const PUBLISHABLE_KEY = "pk_test_steady-starling-83.clerk.accounts.dev";
 
 // Debug the key to identify any issues
 console.log("Clerk Key:", PUBLISHABLE_KEY);
