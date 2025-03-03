@@ -4,6 +4,7 @@ import QuizModal from '@/components/QuizModal';
 import { UserProgress } from '@/hooks/useProgressPersistence';
 import { useQuiz } from '@/hooks/useQuiz';
 import { questions } from '@/data/quizQuestions';
+import { Question } from '@/types/quiz';
 
 interface QuizSectionProps {
   progress: UserProgress;
