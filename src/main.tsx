@@ -6,7 +6,7 @@ import App from "./App";
 import "./index.css";
 
 // Use the proper publishable key without any base64 encoding
-const PUBLISHABLE_KEY = "pk_test_c3RlYWR5LXN0YXJsaW5nLTgzLmNsZXJrLmFjY291bnRzLmRldiQ";
+const PUBLISHABLE_KEY = "pk_test_steady-starling-83.clerk.accounts.dev";
 
 // Debug the key to identify any issues
 console.log("Clerk Key:", PUBLISHABLE_KEY);

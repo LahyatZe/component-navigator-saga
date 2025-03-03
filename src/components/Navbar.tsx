@@ -2,12 +2,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ModeToggle } from './ModeToggle';
+import { useAuth, useUser } from "@clerk/clerk-react";
+import { Button } from '@/components/ui/button';
 
 interface NavbarProps {
   onAdminClick?: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
+  const { isSignedIn } = useAuth();
+  const { user } = useUser();
+  
+  // Check if user has admin role (for demonstration, checking email domain)
+  // In a real app, you'd check for a proper admin flag or role
+  const isAdmin = isSignedIn && user?.primaryEmailAddress?.emailAddress?.endsWith('@admin.com');
+
   return (
     <nav className="bg-background border-b sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -40,16 +49,29 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Link to="/dashboard" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
-              Dashboard
-            </Link>
-            {onAdminClick && (
-              <button 
-                onClick={onAdminClick}
-                className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10"
-              >
-                Admin
-              </button>
+            {isSignedIn ? (
+              <>
+                <Link to="/dashboard" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
+                  Dashboard
+                </Link>
+                {isAdmin && onAdminClick && (
+                  <button 
+                    onClick={onAdminClick}
+                    className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10"
+                  >
+                    Admin
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <Link to="/sign-in">
+                  <Button variant="outline" size="sm">Sign In</Button>
+                </Link>
+                <Link to="/sign-up">
+                  <Button size="sm">Sign Up</Button>
+                </Link>
+              </>
             )}
             <ModeToggle />
           </div>
