@@ -89,12 +89,12 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
               </>
             ) : (
               <>
-                <Link to="/sign-in">
-                  <Button variant="outline" size="sm">Sign In</Button>
-                </Link>
-                <Link to="/sign-up">
-                  <Button size="sm">Sign Up</Button>
-                </Link>
+              <a href="https://steady-starling-83.accounts.dev/sign-in" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm">Sign In</Button>
+              </a>
+              <a href="https://steady-starling-83.accounts.dev/sign-up" target="_blank" rel="noopener noreferrer">
+                <Button size="sm">Sign Up</Button>
+              </a>
               </>
             )}
             <ModeToggle />
