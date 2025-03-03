@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/sonner";
@@ -33,15 +34,6 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      const path = window.location.hash;
-      if (path.includes('/sign-in') || path.includes('/sign-up')) {
-        window.location.replace('#/dashboard');
-      }
-    }
-  }, [isSignedIn, isLoaded]);
-
   const toggleAdmin = () => {
     setIsAdminOpen(!isAdminOpen);
   };
@@ -69,8 +61,8 @@ function App() {
             <Route path="/community" element={<Community />} />
             <Route path="/dashboard" element={isSignedIn ? <Dashboard /> : <Navigate to="/sign-in" />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/sign-in/*" element={!isSignedIn ? <SignIn /> : <Navigate to="/dashboard" />} />
-            <Route path="/sign-up/*" element={!isSignedIn ? <SignUp /> : <Navigate to="/dashboard" />} />
+            <Route path="/sign-in/*" element={isSignedIn ? <Navigate to="/dashboard" /> : <SignIn />} />
+            <Route path="/sign-up/*" element={isSignedIn ? <Navigate to="/dashboard" /> : <SignUp />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         )}
