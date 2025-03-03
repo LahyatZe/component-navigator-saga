@@ -1,10 +1,7 @@
 
 import { SignIn as ClerkSignIn } from "@clerk/clerk-react";
-import { useNavigate } from "react-router-dom";
 
 export default function SignIn() {
-  const navigate = useNavigate();
-  
   return (
     <div className="container mx-auto py-10 flex justify-center">
       <div className="w-full max-w-md">
