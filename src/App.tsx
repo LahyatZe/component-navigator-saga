@@ -20,8 +20,6 @@ import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import AdminPanel from './components/AdminPanel';
 import AdminDataMigration from './components/AdminDataMigration';
-import SignIn from './pages/SignIn';
-import SignUp from './pages/SignUp';
 
 function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -62,11 +60,9 @@ function App() {
               <Route path="/project/:id" element={<Project />} />
               <Route path="/labs" element={<Labs />} />
               <Route path="/community" element={<Community />} />
-              <Route path="/dashboard" element={isSignedIn ? <Dashboard /> : <Navigate to="/sign-in" />} />
-              <Route path="/settings" element={isSignedIn ? <Settings /> : <Navigate to="/sign-in" />} />
+              <Route path="/dashboard" element={isSignedIn ? <Dashboard /> : <Navigate to="/" />} />
+              <Route path="/settings" element={isSignedIn ? <Settings /> : <Navigate to="/" />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/sign-in/*" element={<SignIn />} />
-              <Route path="/sign-up/*" element={<SignUp />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           )}

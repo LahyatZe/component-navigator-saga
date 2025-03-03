@@ -1,12 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ModeToggle } from './ModeToggle';
 import { useAuth, useUser, useClerk } from "@clerk/clerk-react";
 import { Button } from '@/components/ui/button';
 import { LogOut, Settings } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
-import AuthModals from './AuthModals';
 
 interface NavbarProps {
   onAdminClick?: () => void;
@@ -89,12 +88,12 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
               </>
             ) : (
               <>
-              <a href="https://steady-starling-83.accounts.dev/sign-in" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm">Sign In</Button>
-              </a>
-              <a href="https://steady-starling-83.accounts.dev/sign-up" target="_blank" rel="noopener noreferrer">
-                <Button size="sm">Sign Up</Button>
-              </a>
+                <a href="https://steady-starling-83.accounts.dev/sign-in" target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="sm">Sign In</Button>
+                </a>
+                <a href="https://steady-starling-83.accounts.dev/sign-up" target="_blank" rel="noopener noreferrer">
+                  <Button size="sm">Sign Up</Button>
+                </a>
               </>
             )}
             <ModeToggle />
