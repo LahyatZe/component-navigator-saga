@@ -34,6 +34,18 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Force redirect if user is already signed in and trying to access auth pages
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      const currentPath = window.location.hash;
+      // Check if on a sign-in or sign-up page
+      if (currentPath === '#/sign-in' || currentPath === '#/sign-up' || 
+          currentPath.startsWith('#/sign-in/') || currentPath.startsWith('#/sign-up/')) {
+        window.location.href = '#/dashboard';
+      }
+    }
+  }, [isSignedIn, isLoaded]);
+
   const toggleAdmin = () => {
     setIsAdminOpen(!isAdminOpen);
   };
