@@ -1,9 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { ClerkProvider } from '@clerk/clerk-react';
 import { Toaster } from "@/components/ui/sonner";
-import { toast } from "sonner";
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -18,9 +16,6 @@ import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 import AdminPanel from './components/AdminPanel';
 import AdminDataMigration from './components/AdminDataMigration';
-
-// Import your public Clerk key
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
 
 function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -41,39 +36,37 @@ function App() {
 
   return (
     <HashRouter>
-      <ClerkProvider publishableKey={clerkPubKey}>
-        <Navbar onAdminClick={toggleAdmin} />
-        {isLoading ? (
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-              <p className="text-muted-foreground">Chargement du portfolio...</p>
-            </div>
+      <Navbar onAdminClick={toggleAdmin} />
+      {isLoading ? (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+            <p className="text-muted-foreground">Chargement du portfolio...</p>
           </div>
-        ) : (
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/courses/:slug" element={<CourseDetail />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/project/:id" element={<Project />} />
-            <Route path="/labs" element={<Labs />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        )}
-        
-        {isAdminOpen && (
-          <AdminPanel isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)}>
-            <AdminDataMigration />
-          </AdminPanel>
-        )}
-        
-        <Toaster />
-      </ClerkProvider>
+        </div>
+      ) : (
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/courses" element={<Courses />} />
+          <Route path="/courses/:slug" element={<CourseDetail />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/project/:id" element={<Project />} />
+          <Route path="/labs" element={<Labs />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      )}
+      
+      {isAdminOpen && (
+        <AdminPanel isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)}>
+          <AdminDataMigration />
+        </AdminPanel>
+      )}
+      
+      <Toaster />
     </HashRouter>
   );
 }
