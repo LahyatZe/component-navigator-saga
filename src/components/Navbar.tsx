@@ -5,6 +5,7 @@ import { ModeToggle } from './ModeToggle';
 import { useAuth, useUser, useClerk } from "@clerk/clerk-react";
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
+import NotificationCenter from './NotificationCenter';
 
 interface NavbarProps {
   onAdminClick?: () => void;
@@ -70,6 +71,7 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
                     Admin
                   </button>
                 )}
+                <NotificationCenter />
                 <Button 
                   variant="ghost" 
                   size="sm" 
