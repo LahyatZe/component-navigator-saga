@@ -17,8 +17,6 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
   const { user } = useUser();
   const { signOut } = useClerk();
   const navigate = useNavigate();
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authModalType, setAuthModalType] = useState<"signIn" | "signUp" | null>(null);
   
   // Check if user has admin role (for demonstration, checking email domain)
   // In a real app, you'd check for a proper admin flag or role
@@ -27,21 +25,6 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
-  };
-
-  const openSignInModal = () => {
-    setAuthModalType("signIn");
-    setAuthModalOpen(true);
-  };
-
-  const openSignUpModal = () => {
-    setAuthModalType("signUp");
-    setAuthModalOpen(true);
-  };
-
-  const closeAuthModal = () => {
-    setAuthModalOpen(false);
-    setAuthModalType(null);
   };
 
   return (
@@ -106,21 +89,18 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
               </>
             ) : (
               <>
-                <Button variant="outline" size="sm" onClick={openSignInModal}>Sign In</Button>
-                <Button size="sm" onClick={openSignUpModal}>Sign Up</Button>
+                <Link to="/sign-in">
+                  <Button variant="outline" size="sm">Sign In</Button>
+                </Link>
+                <Link to="/sign-up">
+                  <Button size="sm">Sign Up</Button>
+                </Link>
               </>
             )}
             <ModeToggle />
           </div>
         </div>
       </div>
-      
-      {/* Auth Modals */}
-      <AuthModals 
-        isOpen={authModalOpen} 
-        type={authModalType} 
-        onClose={closeAuthModal} 
-      />
     </nav>
   );
 };
