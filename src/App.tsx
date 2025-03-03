@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
+import { useAuth } from "@clerk/clerk-react";
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -23,6 +24,7 @@ import SignUp from './pages/SignUp';
 function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     // Set a small delay to ensure the UI is ready before proceeding
@@ -58,7 +60,7 @@ function App() {
             <Route path="/project/:id" element={<Project />} />
             <Route path="/labs" element={<Labs />} />
             <Route path="/community" element={<Community />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={isSignedIn ? <Dashboard /> : <Navigate to="/sign-in" />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
