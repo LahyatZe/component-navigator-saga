@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/sonner";
@@ -36,16 +35,6 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      const currentPath = window.location.hash;
-      if (currentPath === '#/sign-in' || currentPath === '#/sign-up' || 
-          currentPath.startsWith('#/sign-in/') || currentPath.startsWith('#/sign-up/')) {
-        window.location.href = '#/dashboard';
-      }
-    }
-  }, [isSignedIn, isLoaded]);
-
   const toggleAdmin = () => {
     setIsAdminOpen(!isAdminOpen);
   };
@@ -72,11 +61,11 @@ function App() {
               <Route path="/project/:id" element={<Project />} />
               <Route path="/labs" element={<Labs />} />
               <Route path="/community" element={<Community />} />
-              <Route path="/dashboard" element={isSignedIn ? <Dashboard /> : <Navigate to="/sign-in" />} />
-              <Route path="/settings" element={isSignedIn ? <Settings /> : <Navigate to="/sign-in" />} />
+              <Route path="/dashboard" element={isSignedIn ? <Dashboard /> : <Navigate to="/" />} />
+              <Route path="/settings" element={isSignedIn ? <Settings /> : <Navigate to="/" />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/sign-in/*" element={isSignedIn ? <Navigate to="/dashboard" /> : <SignIn />} />
-              <Route path="/sign-up/*" element={isSignedIn ? <Navigate to="/dashboard" /> : <SignUp />} />
+              <Route path="/sign-in/*" element={<SignIn />} />
+              <Route path="/sign-up/*" element={<SignUp />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           )}
