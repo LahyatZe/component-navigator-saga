@@ -5,7 +5,7 @@ import { ClerkProvider } from "@clerk/clerk-react";
 import App from "./App";
 import "./index.css";
 
-// Use the correct publishable key format
+// Use the proper publishable key without any base64 encoding
 const PUBLISHABLE_KEY = "pk_test_steady-starling-83.clerk.accounts.dev";
 
 // Debug the key to identify any issues
