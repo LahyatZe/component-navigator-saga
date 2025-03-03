@@ -8,8 +8,8 @@ export default function SignUp() {
         <h1 className="text-2xl font-bold mb-6 text-center">Create an Account</h1>
         <ClerkSignUp 
           routing="path" 
-          path="/"
-          signInUrl="/"
+          path="/sign-up"
+          signInUrl="/sign-in"
           afterSignUpUrl="/dashboard"
           redirectUrl="/dashboard"
         />
