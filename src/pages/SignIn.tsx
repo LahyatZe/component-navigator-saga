@@ -14,7 +14,8 @@ export default function SignIn() {
           path="/sign-in"
           signUpUrl="/sign-up"
           afterSignInUrl="/dashboard"
-          navigate={(to) => navigate(to)}
+          // Use redirectUrl instead of navigate
+          redirectUrl="/dashboard"
         />
       </div>
     </div>

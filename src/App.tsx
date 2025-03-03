@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/sonner";
@@ -27,7 +26,6 @@ function App() {
   const { isSignedIn, isLoaded } = useAuth();
 
   useEffect(() => {
-    // Set a small delay to ensure the UI is ready before proceeding
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
@@ -36,11 +34,10 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Redirect authenticated users away from auth pages
     if (isLoaded && isSignedIn) {
       const path = window.location.hash;
       if (path.includes('/sign-in') || path.includes('/sign-up')) {
-        window.location.hash = '/dashboard';
+        window.location.replace('#/dashboard');
       }
     }
   }, [isSignedIn, isLoaded]);
