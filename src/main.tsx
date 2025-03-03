@@ -15,9 +15,15 @@ if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Clerk Publishable Key");
 }
 
+// Get the current origin for the redirect URL
+const redirectUrl = window.location.origin;
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <ClerkProvider 
+      publishableKey={PUBLISHABLE_KEY}
+      redirectUrl={redirectUrl}
+    >
       <App />
     </ClerkProvider>
   </React.StrictMode>
