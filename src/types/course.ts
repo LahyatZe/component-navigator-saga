@@ -1,4 +1,3 @@
-
 export interface Course {
   id: string;
   title: string;
@@ -102,6 +101,7 @@ export interface UserProgress {
   unlockedYears: string[];
   currentLevel: number;
   achievements?: string[];
+  userEmail?: string; // Added this property to match useProgressPersistence.tsx
 }
 
 export interface Achievement {
