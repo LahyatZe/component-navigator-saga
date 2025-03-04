@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Course, UserProgress } from '@/types/course';
@@ -13,13 +12,13 @@ export const useCourseProgress = (courseId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialLoadRef = useRef(true);
-  const [supabaseAuthChecked, setSupabaseAuthChecked] = useState(false);
+  const [supaSessioChecked, setSupaSessionChecked] = useState(false);
 
-  // Check Supabase auth status
+  // Check Supabase auth status - don't try to create a session
   useEffect(() => {
-    const checkSupabaseAuth = async () => {
+    const checkSupabaseSession = async () => {
       try {
-        console.log("Checking Supabase authentication status...");
+        console.log("Checking Supabase session status...");
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -27,14 +26,14 @@ export const useCourseProgress = (courseId?: string) => {
         }
         
         console.log("Supabase session status:", session ? "Authenticated" : "Not authenticated");
-        setSupabaseAuthChecked(true);
+        setSupaSessionChecked(true);
       } catch (error) {
-        console.error("Error checking Supabase auth:", error);
-        setSupabaseAuthChecked(true); // Mark as checked even on error so we continue
+        console.error("Error checking Supabase session:", error);
+        setSupaSessionChecked(true); // Mark as checked even on error so we continue
       }
     };
     
-    checkSupabaseAuth();
+    checkSupabaseSession();
     
     // Clean up function
     return () => {
@@ -56,62 +55,35 @@ export const useCourseProgress = (courseId?: string) => {
         console.log("Loading course progress for user:", userId, "and course:", courseId);
         
         // Try to get progress from Supabase
-        const progressData = await getUserProgress(userId, courseId);
-        
-        if (progressData) {
-          // Set progress data retrieved from database
-          console.log("Retrieved progress data:", progressData);
-          setProgress(progressData);
-        } else {
-          // Initialize a new progress for this course
-          console.log("No existing progress found, initializing new progress");
-          const newProgress: UserProgress = {
-            userId: userId,
-            courseId: courseId,
-            completedLessons: [],
-            completedExercises: [],
-            currentLesson: '', // Will be defined later with the first lesson
-            startedAt: new Date().toISOString(),
-            lastAccessedAt: new Date().toISOString(),
-            completionPercentage: 0,
-            quizScores: {},
-            certificateIssued: false,
-            notes: {},
-            bookmarks: []
-          };
-          setProgress(newProgress);
+        try {
+          const progressData = await getUserProgress(userId, courseId);
+          
+          if (progressData) {
+            // Set progress data retrieved from database
+            console.log("Retrieved progress data:", progressData);
+            setProgress(progressData);
+            setIsLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error("Error loading progress:", error);
+          // Continue to localStorage fallback
         }
-      } catch (error) {
-        console.error("Error loading progress:", error);
         
-        // Fallback to localStorage if database fails
+        // Fallback to localStorage if Supabase fails or returns no data
         const savedProgress = localStorage.getItem(`course_progress_${user.id}_${courseId}`);
         if (savedProgress) {
           try {
             const parsedProgress = JSON.parse(savedProgress) as UserProgress;
             setProgress(parsedProgress);
             console.log("Loaded progress from localStorage as fallback");
-          } catch (error) {
-            console.error("Error parsing progress from localStorage:", error);
+          } catch (parseError) {
+            console.error("Error parsing progress from localStorage:", parseError);
+            initializeNewProgress(userId, courseId);
           }
         } else {
           // If no progress in localStorage, create a new one
-          console.log("No existing progress in localStorage, initializing new progress");
-          const newProgress: UserProgress = {
-            userId: user.id,
-            courseId: courseId,
-            completedLessons: [],
-            completedExercises: [],
-            currentLesson: '',
-            startedAt: new Date().toISOString(),
-            lastAccessedAt: new Date().toISOString(),
-            completionPercentage: 0,
-            quizScores: {},
-            certificateIssued: false,
-            notes: {},
-            bookmarks: []
-          };
-          setProgress(newProgress);
+          initializeNewProgress(userId, courseId);
         }
       } finally {
         setIsLoading(false);
@@ -119,11 +91,30 @@ export const useCourseProgress = (courseId?: string) => {
       }
     };
 
+    const initializeNewProgress = (userId: string, courseId: string) => {
+      console.log("No existing progress found, initializing new progress");
+      const newProgress: UserProgress = {
+        userId: userId,
+        courseId: courseId,
+        completedLessons: [],
+        completedExercises: [],
+        currentLesson: '', // Will be defined later with the first lesson
+        startedAt: new Date().toISOString(),
+        lastAccessedAt: new Date().toISOString(),
+        completionPercentage: 0,
+        quizScores: {},
+        certificateIssued: false,
+        notes: {},
+        bookmarks: []
+      };
+      setProgress(newProgress);
+    };
+
     // Only load progress when component mounts and we've checked Supabase auth
-    if (initialLoadRef.current && supabaseAuthChecked) {
+    if (initialLoadRef.current && supaSessioChecked) {
       loadProgress();
     }
-  }, [isSignedIn, user, courseId, supabaseAuthChecked]);
+  }, [isSignedIn, user, courseId, supaSessioChecked]);
 
   const saveProgressToStorage = async (progressData: UserProgress) => {
     if (!isSignedIn || !user) return;
@@ -131,23 +122,22 @@ export const useCourseProgress = (courseId?: string) => {
     try {
       console.log("Saving progress to storage:", progressData);
       
-      // Save to localStorage as backup first
+      // Always save to localStorage as backup first
       localStorage.setItem(
         `course_progress_${progressData.userId}_${progressData.courseId}`,
         JSON.stringify(progressData)
       );
       
-      // Then try to save to Supabase
+      // Then try to save to Supabase if we have a session
       try {
         await saveUserProgress(progressData);
         console.log("Progress saved successfully to Supabase");
       } catch (error) {
         console.error("Error saving to Supabase, using localStorage only:", error);
-        // We've already saved to localStorage as a backup
+        // We've already saved to localStorage as a backup, so we're good
       }
     } catch (error) {
       console.error("Error saving progress:", error);
-      // We've already saved to localStorage as a backup
     }
   };
 

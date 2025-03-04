@@ -31,13 +31,12 @@ export const saveUserProgress = async (progress: UserProgress) => {
   }
   
   try {
-    // Check if we have a session - we won't try to create anonymous sessions
+    // Check if we have a session without trying to create one
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError || !sessionData.session) {
       console.log("No authenticated session found, saving to localStorage only");
-      // If no session, we'll just use localStorage (handled by the caller)
-      throw new Error("No authenticated session available");
+      return null; // Return early, caller will handle localStorage saving
     }
     
     const { data, error } = await supabase
@@ -68,6 +67,10 @@ export const saveUserProgress = async (progress: UserProgress) => {
     return data;
   } catch (error) {
     console.error('Error saving progress:', error);
+    // Rethrowing as a more descriptive error
+    if (error.message && error.message.includes("session")) {
+      throw new Error("No authenticated session available");
+    }
     throw error;
   }
 };
@@ -81,12 +84,11 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
   console.log("Formatted user ID for database lookup:", formattedUserId);
   
   try {
-    // Check if we have a session - we won't try to create anonymous sessions
+    // Check if we have a session without trying to create one
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError || !sessionData.session) {
       console.log("No authenticated session found, using localStorage only");
-      // If no session, we'll just use localStorage (handled by the caller)
       throw new Error("No authenticated session available");
     }
     
