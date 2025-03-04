@@ -432,11 +432,16 @@ export type Database = {
           course_id: string
           created_at: string | null
           current_lesson: string | null
+          current_level: number | null
+          cv_downloaded: boolean | null
           id: string
           last_accessed_at: string | null
           notes: Json | null
+          quiz_history: Json | null
           quiz_scores: Json | null
           started_at: string | null
+          unlocked_years: string[] | null
+          used_hints: Json | null
           user_id: string
         }
         Insert: {
@@ -448,11 +453,16 @@ export type Database = {
           course_id: string
           created_at?: string | null
           current_lesson?: string | null
+          current_level?: number | null
+          cv_downloaded?: boolean | null
           id?: string
           last_accessed_at?: string | null
           notes?: Json | null
+          quiz_history?: Json | null
           quiz_scores?: Json | null
           started_at?: string | null
+          unlocked_years?: string[] | null
+          used_hints?: Json | null
           user_id: string
         }
         Update: {
@@ -464,11 +474,16 @@ export type Database = {
           course_id?: string
           created_at?: string | null
           current_lesson?: string | null
+          current_level?: number | null
+          cv_downloaded?: boolean | null
           id?: string
           last_accessed_at?: string | null
           notes?: Json | null
+          quiz_history?: Json | null
           quiz_scores?: Json | null
           started_at?: string | null
+          unlocked_years?: string[] | null
+          used_hints?: Json | null
           user_id?: string
         }
         Relationships: [

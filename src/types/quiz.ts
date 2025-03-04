@@ -4,11 +4,11 @@ export interface Question {
   question: string;
   options: string[];
   correctOptionIndex: number;
-  correctAnswer: number; // Added this property
+  correctAnswer: number;
   level: number;
   hints?: string[];
   usedHints?: string[];
-  explanation?: string; // Added this property
+  explanation?: string;
 }
 
 // Make sure this interface is accessible where needed
