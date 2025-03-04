@@ -389,6 +389,39 @@ export type Database = {
           },
         ]
       }
+      user_portfolio_progress: {
+        Row: {
+          achievements: string[]
+          created_at: string
+          current_level: number
+          id: string
+          last_updated: string
+          quiz_history: Json
+          unlocked_years: string[]
+          user_id: string
+        }
+        Insert: {
+          achievements?: string[]
+          created_at?: string
+          current_level?: number
+          id?: string
+          last_updated?: string
+          quiz_history?: Json
+          unlocked_years?: string[]
+          user_id: string
+        }
+        Update: {
+          achievements?: string[]
+          created_at?: string
+          current_level?: number
+          id?: string
+          last_updated?: string
+          quiz_history?: Json
+          unlocked_years?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_progress: {
         Row: {
           bookmarks: string[] | null

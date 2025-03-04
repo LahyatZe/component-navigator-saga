@@ -13,7 +13,7 @@ export interface UserProgress {
 }
 
 // Table name in Supabase for user progress
-const PROGRESS_TABLE = 'user_progress';
+const PROGRESS_TABLE = 'user_portfolio_progress';
 
 export const useProgressPersistence = () => {
   const { user, isSignedIn } = useUser();
