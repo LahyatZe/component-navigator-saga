@@ -79,7 +79,7 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }
   
   return (
     <>
-      {showModal && (
+      {showModal && currentQuestion && (
         <QuizModal
           isOpen={quizState.showQuiz}
           onClose={handleCloseModal}

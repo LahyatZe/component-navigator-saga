@@ -35,8 +35,15 @@ export const useQuiz = (
       saveProgress({ quizHistory: updatedQuizHistory });
       
       if (correct) {
+        // Safely check if questions array is defined before filtering
+        if (!Array.isArray(questions)) {
+          console.error("Questions array is not properly defined");
+          toast.error("Une erreur s'est produite. Veuillez rafraîchir la page.");
+          return;
+        }
+        
         // Defensively filter questions for current level
-        const questionsForCurrentLevel = (questions || []).filter(q => 
+        const questionsForCurrentLevel = questions.filter(q => 
           q && q.level === ((progress?.currentLevel || 0) + 1)
         ) || [];
         
@@ -83,6 +90,16 @@ export const useQuiz = (
               });
             }
             
+            // Update statistics for display
+            console.log("Statistics updated:", {
+              userId: progress?.userId,
+              email: progress?.userEmail,
+              level: nextLevel,
+              unlockedYears: newUnlockedYears,
+              achievements: progress?.achievements || [],
+              timestamp: new Date().toISOString()
+            });
+            
             // Update progress with new level and unlocked years
             saveProgress({ 
               currentLevel: nextLevel,
@@ -91,7 +108,17 @@ export const useQuiz = (
             
             // After level up, prepare next quiz with delay to prevent issues
             setTimeout(() => {
-              const nextLevelQuestions = (questions || []).filter(q => q && q.level === nextLevel + 1) || [];
+              // Safely check if questions array is defined before filtering
+              if (!Array.isArray(questions)) {
+                console.error("Questions array is not properly defined");
+                setQuizState(prev => ({
+                  ...prev,
+                  showQuiz: false
+                }));
+                return;
+              }
+              
+              const nextLevelQuestions = questions.filter(q => q && q.level === nextLevel + 1) || [];
               if (nextLevelQuestions.length > 0) {
                 // Close this quiz and move to next level
                 setQuizState(prev => ({
@@ -125,13 +152,14 @@ export const useQuiz = (
             duration: 3000
           });
           
-          // Get remaining questions safely
+          // Get remaining questions - make sure questions array is valid before filtering
+          if (!Array.isArray(questions)) {
+            console.error("Questions array is not properly defined");
+            toast.error("Une erreur s'est produite. Veuillez rafraîchir la page.");
+            return;
+          }
+          
           try {
-            // Make sure questions array is properly defined
-            if (!Array.isArray(questions)) {
-              throw new Error("Questions array is not properly defined");
-            }
-            
             const remainingQuestions = questions.filter(q => {
               if (!q) return false;
               
@@ -160,7 +188,16 @@ export const useQuiz = (
                 }));
               } else {
                 // If all questions are answered, show a random question from this level
-                const levelQuestions = (questions || []).filter(q => 
+                // Safely access questions array
+                if (!Array.isArray(questions)) {
+                  setQuizState(prev => ({
+                    ...prev,
+                    showQuiz: false
+                  }));
+                  return;
+                }
+                
+                const levelQuestions = questions.filter(q => 
                   q && q.level === (progress?.currentLevel || 0) + 1
                 ) || [];
                 
@@ -184,7 +221,16 @@ export const useQuiz = (
             console.error("Error filtering questions:", filterError);
             // Fallback in case of filter error - just show any question from this level
             setTimeout(() => {
-              const fallbackQuestions = (questions || []).filter(q => 
+              // Safely access questions array
+              if (!Array.isArray(questions)) {
+                setQuizState(prev => ({
+                  ...prev,
+                  showQuiz: false
+                }));
+                return;
+              }
+              
+              const fallbackQuestions = questions.filter(q => 
                 q && q.level === (progress?.currentLevel || 0) + 1
               ) || [];
               
@@ -281,7 +327,7 @@ export const useQuiz = (
   const startQuiz = useCallback(() => {
     try {
       if ((progress?.currentLevel || 0) < 4) {
-        // Ensure questions array is valid
+        // Ensure questions array is valid before using it
         if (!Array.isArray(questions)) {
           toast.error("Erreur lors du démarrage du quiz: données des questions non disponibles", {
             duration: 3000
@@ -304,11 +350,13 @@ export const useQuiz = (
         const quizHistory = Array.isArray(progress?.quizHistory) ? progress.quizHistory : [];
         
         // Safely get answered correctly questions
-        const answeredCorrectly = (quizHistory || [])
+        const answeredCorrectly = quizHistory
           .filter(h => h && h.correct) // Make sure we have valid entries
           .map(h => {
             if (!h) return -1; // Handle null/undefined
-            // Find the corresponding question
+            // Find the corresponding question - ensure questions array is valid
+            if (!Array.isArray(questions)) return -1;
+            
             const question = questions.find(q => q && q.level === h.level && q.id === quizState.currentQuestionId);
             return question ? question.id : -1;
           })
@@ -343,29 +391,20 @@ export const useQuiz = (
     }
   }, [progress?.currentLevel, progress?.quizHistory, quizState.currentQuestionId]);
 
-  const getCurrentQuestion = useCallback((): Question => {
+  const getCurrentQuestion = useCallback((): Question | null => {
     try {
       // Ensure questions array is properly defined
       if (!Array.isArray(questions)) {
-        throw new Error("Questions array is not properly defined");
+        console.error("Questions array is not properly defined");
+        return null;
       }
       
       const question = questions.find(q => q && q.id === quizState.currentQuestionId);
       
       if (!question) {
         console.error("Question not found for ID:", quizState.currentQuestionId);
-        // Fallback to first question if current not found
-        return {
-          ...(questions[0] || {
-            id: 1,
-            question: "Question temporairement indisponible.",
-            options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-            correctOptionIndex: 0,
-            correctAnswer: 0,
-            level: 1,
-          }),
-          usedHints: currentHints
-        };
+        // Return null if question not found
+        return null;
       }
       
       return {
@@ -374,16 +413,8 @@ export const useQuiz = (
       };
     } catch (error) {
       console.error("Error getting current question:", error);
-      // Return a safe default in case of error
-      return {
-        id: 1,
-        question: "Une question est actuellement indisponible.",
-        options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-        correctOptionIndex: 0,
-        correctAnswer: 0,
-        level: 1,
-        usedHints: []
-      };
+      // Return null in case of error
+      return null;
     }
   }, [currentHints, quizState.currentQuestionId]);
 

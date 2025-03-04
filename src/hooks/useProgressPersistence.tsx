@@ -13,6 +13,8 @@ export interface UserProgress {
   lastUpdated: string;
   cvDownloaded?: boolean;
   usedHints?: Record<string, string[]>;
+  userId?: string;
+  userEmail?: string;
 }
 
 // Table name in Supabase for user progress
@@ -31,8 +33,8 @@ export const useProgressPersistence = () => {
 
   // Load progress from Supabase or fallback to localStorage
   useEffect(() => {
-    if (!isLoaded) {
-      setIsLoaded(false);
+    if (isLoaded) {
+      return;
     }
     
     const loadUserProgress = async () => {
@@ -44,65 +46,15 @@ export const useProgressPersistence = () => {
           console.log("Fetching progress for user ID:", userId);
           console.log("Formatted user ID for database:", formattedUserId);
           
-          // Try to get progress from Supabase first
-          const { data, error } = await supabase
-            .from(PROGRESS_TABLE)
-            .select('*')
-            .eq('user_id', formattedUserId)
-            .maybeSingle();
+          // Try to get progress from localStorage first as a fallback
+          loadFromLocalStorage(userId);
           
-          if (error) {
-            console.error("Error fetching progress:", error);
-            loadFromLocalStorage(userId);
-            return;
-          }
-          
-          if (data) {
-            console.log("Progress data from Supabase:", data);
-            // Convert Supabase data to our UserProgress type
-            // Ensure quiz_history is properly parsed as an array of objects
-            let parsedQuizHistory: {level: number, correct: boolean}[] = [];
-            
-            if (data.quiz_history) {
-              // Handle quiz_history which may come as a string or JSON
-              try {
-                // If it's already a JSON object or array
-                if (Array.isArray(data.quiz_history)) {
-                  parsedQuizHistory = data.quiz_history as {level: number, correct: boolean}[];
-                } else if (typeof data.quiz_history === 'string') {
-                  // If it's a JSON string that needs parsing
-                  parsedQuizHistory = JSON.parse(data.quiz_history);
-                } else if (typeof data.quiz_history === 'object') {
-                  // If it's already an object but not an array
-                  console.warn("Quiz history is an object but not an array, using empty array instead");
-                  parsedQuizHistory = [];
-                }
-              } catch (e) {
-                console.error("Error parsing quiz history:", e);
-                parsedQuizHistory = [];
-              }
-            }
-            
-            const userProgress: UserProgress = {
-              currentLevel: data.current_level || 0,
-              unlockedYears: data.unlocked_years || [],
-              quizHistory: parsedQuizHistory,
-              achievements: data.achievements || [],
-              lastUpdated: data.last_updated || new Date().toISOString()
-            };
-            
-            setProgress(userProgress);
-            console.log("Progress loaded from Supabase for user:", userId);
-          } else {
-            // No data in Supabase, try localStorage as fallback
-            loadFromLocalStorage(userId);
-          }
+          setIsLoaded(true);
         } catch (error) {
           console.error("Error loading progress:", error);
           loadFromLocalStorage(userId);
+          setIsLoaded(true);
         }
-        
-        setIsLoaded(true);
       } else if (isSignedIn === false) {
         // User is definitely not signed in
         setIsLoaded(true);
@@ -115,49 +67,68 @@ export const useProgressPersistence = () => {
       if (savedProgress) {
         try {
           const parsedProgress = JSON.parse(savedProgress) as UserProgress;
-          setProgress(parsedProgress);
+          // Add userId and email to the progress object for statistics
+          const updatedProgress = {
+            ...parsedProgress,
+            userId: userId,
+            userEmail: user?.primaryEmailAddress?.emailAddress
+          };
+          setProgress(updatedProgress);
           console.log("Progress loaded from localStorage for user:", userId);
         } catch (error) {
           console.error("Error parsing progress:", error);
         }
+      } else {
+        // Initialize new progress
+        setProgress({
+          currentLevel: 0,
+          unlockedYears: [],
+          quizHistory: [],
+          achievements: [],
+          lastUpdated: new Date().toISOString(),
+          userId: userId,
+          userEmail: user?.primaryEmailAddress?.emailAddress
+        });
       }
     };
     
     loadUserProgress();
-  }, [isSignedIn, user]);
+  }, [isSignedIn, user, isLoaded]);
 
-  // Save progress to Supabase and localStorage as backup
+  // Save progress to localStorage only for now (due to RLS policy error with Supabase)
   const saveProgress = async (newProgress: Partial<UserProgress>) => {
     if (isSignedIn && user) {
       const userId = user.id;
-      const formattedUserId = formatUserId(userId);
       
-      const updatedProgress = {
-        ...progress,
-        ...newProgress,
-        lastUpdated: new Date().toISOString()
-      };
-      
-      setProgress(updatedProgress);
-      
-      // Save to localStorage as a backup
-      localStorage.setItem(
-        `portfolio_progress_${userId}`, 
-        JSON.stringify(updatedProgress)
-      );
-      
-      // Save to Supabase - for now, let's rely on localStorage
-      // and skip Supabase to avoid the RLS policy error
-      
-      // Record statistics
-      console.log("Statistics updated:", {
-        userId: userId,
-        email: user.primaryEmailAddress?.emailAddress,
-        level: updatedProgress.currentLevel,
-        unlockedYears: updatedProgress.unlockedYears,
-        achievements: updatedProgress.achievements,
-        timestamp: updatedProgress.lastUpdated
-      });
+      try {
+        const updatedProgress = {
+          ...progress,
+          ...newProgress,
+          lastUpdated: new Date().toISOString(),
+          userId: userId,
+          userEmail: user?.primaryEmailAddress?.emailAddress
+        };
+        
+        setProgress(updatedProgress);
+        
+        // Save to localStorage as primary storage method
+        localStorage.setItem(
+          `portfolio_progress_${userId}`, 
+          JSON.stringify(updatedProgress)
+        );
+        
+        // Record statistics for debugging
+        console.log("Statistics updated:", {
+          userId: userId,
+          email: user.primaryEmailAddress?.emailAddress,
+          level: updatedProgress.currentLevel,
+          unlockedYears: updatedProgress.unlockedYears,
+          achievements: updatedProgress.achievements,
+          timestamp: updatedProgress.lastUpdated
+        });
+      } catch (error) {
+        console.error("Error saving progress:", error);
+      }
     }
   };
 
