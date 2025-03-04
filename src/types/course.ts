@@ -1,3 +1,4 @@
+
 export interface Course {
   id: string;
   title: string;
@@ -95,11 +96,11 @@ export interface UserProgress {
   certificateIssued: boolean;
   notes: Record<string, string>;
   bookmarks: string[];
-  usedHints?: Record<string, string[]>;
-  cvDownloaded?: boolean;
-  quizHistory?: QuizHistory[];
-  unlockedYears?: string[];
-  currentLevel?: number;
+  usedHints?: Record<string, string[]>; // Added missing property
+  cvDownloaded?: boolean; // Added missing property
+  quizHistory?: import('@/types/quiz').QuizHistory[]; // Added missing property with import
+  unlockedYears?: string[]; // Added missing property
+  currentLevel?: number; // Added missing property
   achievements?: string[];
 }
 

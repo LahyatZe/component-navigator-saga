@@ -33,7 +33,12 @@ const QuizModal: FC<QuizModalProps> = ({
   const handleAnswer = () => {
     if (selectedIndex === null) return;
     
-    const isCorrect = selectedIndex === currentQuestion.correctAnswer;
+    // Use correctAnswer or correctOptionIndex depending on which one is available
+    const correctIndex = typeof currentQuestion.correctAnswer !== 'undefined' 
+      ? currentQuestion.correctAnswer 
+      : currentQuestion.correctOptionIndex;
+    
+    const isCorrect = selectedIndex === correctIndex;
     onAnswer(isCorrect);
     
     // Reset state for next quiz

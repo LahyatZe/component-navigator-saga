@@ -1,4 +1,3 @@
-
 import { Question } from '@/types/quiz';
 
 export const questions: Question[] = [
@@ -13,6 +12,7 @@ export const questions: Question[] = [
       "Bac L"
     ],
     correctAnswer: 1,
+    correctOptionIndex: 1,
     explanation: "J'ai obtenu un Bac ES en 2018 avant de poursuivre mes études en informatique.",
     hints: [
       "C'est un baccalauréat général obtenu en 2018.",
@@ -30,6 +30,7 @@ export const questions: Question[] = [
       "Montpellier"
     ],
     correctAnswer: 2,
+    correctOptionIndex: 2,
     explanation: "J'ai commencé mes études supérieures à Saint-Étienne, où j'ai développé mes premières compétences en développement.",
     hints: [
       "C'est une ville de la région Auvergne-Rhône-Alpes.",
@@ -47,6 +48,7 @@ export const questions: Question[] = [
       "IGSI Calliope"
     ],
     correctAnswer: 2,
+    correctOptionIndex: 2,
     explanation: "J'ai effectué mon alternance chez Capgemini Technologies & Services, où j'ai travaillé sur des projets d'applications bancaires.",
     hints: [
       "C'est une grande entreprise de conseil en technologies.",
@@ -65,6 +67,7 @@ export const questions: Question[] = [
       "C++"
     ],
     correctAnswer: 2,
+    correctOptionIndex: 2,
     explanation: "J'ai principalement utilisé Express.js et React.js lors de mon stage chez MyPetsLife pour développer leur plateforme.",
     hints: [
       "Une de ces technologies est un framework backend basé sur Node.js.",
@@ -83,6 +86,7 @@ export const questions: Question[] = [
       "Niveau 4 - Technicien"
     ],
     correctAnswer: 1,
+    correctOptionIndex: 0,
     explanation: "J'ai obtenu le titre RNCP niveau 6 - Concepteur Développeur, attestant de mes compétences en développement d'applications web.",
     hints: [
       "Le RNCP est le Répertoire National des Certifications Professionnelles.",
@@ -101,6 +105,7 @@ export const questions: Question[] = [
       "Plateforme e-commerce"
     ],
     correctAnswer: 1,
+    correctOptionIndex: 0,
     explanation: "En 2023, j'ai travaillé sur le logiciel de supervision Sam Tool Supervisor pour suivre l'activité de contenants automatisés intelligents.",
     hints: [
       "Ce projet est lié à une entreprise d'outillage.",
@@ -119,6 +124,7 @@ export const questions: Question[] = [
       "Svelte"
     ],
     correctAnswer: 2,
+    correctOptionIndex: 1,
     explanation: "Pour ICY, j'ai principalement utilisé Angular, avec TypeScript et PWA pour développer une solution robuste et performante.",
     hints: [
       "Cette technologie est développée et maintenue par Google.",
@@ -137,6 +143,7 @@ export const questions: Question[] = [
       "Réalité virtuelle"
     ],
     correctAnswer: 1,
+    correctOptionIndex: 0,
     explanation: "Ces dernières années, j'ai particulièrement développé mes compétences en développement d'applications PWA, comme en témoigne le projet ICY.",
     hints: [
       "Cette technologie permet de créer des applications web qui fonctionnent comme des applications natives.",
