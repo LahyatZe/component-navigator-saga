@@ -29,6 +29,11 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
     navigate('/');
   };
 
+  // Console log to help debug authentication state
+  React.useEffect(() => {
+    console.log("Navbar auth state:", { isSignedIn, user: user?.id });
+  }, [isSignedIn, user]);
+
   return (
     <nav className="bg-background border-b sticky top-0 z-50">
       <div className="container mx-auto px-4">

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -25,14 +25,26 @@ function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { isSignedIn, isLoaded } = useAuth();
+  const { user } = useUser();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    // Only set loading to false once Clerk has loaded
+    if (isLoaded) {
+      // Add a small delay to ensure authentication state is properly synced
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoaded]);
+
+  // Log authentication state for debugging
+  useEffect(() => {
+    if (isLoaded) {
+      console.log("Authentication state:", { isSignedIn, userId: user?.id });
+    }
+  }, [isLoaded, isSignedIn, user]);
 
   const toggleAdmin = () => {
     setIsAdminOpen(!isAdminOpen);
@@ -68,7 +80,10 @@ function App() {
           )}
           
           {isAdminOpen && (
-            <AdminPanel isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)}>
+            <AdminPanel
+              isOpen={isAdminOpen}
+              onClose={() => setIsAdminOpen(false)}
+            >
               <AdminDataMigration />
             </AdminPanel>
           )}
