@@ -44,15 +44,24 @@ export const getUserSettings = async (userId: string): Promise<UserSettings | nu
 
     console.log("Settings data retrieved from database:", data);
 
+    // Parse the preferences JSONB as our expected type
+    const preferences = typeof data.preferences === 'string' 
+      ? JSON.parse(data.preferences) 
+      : data.preferences as {
+          darkMode: boolean;
+          emailNotifications: boolean;
+          pushNotifications: boolean;
+        };
+
     // Transform the data to match our UserSettings type
     return {
       userId: userId, // Keep the original user ID in the returned object
       fullName: data.full_name,
       bio: data.bio,
       preferences: {
-        darkMode: data.preferences?.darkMode ?? false,
-        emailNotifications: data.preferences?.emailNotifications ?? true,
-        pushNotifications: data.preferences?.pushNotifications ?? true,
+        darkMode: preferences.darkMode ?? false,
+        emailNotifications: preferences.emailNotifications ?? true,
+        pushNotifications: preferences.pushNotifications ?? true,
       },
       lastUpdated: data.last_updated || new Date().toISOString()
     };
