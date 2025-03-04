@@ -1,7 +1,7 @@
 
 import { FC } from 'react';
 import QuizModal from '@/components/QuizModal';
-import { UserProgress } from '@/hooks/useProgressPersistence';
+import { UserProgress } from '@/types/course';
 import { useQuiz } from '@/hooks/useQuiz';
 import { Question } from '@/types/quiz';
 
