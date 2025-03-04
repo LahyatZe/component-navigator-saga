@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { UserProgress } from "@/types/course";
+import { QuizHistory } from "@/types/quiz";
 import { formatUserId, formatStringToUuid } from "@/utils/formatUserId";
 
 // Save course progress for a user
@@ -127,6 +128,21 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
     // Get the original lesson ID from the UUID format if needed
     let currentLesson = data.current_lesson || '';
     
+    // Parse quiz_history to ensure it's properly converted to QuizHistory[]
+    let quizHistory: QuizHistory[] = [];
+    if (data.quiz_history) {
+      try {
+        if (Array.isArray(data.quiz_history)) {
+          quizHistory = data.quiz_history.map((item: any) => ({
+            level: typeof item.level === 'number' ? item.level : 0,
+            correct: !!item.correct
+          }));
+        }
+      } catch (e) {
+        console.error('Error parsing quiz history:', e);
+      }
+    }
+    
     // Transform the data to match our UserProgress type with proper type handling
     return {
       userId: userId, // Keep the original user ID in the returned object
@@ -151,7 +167,7 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
         ? data.used_hints as Record<string, string[]>
         : {},
       cvDownloaded: !!data.cv_downloaded,
-      quizHistory: Array.isArray(data.quiz_history) ? data.quiz_history : [],
+      quizHistory: quizHistory,
       currentLevel: data.current_level || 0,
       unlockedYears: Array.isArray(data.unlocked_years) ? data.unlocked_years : []
     };

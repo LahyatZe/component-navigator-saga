@@ -77,7 +77,8 @@ export const useProgressStorage = (
       usedHints: {},
       cvDownloaded: false,
       quizHistory: [],
-      currentLevel: 0
+      currentLevel: 0,
+      unlockedYears: []
     };
     setProgressFn(newProgress);
   };

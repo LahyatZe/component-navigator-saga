@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Trophy, Star, Code, Award, Rocket, Download } from 'lucide-react';
 import { questions } from '@/data/quizQuestions';
-import { UserProgress } from '@/hooks/useProgressPersistence';
+import { UserProgress } from '@/types/course';
 import { Question, QuizState } from '@/types/quiz';
 
 export const useQuiz = (
@@ -130,11 +130,16 @@ export const useQuiz = (
     const updatedUsedHints = { ...(progress.usedHints || {}) };
     updatedUsedHints[questionId] = usedHints;
     
-    saveProgress({ usedHints: updatedUsedHints });
+    saveProgress({ 
+      usedHints: updatedUsedHints 
+    } as Partial<UserProgress>);
   };
 
   const handleCvDownload = () => {
-    saveProgress({ cvDownloaded: true });
+    saveProgress({ 
+      cvDownloaded: true 
+    } as Partial<UserProgress>);
+    
     toast.success("Merci d'avoir téléchargé mon CV !", {
       duration: 3000,
       icon: <Download className="w-5 h-5 text-blue-500" />
