@@ -80,13 +80,18 @@ export const saveUserSettings = async (settings: UserSettings): Promise<void> =>
   console.log("Formatted user ID for database:", formattedUserId);
   
   try {
+    // Ensure preferences is a proper object, not a string
+    const preferences = typeof settings.preferences === 'string'
+      ? JSON.parse(settings.preferences as unknown as string)
+      : settings.preferences;
+      
     const { error } = await supabase
       .from(SETTINGS_TABLE)
       .upsert({
         user_id: formattedUserId,
         full_name: settings.fullName,
         bio: settings.bio,
-        preferences: settings.preferences,
+        preferences: preferences,
         last_updated: new Date().toISOString()
       }, {
         onConflict: 'user_id'
