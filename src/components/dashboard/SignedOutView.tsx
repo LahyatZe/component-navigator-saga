@@ -14,7 +14,12 @@ const SignedOutView: FC = () => {
       signIn.create({
         identifier: '',
       }).then((result) => {
-        window.location.href = result.createdSessionId ? '/dashboard' : signIn.url;
+        if (result.status === "complete") {
+          window.location.href = '/dashboard';
+        } else {
+          // Redirect to Clerk's hosted sign-in page if not complete
+          window.location.href = '/';
+        }
       });
     }
   };
@@ -24,7 +29,12 @@ const SignedOutView: FC = () => {
       signUp.create({
         emailAddress: '',
       }).then((result) => {
-        window.location.href = result.createdSessionId ? '/dashboard' : signUp.url;
+        if (result.status === "complete") {
+          window.location.href = '/dashboard';
+        } else {
+          // Redirect to Clerk's hosted sign-up page if not complete
+          window.location.href = '/';
+        }
       });
     }
   };
