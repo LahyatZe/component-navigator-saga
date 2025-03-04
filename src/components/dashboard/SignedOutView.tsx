@@ -2,7 +2,7 @@ import { FC, useState } from 'react';
 import { useSignIn, useSignUp } from '@clerk/clerk-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, BookOpen, Code, Users } from 'lucide-react';
+import { Shield, BookOpen, Code, Users, ArrowRight } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
@@ -12,29 +12,7 @@ const SignedOutView: FC = () => {
   const [email, setEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleSignIn = async () => {
-    if (!email.trim()) {
-      toast.error("Veuillez saisir une adresse email");
-      return;
-    }
-
-    if (isSignInLoaded && signIn) {
-      try {
-        setIsProcessing(true);
-        await signIn.create({
-          identifier: email,
-          strategy: "email_code",
-        });
-
-        toast.success("Code de vérification envoyé. Vérifiez votre email.");
-      } catch (error) {
-        console.error("Sign in error:", error);
-        toast.error("Erreur lors de la connexion. Veuillez réessayer.");
-      } finally {
-        setIsProcessing(false);
-      }
-    }
-  };
+  const clerkSignInUrl = "https://steady-starling-83.accounts.dev/sign-in";
 
   const handleSignUp = async () => {
     if (!email.trim()) {
@@ -87,13 +65,12 @@ const SignedOutView: FC = () => {
                 className="mb-2"
               />
               <div className="flex justify-center gap-4">
-                <Button 
-                  size="lg" 
-                  onClick={handleSignIn} 
-                  disabled={isProcessing || !email.trim()}
+                <a 
+                  href={clerkSignInUrl}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8"
                 >
-                  {isProcessing ? "Chargement..." : "Se connecter"}
-                </Button>
+                  Se connecter <ArrowRight className="h-4 w-4" />
+                </a>
                 <Button 
                   size="lg" 
                   variant="outline" 
