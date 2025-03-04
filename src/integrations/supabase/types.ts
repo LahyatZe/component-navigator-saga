@@ -481,6 +481,33 @@ export type Database = {
           },
         ]
       }
+      user_settings: {
+        Row: {
+          bio: string | null
+          full_name: string | null
+          id: string
+          last_updated: string | null
+          preferences: Json
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          full_name?: string | null
+          id?: string
+          last_updated?: string | null
+          preferences?: Json
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          full_name?: string | null
+          id?: string
+          last_updated?: string | null
+          preferences?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
