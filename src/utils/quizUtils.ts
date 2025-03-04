@@ -73,22 +73,22 @@ export const showLevelUpToast = (level: number): void => {
   if (level === 1) {
     toast.success(`Niveau ${level} débloqué ! Vous avez accès aux années 2018-2019`, {
       duration: 5000,
-      icon: <Trophy className="w-5 h-5 text-yellow-500" />
+      icon: Trophy
     });
   } else if (level === 2) {
     toast.success(`Niveau ${level} débloqué ! Vous avez accès aux années 2018-2021`, {
       duration: 5000,
-      icon: <Star className="w-5 h-5 text-blue-500" />
+      icon: Star
     });
   } else if (level === 3) {
     toast.success(`Niveau ${level} débloqué ! Vous avez accès aux années 2018-2022`, {
       duration: 5000,
-      icon: <Code className="w-5 h-5 text-green-500" />
+      icon: Code
     });
   } else {
     toast.success(`Niveau ${level} débloqué ! Vous avez accès à toutes les années`, {
       duration: 5000,
-      icon: <Award className="w-5 h-5 text-purple-500" />
+      icon: Award
     });
   }
 };
