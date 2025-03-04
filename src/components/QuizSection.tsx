@@ -1,5 +1,5 @@
 
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import QuizModal from '@/components/QuizModal';
 import { UserProgress } from '@/types/course';
 import { useQuiz } from '@/hooks/useQuiz';
@@ -21,6 +21,21 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }
     startQuiz, 
     getCurrentQuestion 
   } = useQuiz(progress, saveProgress);
+
+  // Expose startQuiz method to parent component
+  useEffect(() => {
+    // Add startQuiz to window for external access
+    if (window) {
+      (window as any).__startQuiz = startQuiz;
+    }
+    
+    // Cleanup
+    return () => {
+      if (window) {
+        delete (window as any).__startQuiz;
+      }
+    };
+  }, [startQuiz]);
 
   return (
     <>

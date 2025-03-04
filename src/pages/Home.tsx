@@ -45,6 +45,13 @@ const Home: FC = () => {
     }
   }, [isLoaded, progress, user]);
 
+  // Start quiz function that will be passed to UserHero
+  const startQuizDirectly = () => {
+    if (window && (window as any).__startQuiz) {
+      (window as any).__startQuiz();
+    }
+  };
+
   // Convert progress to the type expected by QuizSection
   const mapProgressToQuizSection = (): CourseUserProgress => {
     return {
@@ -86,34 +93,24 @@ const Home: FC = () => {
           progress={progress}
           levelProgress={levelProgress}
           isAdmin={isAdmin}
-          startQuiz={() => {
-            const quizSection = document.getElementById('quiz-section');
-            if (quizSection) {
-              const quizComponent = quizSection.querySelector('button');
-              if (quizComponent) {
-                quizComponent.click();
-              }
-            }
-          }}
+          startQuiz={startQuizDirectly}
           showAdminPanel={() => setShowAdminPanel(true)}
           scrollY={scrollY}
           achievements={achievements}
         />
-        <div id="quiz-section" className="hidden">
-          <QuizSection 
-            progress={mapProgressToQuizSection()} 
-            questions={questions}
-            saveProgress={(updates) => {
-              // Map the updates back to our progress type
-              const progressUpdates = {
-                currentLevel: updates.currentLevel,
-                unlockedYears: updates.unlockedYears,
-                quizHistory: updates.quizHistory,
-              };
-              saveProgress(progressUpdates);
-            }}
-          />
-        </div>
+        <QuizSection 
+          progress={mapProgressToQuizSection()} 
+          questions={questions}
+          saveProgress={(updates) => {
+            // Map the updates back to our progress type
+            const progressUpdates = {
+              currentLevel: updates.currentLevel,
+              unlockedYears: updates.unlockedYears,
+              quizHistory: updates.quizHistory,
+            };
+            saveProgress(progressUpdates);
+          }}
+        />
       </SignedIn>
       
       <SignedOut>
