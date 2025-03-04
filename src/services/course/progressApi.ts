@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { UserProgress } from "@/types/course";
 import { formatUserId, formatStringToUuid } from "@/utils/formatUserId";

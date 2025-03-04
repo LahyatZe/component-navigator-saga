@@ -113,3 +113,8 @@ export interface Achievement {
   isUnlocked: boolean;
   unlockedAt?: string; // Date de déverrouillage au format ISO
 }
+
+export interface QuizHistory {
+  level: number;
+  correct: boolean;
+}
