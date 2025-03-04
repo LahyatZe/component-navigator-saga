@@ -30,7 +30,9 @@ const SignedOutView: FC = () => {
         if (result.status === "needs_first_factor") {
           await signIn.prepareFirstFactor({
             strategy: "email_code",
-            identifier: email,
+            emailAddressId: result.supportedFirstFactors.find(
+              factor => factor.strategy === "email_code"
+            )?.emailAddressId,
           });
           toast.success("Code de vérification envoyé. Vérifiez votre email.");
         }
