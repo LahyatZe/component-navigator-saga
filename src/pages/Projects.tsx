@@ -1,7 +1,7 @@
 
 import { FC, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Github, Globe, Filter } from "lucide-react";
+import { Github, Globe, Filter, Calendar, Building, MapPin } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,8 +14,10 @@ interface Project {
   image: string;
   technologies: string[];
   company: string;
+  location: string;
   period: string;
   keyAchievements?: string[];
+  workType?: string; // hybride, présentiel, etc.
   details?: string;
   githubUrl?: string;
   liveUrl?: string;
@@ -29,51 +31,64 @@ const projects: Project[] = [
     image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
     technologies: ["Angular", "TypeScript", "PWA", "Sage 100"],
     company: "Parthena Consultant",
+    location: "Dardilly, Auvergne-Rhône-Alpes",
+    workType: "Hybride",
     period: "Février 2024 - Août 2024",
     keyAchievements: [
-      "Développement d'un éditeur WYSIWYG avancé",
-      "Personnalisation des onglets dans la PWA",
-      "Sauvegarde automatique des brouillons",
-      "Suppression de masse des éléments",
-      "Communication personnalisée après appel client"
+      "Développement d'un éditeur WYSIWYG avancé pour la création et gestion d'entités",
+      "Personnalisation des onglets dans la PWA pour optimiser l'interface",
+      "Sauvegarde automatique des brouillons de formulaires",
+      "Fonctionnalité de suppression de masse des éléments",
+      "Communications personnalisées automatiques après appel client"
     ],
-    details: "Ce projet impliquait la conception et le développement d'une plateforme PWA destinée aux techniciens et aux gestionnaires. L'outil WYSIWYG permettait de structurer dynamiquement les entités et leurs données associées, offrant une flexibilité accrue aux utilisateurs. L'intégration de la sauvegarde automatique et des fonctionnalités avancées d'édition a permis d'améliorer l'expérience utilisateur et d'optimiser la gestion des interventions."
+    details: "ICY est une solution de gestion d'intervention hébergée en France, conçue pour fonctionner en mode connecté ou déconnecté sur tous les systèmes d'exploitation. Compatible avec smartphones, tablettes et ordinateurs, ICY garantit une expérience utilisateur fluide et un déploiement rapide. Grâce à son interface bidirectionnelle native avec Sage 100, elle offre une vision client 360° en temps réel, permettant de gérer les plannings multi-équipes, faciliter les déplacements avec la géolocalisation, et personnaliser les formulaires. L'outil WYSIWYG développé permet de créer des entités, des champs associés, des grilles personnalisées, des blocs modifiables, et des dashboards avec des graphiques."
   },
   {
     id: 2,
     title: "Sam Tool Supervisor",
-    description: "Participation au développement et aux tests d'un logiciel de supervision permettant aux clients de suivre l'activité de contenants automatisés intelligents.",
+    description: "Développement et tests d'un logiciel de supervision pour le suivi des contenants automatisés intelligents SAM'URAI (Unités de Rangement Automatisés Intelligents).",
     image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
     technologies: ["SQL", "GitLab", "PhpMetrics", "Phpstan"],
     company: "SAM OUTILLAGE",
+    location: "Saint-Etienne et périphérie",
     period: "Juin 2023 - Septembre 2023",
     keyAchievements: [
-      "Élaboration et exécution des plans de test",
-      "Maintenance et correction des bugs",
-      "Analyse et rédaction de rapports d'infrastructure",
-      "Support technique aux équipes internes et externes"
+      "Élaboration et exécution des plans de test pour validation des versions",
+      "Maintenance et correction de la solution existante",
+      "Analyse d'infrastructure et rédaction de rapports techniques",
+      "Support technique aux équipes de développement et clients",
+      "Élaboration de changelog et documentation technique"
     ],
-    details: "La phase de test a été essentielle pour assurer la fiabilité du logiciel avant chaque montée de version. L'analyse d'infrastructure avec PhpMetrics et Phpstan a permis d'optimiser le code et d'améliorer la stabilité de l'application. Mon rôle impliquait aussi un support technique direct aux développeurs et aux équipes clients via TeamViewer."
+    details: "SAM Outillage propose une gamme de contenants intelligents SAM'URAI. Le projet impliquait deux logiciels: STM (SAM Tool Manager) fonctionnant sur les contenants eux-mêmes, et STS (SAM Tool Supervisor) permettant aux clients de superviser l'activité des contenants. La phase de test était cruciale pour valider les montées de version et fournir des retours précis sur les problèmes. L'analyse d'infrastructure incluait la rédaction de documents techniques (SWOT, comparaisons, rapports d'audit) à l'aide d'outils comme PhpMetrics et Phpstan. Le support technique aux développeurs internes et externes ainsi qu'aux clients nécessitait l'utilisation de TeamViewer pour la maintenance à distance."
   },
   {
     id: 3,
-    title: "Crédit Agricole - Applications Web",
-    description: "Travail sur le développement et la maintenance d'applications web pour la filiale Technologies & Services du Crédit Agricole.",
+    title: "Applications Web - Crédit Agricole",
+    description: "Développement et maintenance d'applications web pour la filiale Technologies & Services du Crédit Agricole.",
     image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
     technologies: ["GitLab", "Web Development"],
     company: "Capgemini",
+    location: "Pérols, Occitanie",
+    workType: "Hybride",
     period: "Janvier 2022 - Janvier 2023",
-    details: "En tant que développeur au sein de Capgemini, j'ai travaillé sur plusieurs projets d'applications bancaires. Mon rôle consistait à développer de nouvelles fonctionnalités tout en respectant les exigences de sécurité et de performance propres au secteur bancaire."
+    details: "Mission réalisée au sein du Crédit Agricole, dans la filiale Technologies & Services. Développement et maintenance d'applications web bancaires nécessitant une attention particulière à la sécurité et aux performances. Le travail impliquait une collaboration étroite avec les équipes du client et le respect de contraintes spécifiques au secteur bancaire."
   },
   {
     id: 4,
-    title: "MyPetsLife",
-    description: "Développement de nouvelles fonctionnalités pour une plateforme de gestion des soins des animaux.",
+    title: "MyPetsLife - Plateforme de gestion animalière",
+    description: "Développement de nouvelles fonctionnalités pour une plateforme dédiée aux soins des animaux de compagnie.",
     image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
     technologies: ["Express.js", "React.js"],
     company: "MyPetsLife",
+    location: "Saint-Étienne, Auvergne-Rhône-Alpes",
     period: "Septembre 2020 - Décembre 2020",
-    details: "Ce stage m'a permis de participer activement au cycle de conception et développement de nouvelles fonctionnalités, d'explorer des approches innovantes et de travailler en autonomie sur des solutions adaptées aux besoins des utilisateurs."
+    keyAchievements: [
+      "Implication dans la chaîne de conception de nouvelles fonctionnalités",
+      "Développement de fonctionnalités définies par le backlog",
+      "Veille technologique pour proposer des solutions innovantes",
+      "Développement en autonomie de fonctionnalités adaptées aux besoins"
+    ],
+    details: "Stage axé sur le développement de fonctionnalités pour une plateforme de gestion des soins animaliers. Contribution active à la conception de nouvelles idées fonctionnelles, techniques ou humaines. Développement des fonctionnalités définies par le backlog du projet. Réalisation d'une veille technologique pour identifier et implémenter des solutions innovantes répondant aux besoins spécifiés. Le travail en autonomie a permis de développer des compétences en prise de décision et en résolution de problèmes."
   }
 ];
 
@@ -100,8 +115,8 @@ const Projects: FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">My Projects</h1>
-        <p className="text-xl text-gray-600 mb-8">Here are some of my recent works</p>
+        <h1 className="text-4xl font-bold mb-4">Mes Projets Professionnels</h1>
+        <p className="text-xl text-muted-foreground mb-8">Découvrez mes réalisations et expériences récentes</p>
 
         {/* Filter Section */}
         <div className="flex flex-wrap justify-center gap-2 mb-8">
@@ -111,7 +126,7 @@ const Projects: FC = () => {
             className="flex items-center gap-2"
           >
             <Filter size={16} />
-            All
+            Tous
           </Button>
           {allTechnologies.map(tech => (
             <Button
@@ -159,31 +174,15 @@ const Projects: FC = () => {
                   </Badge>
                 ))}
               </div>
-              <div className="flex gap-4">
-                {project.githubUrl && (
-                  <a
-                    href={project.githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Github size={20} />
-                    <span>Code</span>
-                  </a>
-                )}
-                {project.liveUrl && (
-                  <a
-                    href={project.liveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Globe size={20} />
-                    <span>Live Demo</span>
-                  </a>
-                )}
+              <div className="flex gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <Building size={16} />
+                  {project.company}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar size={16} />
+                  {project.period.split(" - ")[0]}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -206,14 +205,60 @@ const Projects: FC = () => {
                 alt={selectedProject.title}
                 className="w-full h-64 object-cover rounded-lg mb-4"
               />
-              <div className="flex flex-wrap gap-2 mb-4">
-                {selectedProject.technologies.map((tech) => (
-                  <Badge key={tech} variant="secondary">
-                    {tech}
-                  </Badge>
-                ))}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <Building className="h-4 w-4 text-primary" />
+                  <span className="font-medium">{selectedProject.company}</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span>{selectedProject.period}</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span>{selectedProject.location}</span>
+                </div>
+                
+                {selectedProject.workType && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">{selectedProject.workType}</Badge>
+                  </div>
+                )}
               </div>
-              <div className="flex gap-4">
+              
+              <div className="mb-4">
+                <h3 className="text-lg font-medium mb-2">Technologies</h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedProject.technologies.map((tech) => (
+                    <Badge key={tech} variant="secondary">
+                      {tech}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              
+              {selectedProject.details && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-medium mb-2">Détails du projet</h3>
+                  <p className="text-muted-foreground">{selectedProject.details}</p>
+                </div>
+              )}
+              
+              {selectedProject.keyAchievements && selectedProject.keyAchievements.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-medium mb-2">Réalisations clés</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                    {selectedProject.keyAchievements.map((achievement, index) => (
+                      <li key={index}>{achievement}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              <div className="flex gap-4 mt-6">
                 {selectedProject.githubUrl && (
                   <a
                     href={selectedProject.githubUrl}
@@ -222,7 +267,7 @@ const Projects: FC = () => {
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                   >
                     <Github size={20} />
-                    <span>View Code</span>
+                    <span>Voir le code</span>
                   </a>
                 )}
                 {selectedProject.liveUrl && (
@@ -233,7 +278,7 @@ const Projects: FC = () => {
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                   >
                     <Globe size={20} />
-                    <span>Visit Site</span>
+                    <span>Démo live</span>
                   </a>
                 )}
               </div>
