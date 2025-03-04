@@ -14,7 +14,7 @@ interface QuizSectionProps {
 const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }) => {
   const { 
     quizState, 
-    setQuizState,  // Make sure we expose this
+    setQuizState,
     handleQuizAnswer, 
     handleUseHint,
     handleCvDownload,
@@ -38,13 +38,25 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }
     };
   }, [startQuiz]);
 
+  // Handle the modal's open state and ensure it works properly
+  const handleCloseModal = () => {
+    console.log("Closing quiz modal");
+    setQuizState(prev => ({ ...prev, showQuiz: false }));
+  };
+
+  // Handle the answer and ensure the quiz state is properly updated
+  const handleAnswer = (correct: boolean) => {
+    console.log("Answer submitted:", correct);
+    handleQuizAnswer(correct);
+  };
+
   return (
     <>
       {quizState.showQuiz && (
         <QuizModal
           isOpen={quizState.showQuiz}
-          onClose={() => setQuizState(prev => ({ ...prev, showQuiz: false }))}
-          onAnswer={handleQuizAnswer}
+          onClose={handleCloseModal}
+          onAnswer={handleAnswer}
           currentQuestion={getCurrentQuestion()}
           level={progress.currentLevel + 1}
           onUseHint={handleUseHint}

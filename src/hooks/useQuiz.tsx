@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Trophy, Star, Code, Award, Rocket, Download } from 'lucide-react';
@@ -68,11 +69,20 @@ export const useQuiz = (
             unlockedYears: newUnlockedYears
           });
           
+          // After level up, prepare next quiz
           const nextLevelQuestions = questions.filter(q => q.level === nextLevel + 1);
           if (nextLevelQuestions.length > 0) {
+            // Close this quiz and move to next level
             setQuizState(prev => ({
               ...prev,
+              showQuiz: false,
               currentQuestionId: nextLevelQuestions[0].id
+            }));
+          } else {
+            // Close the quiz if no more questions
+            setQuizState(prev => ({
+              ...prev,
+              showQuiz: false
             }));
           }
         } else {
@@ -80,6 +90,10 @@ export const useQuiz = (
             duration: 5000,
             icon: <Rocket className="w-5 h-5 text-red-500" />
           });
+          setQuizState(prev => ({
+            ...prev,
+            showQuiz: false
+          }));
         }
       } else {
         toast.success(`Bonne réponse ! ${correctAnswersForLevel} / ${Math.ceil(questionsForLevel.length / 2)} pour débloquer le niveau suivant`, {
@@ -97,11 +111,27 @@ export const useQuiz = (
         
         if (remainingQuestions.length > 0) {
           const randomQuestion = remainingQuestions[Math.floor(Math.random() * remainingQuestions.length)];
-          setQuizState(prev => ({
-            ...prev,
-            currentQuestionId: randomQuestion.id,
-            showQuiz: true
-          }));
+          // Show next question
+          setTimeout(() => {
+            setQuizState(prev => ({
+              ...prev,
+              currentQuestionId: randomQuestion.id,
+              showQuiz: true
+            }));
+          }, 300);
+        } else {
+          // If all questions are answered, show a random question
+          const levelQuestions = questions.filter(q => q.level === progress.currentLevel + 1);
+          if (levelQuestions.length > 0) {
+            const randomQuestion = levelQuestions[Math.floor(Math.random() * levelQuestions.length)];
+            setTimeout(() => {
+              setQuizState(prev => ({
+                ...prev,
+                currentQuestionId: randomQuestion.id,
+                showQuiz: true
+              }));
+            }, 300);
+          }
         }
       }
     } else {
@@ -109,10 +139,13 @@ export const useQuiz = (
         duration: 3000
       });
       
-      setQuizState(prev => ({
-        ...prev,
-        showQuiz: true
-      }));
+      // Stay on the same question after wrong answer
+      setTimeout(() => {
+        setQuizState(prev => ({
+          ...prev,
+          showQuiz: true
+        }));
+      }, 300);
     }
   };
 
@@ -139,17 +172,24 @@ export const useQuiz = (
     } as Partial<UserProgress>);
     
     // Create a link element to download the CV
-    const link = document.createElement('a');
-    link.href = '/CV_Sohaib_ZEGHOUANI.pdf'; // Update this with the actual path to your CV
-    link.download = 'CV_Sohaib_ZEGHOUANI.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success("Merci d'avoir téléchargé mon CV !", {
-      duration: 3000,
-      icon: <Download className="w-5 h-5 text-blue-500" />
-    });
+    try {
+      const link = document.createElement('a');
+      link.href = '/CV_Sohaib_ZEGHOUANI.pdf'; // Update this with the actual path to your CV
+      link.download = 'CV_Sohaib_ZEGHOUANI.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Merci d'avoir téléchargé mon CV !", {
+        duration: 3000,
+        icon: <Download className="w-5 h-5 text-blue-500" />
+      });
+    } catch (error) {
+      console.error("Error downloading CV:", error);
+      toast.error("Erreur lors du téléchargement du CV. Veuillez réessayer.", {
+        duration: 3000
+      });
+    }
   };
 
   const startQuiz = () => {

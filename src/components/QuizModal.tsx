@@ -1,5 +1,5 @@
 
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,13 @@ const QuizModal: FC<QuizModalProps> = ({
   const [showExplanation, setShowExplanation] = useState(false);
   const [userInput, setUserInput] = useState('');
   
+  // Reset state when the question changes
+  useEffect(() => {
+    setSelectedIndex(null);
+    setShowExplanation(false);
+    setUserInput('');
+  }, [currentQuestion.id]);
+  
   const handleAnswer = () => {
     if (selectedIndex === null) return;
     
@@ -59,9 +66,16 @@ const QuizModal: FC<QuizModalProps> = ({
   
   // Safely handle usedHints, ensuring it's always an array
   const usedHints = currentQuestion.usedHints || [];
+
+  // Handle the Dialog properly to prevent empty screen
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
   
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
