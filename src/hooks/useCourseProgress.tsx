@@ -13,37 +13,59 @@ export const useCourseProgress = (courseId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialLoadRef = useRef(true);
-  const [supabaseAuth, setSupabaseAuth] = useState(false);
+  const [supabaseAuthReady, setSupabaseAuthReady] = useState(false);
+  const authAttemptedRef = useRef(false);
 
   // Ensure Supabase authentication is set up
   useEffect(() => {
     const setupSupabaseAuth = async () => {
-      if (isSignedIn && user) {
-        try {
-          // Check if we already have a session
-          const { data: { session }, error } = await supabase.auth.getSession();
+      if (authAttemptedRef.current) return;
+      
+      try {
+        authAttemptedRef.current = true;
+        console.log("Setting up Supabase authentication...");
+        
+        // Check if we already have a session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.log("No existing Supabase session, attempting anonymous sign-in");
+          const { error: signInError } = await supabase.auth.signInAnonymously();
           
-          if (!session) {
-            // Sign in anonymously if no session exists
-            await supabase.auth.signInAnonymously();
-            console.log("Signed in anonymously to Supabase");
+          if (signInError) {
+            console.error("Anonymous sign-in failed:", signInError);
+            // If anonymous sign-in fails, we'll still allow the app to work
+            // but database operations may fail
+            setSupabaseAuthReady(false);
+            return;
           }
           
-          setSupabaseAuth(true);
-        } catch (error) {
-          console.error("Error setting up Supabase auth:", error);
-          // Continue anyway, we'll use localStorage as fallback
-          setSupabaseAuth(false);
+          console.log("Signed in anonymously to Supabase");
+        } else {
+          console.log("Existing Supabase session found");
         }
+        
+        setSupabaseAuthReady(true);
+      } catch (error) {
+        console.error("Error setting up Supabase auth:", error);
+        // Continue anyway, we'll use localStorage as fallback
+        setSupabaseAuthReady(false);
       }
     };
     
     setupSupabaseAuth();
-  }, [isSignedIn, user]);
+    
+    // Clean up function
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const loadProgress = async () => {
-      if (!isSignedIn || !user || !courseId) {
+      if (!courseId || !isSignedIn || !user) {
         setIsLoading(false);
         return;
       }
@@ -77,8 +99,6 @@ export const useCourseProgress = (courseId?: string) => {
             bookmarks: []
           };
           setProgress(newProgress);
-          // We'll save this initial progress in the database
-          await saveProgressToStorage(newProgress);
         }
       } catch (error) {
         console.error("Error loading progress:", error);
@@ -101,11 +121,11 @@ export const useCourseProgress = (courseId?: string) => {
       }
     };
 
-    // Only load progress when component mounts and Supabase auth is ready
-    if (initialLoadRef.current && (supabaseAuth || !isSignedIn)) {
+    // Only load progress when component mounts and we've attempted Supabase auth
+    if (initialLoadRef.current && (supabaseAuthReady || authAttemptedRef.current)) {
       loadProgress();
     }
-  }, [isSignedIn, user, courseId, supabaseAuth]);
+  }, [isSignedIn, user, courseId, supabaseAuthReady]);
 
   const saveProgressToStorage = async (progressData: UserProgress) => {
     if (!isSignedIn || !user) return;
@@ -113,38 +133,37 @@ export const useCourseProgress = (courseId?: string) => {
     try {
       console.log("Saving progress to storage:", progressData);
       
-      // Ensure currentLesson is properly formatted as UUID if it's not empty
-      const formattedProgress = {
-        ...progressData,
-        // Ensure currentLesson is properly formatted as UUID if it's not empty
-        currentLesson: progressData.currentLesson 
-          ? formatStringToUuid(progressData.currentLesson) 
-          : ''
-      };
-      
-      // Save to Supabase
-      await saveUserProgress(formattedProgress);
-      
-      // Also cache in localStorage as backup
-      localStorage.setItem(
-        `course_progress_${progressData.userId}_${progressData.courseId}`,
-        JSON.stringify(formattedProgress)
-      );
-      console.log("Progress saved successfully");
-    } catch (error) {
-      console.error("Error saving progress:", error);
-      toast.error("Error saving your progress");
-      
-      // Fallback to localStorage only
+      // Save to localStorage as backup first
       localStorage.setItem(
         `course_progress_${progressData.userId}_${progressData.courseId}`,
         JSON.stringify(progressData)
       );
+      
+      // Then try to save to Supabase
+      await saveUserProgress(progressData);
+      console.log("Progress saved successfully");
+    } catch (error) {
+      console.error("Error saving progress:", error);
+      // We've already saved to localStorage as a backup
     }
   };
 
   const updateProgress = (updates: Partial<UserProgress>) => {
     if (!progress) return;
+    
+    // Don't update if nothing has changed
+    let hasChanged = false;
+    for (const key in updates) {
+      if (JSON.stringify(updates[key]) !== JSON.stringify(progress[key])) {
+        hasChanged = true;
+        break;
+      }
+    }
+    
+    if (!hasChanged) {
+      console.log("No changes detected, skipping update");
+      return;
+    }
     
     const updatedProgress = {
       ...progress,
