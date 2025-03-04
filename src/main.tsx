@@ -23,14 +23,20 @@ console.log("Current origin for redirects:", currentOrigin);
 const redirectUrl = `${currentOrigin}/#/dashboard`;
 console.log("Full redirect URL:", redirectUrl);
 
+// Clerk auth portal URLs
+const clerkSignInUrl = "https://steady-starling-83.accounts.dev/sign-in";
+const clerkSignUpUrl = "https://steady-starling-83.accounts.dev/sign-up";
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ClerkProvider 
       publishableKey={PUBLISHABLE_KEY}
+      // Redirect URLs after authentication actions
       afterSignInUrl={redirectUrl}
       afterSignUpUrl={redirectUrl}
-      signInUrl="/#/"
-      signUpUrl="/#/"
+      // Sign in/up URLs using Clerk's hosted pages
+      signInUrl={clerkSignInUrl}
+      signUpUrl={clerkSignUpUrl}
     >
       <App />
     </ClerkProvider>
