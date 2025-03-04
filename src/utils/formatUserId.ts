@@ -39,3 +39,26 @@ export const formatUserId = (userId: string): string => {
   
   return userId; // Return as is for other formats
 };
+
+/**
+ * Converts a string ID (like a course slug) to a UUID-compatible format
+ * Uses the same hashing method as formatUserId
+ */
+export const formatStringToUuid = (str: string): string => {
+  // If it already looks like a UUID, return it as is
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
+    return str;
+  }
+  
+  // Create a hash from the string
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  // Create a valid UUID v4 format (with specific version bits)
+  const hashStr = Math.abs(hash).toString(16).padStart(32, '0');
+  return `${hashStr.slice(0, 8)}-${hashStr.slice(8, 12)}-4${hashStr.slice(13, 16)}-a${hashStr.slice(16, 19)}-${hashStr.slice(20, 32)}`;
+};
