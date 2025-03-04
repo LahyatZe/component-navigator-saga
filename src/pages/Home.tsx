@@ -1,3 +1,4 @@
+
 import { FC, useEffect, useState } from 'react';
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
@@ -8,6 +9,7 @@ import UserProgress, { sections } from '@/components/UserProgress';
 import { useProgressPersistence } from '@/hooks/useProgressPersistence';
 import { useAchievements } from '@/hooks/useAchievements';
 import { questions } from '@/data/quizQuestions';
+import { UserProgress as CourseUserProgress } from '@/types/course';
 
 const ADMIN_EMAIL = "sohaib.zeghouani@gmail.com";
 
@@ -43,6 +45,29 @@ const Home: FC = () => {
     }
   }, [isLoaded, progress, user]);
 
+  // Convert progress to the type expected by QuizSection
+  const mapProgressToQuizSection = (): CourseUserProgress => {
+    return {
+      userId: user?.id || '',
+      courseId: 'portfolio-course',
+      completedLessons: [],
+      completedExercises: [],
+      currentLesson: '',
+      startedAt: new Date().toISOString(),
+      lastAccessedAt: new Date().toISOString(),
+      completionPercentage: 0,
+      quizScores: {},
+      certificateIssued: false,
+      notes: {},
+      bookmarks: [],
+      usedHints: {},
+      cvDownloaded: progress.cvDownloaded || false,
+      quizHistory: progress.quizHistory || [],
+      unlockedYears: progress.unlockedYears || [],
+      currentLevel: progress.currentLevel || 0
+    };
+  };
+
   if (!isDataReady) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -76,9 +101,17 @@ const Home: FC = () => {
         />
         <div id="quiz-section" className="hidden">
           <QuizSection 
-            progress={progress} 
+            progress={mapProgressToQuizSection()} 
             questions={questions}
-            saveProgress={saveProgress}
+            saveProgress={(updates) => {
+              // Map the updates back to our progress type
+              const progressUpdates = {
+                currentLevel: updates.currentLevel,
+                unlockedYears: updates.unlockedYears,
+                quizHistory: updates.quizHistory,
+              };
+              saveProgress(progressUpdates);
+            }}
           />
         </div>
       </SignedIn>
