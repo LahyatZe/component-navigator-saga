@@ -48,28 +48,30 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
             <Link to="/" className="text-xl font-bold">
               CodeCampus
             </Link>
-            <div className="hidden md:block ml-10">
-              <div className="flex items-center space-x-4">
-                <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
-                  Home
-                </Link>
-                <Link to="/courses" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
-                  Courses
-                </Link>
-                <Link to="/labs" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
-                  Labs
-                </Link>
-                <Link to="/community" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
-                  Community
-                </Link>
-                <Link to="/about" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
-                  About
-                </Link>
-                <Link to="/contact" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
-                  Contact
-                </Link>
+            {isSignedIn && (
+              <div className="hidden md:block ml-10">
+                <div className="flex items-center space-x-4">
+                  <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
+                    Home
+                  </Link>
+                  <Link to="/courses" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
+                    Courses
+                  </Link>
+                  <Link to="/labs" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
+                    Labs
+                  </Link>
+                  <Link to="/community" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
+                    Community
+                  </Link>
+                  <Link to="/about" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
+                    About
+                  </Link>
+                  <Link to="/contact" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/10">
+                    Contact
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
           </div>
           <div className="flex items-center space-x-4">
             {isSignedIn ? (
@@ -101,14 +103,9 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
                 </Button>
               </>
             ) : (
-              <>
-                <a href={`https://steady-starling-83.accounts.dev/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`}>
-                  <Button variant="outline" size="sm">Sign In</Button>
-                </a>
-                <a href={`https://steady-starling-83.accounts.dev/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}`}>
-                  <Button size="sm">Sign Up</Button>
-                </a>
-              </>
+              <div className="flex items-center space-x-2">
+                {/* ModeToggle is outside the main menu items as it's always available */}
+              </div>
             )}
             <ModeToggle />
           </div>

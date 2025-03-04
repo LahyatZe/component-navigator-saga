@@ -20,6 +20,7 @@ import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import AdminPanel from './components/AdminPanel';
 import AdminDataMigration from './components/AdminDataMigration';
+import SignedOutView from './components/dashboard/SignedOutView';
 
 function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -74,34 +75,50 @@ function App() {
     );
   }
 
+  // Create a protected route component
+  const ProtectedRoute = ({ children }) => {
+    if (isLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+            <p className="text-muted-foreground">Chargement du portfolio...</p>
+          </div>
+        </div>
+      );
+    }
+    
+    return isSignedIn ? children : <SignedOutView />;
+  };
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <NotificationProvider>
         <HashRouter>
           <Navbar onAdminClick={toggleAdmin} />
-          {isLoading ? (
-            <div className="min-h-screen flex items-center justify-center">
-              <div className="flex flex-col items-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-                <p className="text-muted-foreground">Chargement du portfolio...</p>
-              </div>
-            </div>
-          ) : (
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/courses/:slug" element={<CourseDetail />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/project/:id" element={<Project />} />
-              <Route path="/labs" element={<Labs />} />
-              <Route path="/community" element={<Community />} />
-              <Route path="/dashboard" element={isSignedIn ? <Dashboard /> : <Navigate to="/" />} />
-              <Route path="/settings" element={isSignedIn ? <Settings /> : <Navigate to="/" />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          )}
+          
+          <Routes>
+            {/* Public root route with SignedOutView for non-authenticated users */}
+            <Route 
+              path="/" 
+              element={
+                isSignedIn ? <Home /> : <SignedOutView />
+              } 
+            />
+            
+            {/* All other routes protected */}
+            <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
+            <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
+            <Route path="/courses/:slug" element={<ProtectedRoute><CourseDetail /></ProtectedRoute>} />
+            <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+            <Route path="/project/:id" element={<ProtectedRoute><Project /></ProtectedRoute>} />
+            <Route path="/labs" element={<ProtectedRoute><Labs /></ProtectedRoute>} />
+            <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
+            <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
+          </Routes>
           
           {isAdminOpen && (
             <AdminPanel
