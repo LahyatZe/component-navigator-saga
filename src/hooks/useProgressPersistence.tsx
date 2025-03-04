@@ -52,10 +52,33 @@ export const useProgressPersistence = () => {
           
           if (data) {
             // Convert Supabase data to our UserProgress type
+            // Ensure quiz_history is properly parsed as an array of objects
+            let parsedQuizHistory: {level: number, correct: boolean}[] = [];
+            
+            if (data.quiz_history) {
+              // Handle quiz_history which may come as a string or JSON
+              try {
+                // If it's already a JSON object or array
+                if (Array.isArray(data.quiz_history)) {
+                  parsedQuizHistory = data.quiz_history as {level: number, correct: boolean}[];
+                } else if (typeof data.quiz_history === 'string') {
+                  // If it's a JSON string that needs parsing
+                  parsedQuizHistory = JSON.parse(data.quiz_history);
+                } else if (typeof data.quiz_history === 'object') {
+                  // If it's already an object but not an array
+                  console.warn("Quiz history is an object but not an array, using empty array instead");
+                  parsedQuizHistory = [];
+                }
+              } catch (e) {
+                console.error("Error parsing quiz history:", e);
+                parsedQuizHistory = [];
+              }
+            }
+            
             const userProgress: UserProgress = {
               currentLevel: data.current_level || 0,
               unlockedYears: data.unlocked_years || [],
-              quizHistory: data.quiz_history || [],
+              quizHistory: parsedQuizHistory,
               achievements: data.achievements || [],
               lastUpdated: data.last_updated || new Date().toISOString()
             };
