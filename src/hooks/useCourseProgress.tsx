@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Course, UserProgress } from '@/types/course';
 import { getUserProgress, saveUserProgress } from '@/services/course';
 import { toast } from 'sonner';
+import { formatStringToUuid } from '@/utils/formatUserId';
 
 export const useCourseProgress = (courseId?: string) => {
   const { user, isSignedIn } = useUser();
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initialLoadRef = useRef(true);
 
   useEffect(() => {
     const loadProgress = async () => {
@@ -45,6 +49,7 @@ export const useCourseProgress = (courseId?: string) => {
             bookmarks: []
           };
           setProgress(newProgress);
+          // We'll save this initial progress in the database
           await saveProgressToStorage(newProgress);
         }
       } catch (error) {
@@ -64,10 +69,14 @@ export const useCourseProgress = (courseId?: string) => {
         }
       } finally {
         setIsLoading(false);
+        initialLoadRef.current = false;
       }
     };
 
-    loadProgress();
+    // Only load progress when component mounts
+    if (initialLoadRef.current) {
+      loadProgress();
+    }
   }, [isSignedIn, user, courseId]);
 
   const saveProgressToStorage = async (progressData: UserProgress) => {
@@ -76,20 +85,22 @@ export const useCourseProgress = (courseId?: string) => {
     try {
       console.log("Saving progress to storage:", progressData);
       
-      // Validate data before saving
-      const validatedProgress = {
+      // Ensure currentLesson is properly formatted as UUID if it's not empty
+      const formattedProgress = {
         ...progressData,
-        // Ensure currentLesson is never undefined
-        currentLesson: progressData.currentLesson || ''
+        // Ensure currentLesson is properly formatted as UUID if it's not empty
+        currentLesson: progressData.currentLesson 
+          ? formatStringToUuid(progressData.currentLesson) 
+          : ''
       };
       
       // Save to Supabase
-      await saveUserProgress(validatedProgress);
+      await saveUserProgress(formattedProgress);
       
       // Also cache in localStorage as backup
       localStorage.setItem(
         `course_progress_${progressData.userId}_${progressData.courseId}`,
-        JSON.stringify(validatedProgress)
+        JSON.stringify(formattedProgress)
       );
       console.log("Progress saved successfully");
     } catch (error) {
@@ -114,7 +125,17 @@ export const useCourseProgress = (courseId?: string) => {
     };
     
     setProgress(updatedProgress);
-    saveProgressToStorage(updatedProgress);
+    
+    // Clear any existing timeout to prevent multiple saves
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    // Debounce the save operation to prevent excessive API calls
+    saveTimeoutRef.current = setTimeout(() => {
+      saveProgressToStorage(updatedProgress);
+      saveTimeoutRef.current = null;
+    }, 2000); // 2 second debounce
   };
 
   const markLessonAsCompleted = (lessonId: string, course: Course) => {
@@ -174,7 +195,7 @@ export const useCourseProgress = (courseId?: string) => {
   };
 
   const setCurrentLesson = (lessonId: string) => {
-    if (!progress) return;
+    if (!progress || progress.currentLesson === lessonId) return;
     updateProgress({ currentLesson: lessonId });
   };
 

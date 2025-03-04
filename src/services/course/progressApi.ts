@@ -24,6 +24,11 @@ export const saveUserProgress = async (progress: UserProgress) => {
     // Convert string lesson ID to UUID format
     currentLessonId = formatStringToUuid(currentLessonId);
   }
+
+  // If currentLessonId is empty string, set it to null for database
+  if (currentLessonId === '') {
+    currentLessonId = null;
+  }
   
   try {
     const { data, error } = await supabase
