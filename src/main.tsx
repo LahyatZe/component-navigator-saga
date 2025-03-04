@@ -31,7 +31,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       afterSignUpUrl={redirectUrl}
       signInUrl="/#/"
       signUpUrl="/#/"
-      afterSignOutUrl="/#/"
     >
       <App />
     </ClerkProvider>
