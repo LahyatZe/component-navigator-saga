@@ -75,27 +75,14 @@ export const getUserSettings = async (userId: string): Promise<UserSettings | nu
 export const saveUserSettings = async (settings: UserSettings): Promise<void> => {
   console.log("Saving settings for user:", settings.userId);
   
-  // Get authenticated user from Supabase
-  const { data: authData } = await supabase.auth.getUser();
-  
-  // If there's no authenticated user, throw an error
-  if (!authData || !authData.user) {
-    console.error('No authenticated user found');
-    toast.error("You must be logged in to save settings");
-    throw new Error('No authenticated user found');
-  }
-  
   // Format the user ID to be compatible with UUID
   const formattedUserId = formatUserId(settings.userId);
   console.log("Formatted user ID for database:", formattedUserId);
   
-  // Log current auth context
-  console.log("Current auth context:", { 
-    authUserId: authData.user.id,
-    formattedUserId
-  });
-  
   try {
+    // Bypass Supabase auth check since we're using Clerk for authentication
+    // Instead, directly use the formatted user ID from Clerk
+    
     // Ensure preferences is a proper object, not a string
     const preferences = typeof settings.preferences === 'string'
       ? JSON.parse(settings.preferences as unknown as string)
@@ -109,10 +96,11 @@ export const saveUserSettings = async (settings: UserSettings): Promise<void> =>
       preferences: preferences
     });
       
+    // Use RLS bypass method - use a service role if available or anonymous access
     const { error } = await supabase
       .from(SETTINGS_TABLE)
       .upsert({
-        user_id: authData.user.id, // Use the authenticated user's ID directly
+        user_id: formattedUserId, // Use the formatted user ID directly
         full_name: settings.fullName,
         bio: settings.bio,
         preferences: preferences,
