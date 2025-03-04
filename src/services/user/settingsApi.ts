@@ -84,6 +84,14 @@ export const saveUserSettings = async (settings: UserSettings): Promise<void> =>
     const preferences = typeof settings.preferences === 'string'
       ? JSON.parse(settings.preferences as unknown as string)
       : settings.preferences;
+    
+    // Log the data being sent to the database for debugging
+    console.log("Saving settings with data:", {
+      user_id: formattedUserId,
+      full_name: settings.fullName,
+      bio: settings.bio,
+      preferences: preferences
+    });
       
     const { error } = await supabase
       .from(SETTINGS_TABLE)
