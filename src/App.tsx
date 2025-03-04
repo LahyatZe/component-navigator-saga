@@ -33,8 +33,12 @@ function App() {
       // Add a small delay to ensure authentication state is properly synced
       const timer = setTimeout(() => {
         setIsLoading(false);
-        console.log("App loaded, auth state:", { isSignedIn, userId: user?.id });
-      }, 1000); // Increased timeout to ensure auth state is fully resolved
+        console.log("App loaded, auth state:", { 
+          isSignedIn, 
+          userId: user?.id,
+          location: window.location.href
+        });
+      }, 1500); // Increased timeout to ensure auth state is fully resolved
       
       return () => clearTimeout(timer);
     }
@@ -47,7 +51,8 @@ function App() {
         isSignedIn, 
         userId: user?.id,
         userEmail: user?.primaryEmailAddress?.emailAddress,
-        isLoaded 
+        isLoaded,
+        currentPath: window.location.href
       });
     }
   }, [isLoaded, isSignedIn, user]);

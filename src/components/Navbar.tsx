@@ -21,9 +21,9 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
   // In a real app, you'd check for a proper admin flag or role
   const isAdmin = isSignedIn && user?.primaryEmailAddress?.emailAddress?.endsWith('@admin.com');
 
-  // Get the app URL with hash-based routing
-  const currentUrl = `${window.location.origin}/#/dashboard`;
-  console.log("Authentication redirect URL:", currentUrl);
+  // Get the app URL with hash-based routing - using the exact same format as in main.tsx
+  const redirectUrl = `${window.location.origin}/#/dashboard`;
+  console.log("Navbar redirect URL:", redirectUrl);
 
   const handleSignOut = async () => {
     await signOut();
@@ -102,10 +102,10 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
               </>
             ) : (
               <>
-                <a href={`https://steady-starling-83.accounts.dev/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`}>
+                <a href={`https://steady-starling-83.accounts.dev/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`}>
                   <Button variant="outline" size="sm">Sign In</Button>
                 </a>
-                <a href={`https://steady-starling-83.accounts.dev/sign-up?redirect_url=${encodeURIComponent(currentUrl)}`}>
+                <a href={`https://steady-starling-83.accounts.dev/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}`}>
                   <Button size="sm">Sign Up</Button>
                 </a>
               </>

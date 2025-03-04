@@ -19,12 +19,16 @@ if (!PUBLISHABLE_KEY) {
 const currentOrigin = window.location.origin;
 console.log("Current origin for redirects:", currentOrigin);
 
+// Specific redirect URL with hash routing
+const redirectUrl = `${currentOrigin}/#/dashboard`;
+console.log("Full redirect URL:", redirectUrl);
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ClerkProvider 
       publishableKey={PUBLISHABLE_KEY}
-      afterSignInUrl={`${currentOrigin}/#/dashboard`}
-      afterSignUpUrl={`${currentOrigin}/#/dashboard`}
+      afterSignInUrl={redirectUrl}
+      afterSignUpUrl={redirectUrl}
     >
       <App />
     </ClerkProvider>
