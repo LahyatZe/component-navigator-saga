@@ -4,6 +4,7 @@ import QuizModal from '@/components/QuizModal';
 import { UserProgress } from '@/types/course';
 import { useQuiz } from '@/hooks/useQuiz';
 import { Question } from '@/types/quiz';
+import { toast } from 'sonner';
 
 interface QuizSectionProps {
   progress: UserProgress;
@@ -41,7 +42,13 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }
   // Handle the modal's open state and ensure it works properly
   const handleCloseModal = () => {
     console.log("Closing quiz modal");
-    setQuizState(prev => ({ ...prev, showQuiz: false }));
+    try {
+      setQuizState(prev => ({ ...prev, showQuiz: false }));
+    } catch (error) {
+      console.error("Error closing modal:", error);
+      // Fallback if state update fails
+      window.location.reload();
+    }
   };
 
   // Handle the answer and ensure the quiz state is properly updated
@@ -53,6 +60,7 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }
       console.error("Error handling quiz answer:", error);
       // Prevent complete UI breakdown by ensuring modal stays visible
       setQuizState(prev => ({ ...prev, showQuiz: true }));
+      toast.error("Une erreur s'est produite. Veuillez rafraîchir la page.");
     }
   };
 
@@ -62,9 +70,11 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }
     currentQuestion = getCurrentQuestion();
   } catch (error) {
     console.error("Error getting current question in QuizSection:", error);
+    // Show error toast to inform the user
+    toast.error("Impossible de charger la question. Veuillez rafraîchir la page.");
   }
   
-  // Only render the modal if we have a valid question
+  // Only render the modal if we have a valid question and quiz should be shown
   const showModal = quizState.showQuiz && currentQuestion !== null;
   
   return (

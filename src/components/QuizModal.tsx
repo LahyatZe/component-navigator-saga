@@ -30,14 +30,14 @@ const QuizModal: FC<QuizModalProps> = ({
   const [showExplanation, setShowExplanation] = useState(false);
   const [userInput, setUserInput] = useState('');
   
-  // Reset state when the question changes
+  // Reset state when the question changes or modal opens/closes
   useEffect(() => {
     if (currentQuestion && currentQuestion.id) {
       setSelectedIndex(null);
       setShowExplanation(false);
       setUserInput('');
     }
-  }, [currentQuestion?.id]);
+  }, [currentQuestion?.id, isOpen]);
   
   // Safety guard to prevent errors if currentQuestion is null
   if (!currentQuestion) {

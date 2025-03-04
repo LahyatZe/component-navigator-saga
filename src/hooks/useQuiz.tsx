@@ -16,7 +16,7 @@ export const useQuiz = (
   });
   const [currentHints, setCurrentHints] = useState<string[]>([]);
 
-  // Initialiser les indices utilisés pour la question actuelle
+  // Initialize hints used for the current question
   useEffect(() => {
     if (quizState.showQuiz) {
       const questionId = quizState.currentQuestionId.toString();
@@ -35,8 +35,10 @@ export const useQuiz = (
       saveProgress({ quizHistory: updatedQuizHistory });
       
       if (correct) {
-        // Get questions for the current level, handle safely
-        const questionsForCurrentLevel = questions.filter(q => q.level === (progress?.currentLevel || 0) + 1) || [];
+        // Defensively filter questions for current level
+        const questionsForCurrentLevel = (questions || []).filter(q => 
+          q && q.level === ((progress?.currentLevel || 0) + 1)
+        ) || [];
         
         // Calculate required correct answers safely
         const requiredCorrectAnswers = questionsForCurrentLevel.length > 0 
@@ -44,8 +46,8 @@ export const useQuiz = (
           : 1;
           
         // Get current correct answers, handle safely
-        const correctAnswersForLevel = currentQuizHistory
-          .filter(q => q?.level === (progress?.currentLevel || 0) + 1 && q?.correct)
+        const correctAnswersForLevel = (currentQuizHistory || [])
+          .filter(q => q && q.level === ((progress?.currentLevel || 0) + 1) && q.correct)
           .length + 1;
         
         console.log(`Required correct: ${requiredCorrectAnswers}, Current correct: ${correctAnswersForLevel}`);
@@ -89,7 +91,7 @@ export const useQuiz = (
             
             // After level up, prepare next quiz with delay to prevent issues
             setTimeout(() => {
-              const nextLevelQuestions = questions.filter(q => q.level === nextLevel + 1) || [];
+              const nextLevelQuestions = (questions || []).filter(q => q && q.level === nextLevel + 1) || [];
               if (nextLevelQuestions.length > 0) {
                 // Close this quiz and move to next level
                 setQuizState(prev => ({
@@ -123,14 +125,21 @@ export const useQuiz = (
             duration: 3000
           });
           
-          // Get remaining questions safely - THIS IS WHERE THE FILTER ERROR WAS OCCURRING
+          // Get remaining questions safely
           try {
+            // Make sure questions array is properly defined
+            if (!Array.isArray(questions)) {
+              throw new Error("Questions array is not properly defined");
+            }
+            
             const remainingQuestions = questions.filter(q => {
+              if (!q) return false;
+              
               // Filter for current level
               if (q.level !== (progress?.currentLevel || 0) + 1) return false;
               
               // Only include questions that haven't been answered correctly
-              return !(currentQuizHistory.some(history => {
+              return !(Array.isArray(currentQuizHistory) && currentQuizHistory.some(history => {
                 if (!history) return false;
                 
                 return history.level === q.level && 
@@ -151,7 +160,10 @@ export const useQuiz = (
                 }));
               } else {
                 // If all questions are answered, show a random question from this level
-                const levelQuestions = questions.filter(q => q.level === (progress?.currentLevel || 0) + 1) || [];
+                const levelQuestions = (questions || []).filter(q => 
+                  q && q.level === (progress?.currentLevel || 0) + 1
+                ) || [];
+                
                 if (levelQuestions.length > 0) {
                   const randomQuestion = levelQuestions[Math.floor(Math.random() * levelQuestions.length)];
                   setQuizState(prev => ({
@@ -172,7 +184,10 @@ export const useQuiz = (
             console.error("Error filtering questions:", filterError);
             // Fallback in case of filter error - just show any question from this level
             setTimeout(() => {
-              const fallbackQuestions = questions.filter(q => q.level === (progress?.currentLevel || 0) + 1) || [];
+              const fallbackQuestions = (questions || []).filter(q => 
+                q && q.level === (progress?.currentLevel || 0) + 1
+              ) || [];
+              
               if (fallbackQuestions.length > 0) {
                 const randomQuestion = fallbackQuestions[Math.floor(Math.random() * fallbackQuestions.length)];
                 setQuizState(prev => ({
@@ -220,10 +235,10 @@ export const useQuiz = (
       const questionId = quizState.currentQuestionId.toString();
       const usedHints = [...(currentHints || []), hintIndex.toString()];
       
-      // Mettre à jour l'état local
+      // Update local state
       setCurrentHints(usedHints);
       
-      // Mettre à jour le stockage global
+      // Update global storage
       const updatedUsedHints = { ...(progress?.usedHints || {}) };
       updatedUsedHints[questionId] = usedHints;
       
@@ -244,7 +259,7 @@ export const useQuiz = (
       
       // Create a link element to download the CV
       const link = document.createElement('a');
-      link.href = '/CV_Sohaib_ZEGHOUANI.pdf'; // Update this with the actual path to your CV
+      link.href = '/CV_Sohaib_ZEGHOUANI.pdf';
       link.download = 'CV_Sohaib_ZEGHOUANI.pdf';
       link.target = '_blank';
       document.body.appendChild(link);
@@ -266,7 +281,17 @@ export const useQuiz = (
   const startQuiz = useCallback(() => {
     try {
       if ((progress?.currentLevel || 0) < 4) {
-        const levelQuestions = questions.filter(q => q.level === (progress?.currentLevel || 0) + 1) || [];
+        // Ensure questions array is valid
+        if (!Array.isArray(questions)) {
+          toast.error("Erreur lors du démarrage du quiz: données des questions non disponibles", {
+            duration: 3000
+          });
+          return;
+        }
+        
+        const levelQuestions = questions.filter(q => 
+          q && q.level === (progress?.currentLevel || 0) + 1
+        ) || [];
         
         if (levelQuestions.length === 0) {
           toast.error("Aucune question disponible pour ce niveau!", {
@@ -278,13 +303,13 @@ export const useQuiz = (
         // Handle potentially undefined quizHistory safely
         const quizHistory = Array.isArray(progress?.quizHistory) ? progress.quizHistory : [];
         
-        // Fix here - Make sure we handle null properly and don't call filter on undefined
-        const answeredCorrectly = quizHistory
-          .filter(h => h?.correct) // Make sure we have valid entries
+        // Safely get answered correctly questions
+        const answeredCorrectly = (quizHistory || [])
+          .filter(h => h && h.correct) // Make sure we have valid entries
           .map(h => {
             if (!h) return -1; // Handle null/undefined
             // Find the corresponding question
-            const question = questions.find(q => q.level === h.level && q.id === quizState.currentQuestionId);
+            const question = questions.find(q => q && q.level === h.level && q.id === quizState.currentQuestionId);
             return question ? question.id : -1;
           })
           .filter(id => id !== -1); // Remove invalid entries
@@ -320,7 +345,12 @@ export const useQuiz = (
 
   const getCurrentQuestion = useCallback((): Question => {
     try {
-      const question = questions.find(q => q.id === quizState.currentQuestionId);
+      // Ensure questions array is properly defined
+      if (!Array.isArray(questions)) {
+        throw new Error("Questions array is not properly defined");
+      }
+      
+      const question = questions.find(q => q && q.id === quizState.currentQuestionId);
       
       if (!question) {
         console.error("Question not found for ID:", quizState.currentQuestionId);
