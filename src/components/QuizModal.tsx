@@ -39,12 +39,14 @@ const QuizModal: FC<QuizModalProps> = ({
       : currentQuestion.correctOptionIndex;
     
     const isCorrect = selectedIndex === correctIndex;
-    onAnswer(isCorrect);
     
-    // Reset state for next quiz
+    // Reset state for next question
     setSelectedIndex(null);
     setShowExplanation(false);
     setUserInput('');
+    
+    // Call the onAnswer callback with the result
+    onAnswer(isCorrect);
   };
   
   const handleOptionClick = (index: number) => {

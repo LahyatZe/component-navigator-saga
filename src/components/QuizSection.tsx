@@ -14,6 +14,7 @@ interface QuizSectionProps {
 const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }) => {
   const { 
     quizState, 
+    setQuizState,  // Make sure we expose this
     handleQuizAnswer, 
     handleUseHint,
     handleCvDownload,
@@ -42,7 +43,7 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }
       {quizState.showQuiz && (
         <QuizModal
           isOpen={quizState.showQuiz}
-          onClose={() => quizState.showQuiz = false}
+          onClose={() => setQuizState(prev => ({ ...prev, showQuiz: false }))}
           onAnswer={handleQuizAnswer}
           currentQuestion={getCurrentQuestion()}
           level={progress.currentLevel + 1}

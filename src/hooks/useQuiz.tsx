@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Trophy, Star, Code, Award, Rocket, Download } from 'lucide-react';
@@ -100,7 +99,8 @@ export const useQuiz = (
           const randomQuestion = remainingQuestions[Math.floor(Math.random() * remainingQuestions.length)];
           setQuizState(prev => ({
             ...prev,
-            currentQuestionId: randomQuestion.id
+            currentQuestionId: randomQuestion.id,
+            showQuiz: true
           }));
         }
       }
@@ -108,15 +108,12 @@ export const useQuiz = (
       toast.error("Ce n'est pas la bonne réponse, essayez encore !", {
         duration: 3000
       });
+      
+      setQuizState(prev => ({
+        ...prev,
+        showQuiz: true
+      }));
     }
-    
-    setQuizState(prev => ({
-      ...prev,
-      showQuiz: false
-    }));
-    
-    // Réinitialiser les indices utilisés pour la prochaine question
-    setCurrentHints([]);
   };
 
   const handleUseHint = (hintIndex: number) => {
@@ -158,6 +155,14 @@ export const useQuiz = (
   const startQuiz = () => {
     if (progress.currentLevel < 4) {
       const levelQuestions = questions.filter(q => q.level === progress.currentLevel + 1);
+      
+      if (levelQuestions.length === 0) {
+        toast.error("Aucune question disponible pour ce niveau!", {
+          duration: 3000
+        });
+        return;
+      }
+      
       const answeredCorrectly = (progress.quizHistory || [])
         .filter(h => h.correct)
         .map(h => {
@@ -165,26 +170,24 @@ export const useQuiz = (
           return question ? question.id : -1;
         });
       
-      const unansweredQuestions = levelQuestions.filter(q => !answeredCorrectly.includes(q.id));
+      let unansweredQuestions = levelQuestions.filter(q => !answeredCorrectly.includes(q.id));
       
-      if (unansweredQuestions.length > 0) {
-        const randomQuestion = unansweredQuestions[Math.floor(Math.random() * unansweredQuestions.length)];
-        setQuizState(prev => ({
-          ...prev,
-          currentQuestionId: randomQuestion.id
-        }));
-      } else if (levelQuestions.length > 0) {
-        const randomQuestion = levelQuestions[Math.floor(Math.random() * levelQuestions.length)];
-        setQuizState(prev => ({
-          ...prev,
-          currentQuestionId: randomQuestion.id
-        }));
+      if (unansweredQuestions.length === 0) {
+        unansweredQuestions = levelQuestions;
       }
       
-      setQuizState(prev => ({
-        ...prev,
+      const randomQuestion = unansweredQuestions[Math.floor(Math.random() * unansweredQuestions.length)];
+      
+      setQuizState({
+        currentQuestionId: randomQuestion.id,
         showQuiz: true
-      }));
+      });
+      
+      console.log("Quiz started with question ID:", randomQuestion.id);
+    } else {
+      toast.info("Vous avez déjà débloqué tous les niveaux !", {
+        duration: 3000
+      });
     }
   };
 
