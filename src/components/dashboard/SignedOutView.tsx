@@ -1,3 +1,4 @@
+
 import { FC, useState } from 'react';
 import { useSignIn, useSignUp } from '@clerk/clerk-react';
 import { Button } from "@/components/ui/button";
@@ -13,30 +14,7 @@ const SignedOutView: FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const clerkSignInUrl = "https://steady-starling-83.accounts.dev/sign-in";
-
-  const handleSignUp = async () => {
-    if (!email.trim()) {
-      toast.error("Veuillez saisir une adresse email");
-      return;
-    }
-
-    if (isSignUpLoaded && signUp) {
-      try {
-        setIsProcessing(true);
-        await signUp.create({
-          emailAddress: email,
-        });
-        
-        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-        toast.success("Code de vérification envoyé. Vérifiez votre email.");
-      } catch (error) {
-        console.error("Sign up error:", error);
-        toast.error("Erreur lors de l'inscription. Veuillez réessayer.");
-      } finally {
-        setIsProcessing(false);
-      }
-    }
-  };
+  const clerkSignUpUrl = "https://steady-starling-83.accounts.dev/sign-up";
 
   return (
     <div className="container mx-auto py-12 px-4">
@@ -71,14 +49,12 @@ const SignedOutView: FC = () => {
                 >
                   Se connecter <ArrowRight className="h-4 w-4" />
                 </a>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  onClick={handleSignUp} 
-                  disabled={isProcessing || !email.trim()}
+                <a 
+                  href={clerkSignUpUrl}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-background border border-input hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8"
                 >
-                  {isProcessing ? "Chargement..." : "Créer un compte"}
-                </Button>
+                  Créer un compte <ArrowRight className="h-4 w-4" />
+                </a>
               </div>
             </div>
           </CardContent>
