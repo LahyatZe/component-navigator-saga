@@ -75,9 +75,25 @@ export const getUserSettings = async (userId: string): Promise<UserSettings | nu
 export const saveUserSettings = async (settings: UserSettings): Promise<void> => {
   console.log("Saving settings for user:", settings.userId);
   
+  // Get authenticated user from Supabase
+  const { data: authData } = await supabase.auth.getUser();
+  
+  // If there's no authenticated user, throw an error
+  if (!authData || !authData.user) {
+    console.error('No authenticated user found');
+    toast.error("You must be logged in to save settings");
+    throw new Error('No authenticated user found');
+  }
+  
   // Format the user ID to be compatible with UUID
   const formattedUserId = formatUserId(settings.userId);
   console.log("Formatted user ID for database:", formattedUserId);
+  
+  // Log current auth context
+  console.log("Current auth context:", { 
+    authUserId: authData.user.id,
+    formattedUserId
+  });
   
   try {
     // Ensure preferences is a proper object, not a string
@@ -96,7 +112,7 @@ export const saveUserSettings = async (settings: UserSettings): Promise<void> =>
     const { error } = await supabase
       .from(SETTINGS_TABLE)
       .upsert({
-        user_id: formattedUserId,
+        user_id: authData.user.id, // Use the authenticated user's ID directly
         full_name: settings.fullName,
         bio: settings.bio,
         preferences: preferences,

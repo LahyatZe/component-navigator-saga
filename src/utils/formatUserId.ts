@@ -24,5 +24,18 @@ export const formatUserId = (userId: string): string => {
     return `${hashStr.slice(0, 8)}-${hashStr.slice(8, 12)}-4${hashStr.slice(13, 16)}-a${hashStr.slice(16, 19)}-${hashStr.slice(20, 32)}`;
   }
   
+  // If it's an email address or another format, hash it
+  if (userId.includes('@') || userId.length > 0) {
+    let hash = 0;
+    for (let i = 0; i < userId.length; i++) {
+      const char = userId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    
+    const hashStr = Math.abs(hash).toString(16).padStart(32, '0');
+    return `${hashStr.slice(0, 8)}-${hashStr.slice(8, 12)}-4${hashStr.slice(13, 16)}-a${hashStr.slice(16, 19)}-${hashStr.slice(20, 32)}`;
+  }
+  
   return userId; // Return as is for other formats
 };
