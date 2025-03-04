@@ -31,29 +31,13 @@ export const saveUserProgress = async (progress: UserProgress) => {
   }
   
   try {
-    // Get current user session
+    // Check if we have a session - we won't try to create anonymous sessions
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
-    // Check if we have a valid session
     if (sessionError || !sessionData.session) {
-      console.log("No authenticated session found, creating anonymous session");
-      const { error: signInError } = await supabase.auth.signInAnonymously();
-      
-      if (signInError) {
-        console.error("Failed to create anonymous session:", signInError);
-        throw new Error("Authentication failed: " + signInError.message);
-      }
-      
-      // Wait a moment for the session to be established
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-    
-    // Get the updated session after potential sign-in
-    const { data: updatedSession } = await supabase.auth.getSession();
-    console.log("Session status:", updatedSession.session ? "Authenticated" : "Not authenticated");
-    
-    if (!updatedSession.session) {
-      throw new Error("Failed to establish authenticated session");
+      console.log("No authenticated session found, saving to localStorage only");
+      // If no session, we'll just use localStorage (handled by the caller)
+      throw new Error("No authenticated session available");
     }
     
     const { data, error } = await supabase
@@ -80,7 +64,7 @@ export const saveUserProgress = async (progress: UserProgress) => {
       throw error;
     }
 
-    console.log("Progress saved successfully");
+    console.log("Progress saved successfully to Supabase");
     return data;
   } catch (error) {
     console.error('Error saving progress:', error);
@@ -97,21 +81,13 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
   console.log("Formatted user ID for database lookup:", formattedUserId);
   
   try {
-    // Get current user session
+    // Check if we have a session - we won't try to create anonymous sessions
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
-    // Check if we have a valid session
     if (sessionError || !sessionData.session) {
-      console.log("No authenticated session found, creating anonymous session");
-      const { error: signInError } = await supabase.auth.signInAnonymously();
-      
-      if (signInError) {
-        console.error("Failed to create anonymous session:", signInError);
-        throw new Error("Authentication failed: " + signInError.message);
-      }
-      
-      // Wait a moment for the session to be established
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log("No authenticated session found, using localStorage only");
+      // If no session, we'll just use localStorage (handled by the caller)
+      throw new Error("No authenticated session available");
     }
     
     // Check if courseId is a UUID, if not convert it
