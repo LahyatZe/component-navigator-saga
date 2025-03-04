@@ -1,6 +1,5 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { 
@@ -15,20 +14,68 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Moon, User, Shield, AlertTriangle } from 'lucide-react';
+import { Bell, Moon, User, Shield, AlertTriangle, Loader2 } from 'lucide-react';
+import { getUserSettings, saveUserSettings, UserSettings } from '@/services/user/settingsApi';
 
 const Settings = () => {
   const { user } = useUser();
-  const navigate = useNavigate();
   const { addNotification, clearAll } = useNotifications();
   const [activeTab, setActiveTab] = useState('profile');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // User profile data
+  const [fullName, setFullName] = useState('');
+  const [bio, setBio] = useState('');
+  
+  // Preferences
   const [darkModeEnabled, setDarkModeEnabled] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark';
   });
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
+
+  // Load user settings from the database
+  useEffect(() => {
+    if (!user) return;
+    
+    const loadSettings = async () => {
+      setIsLoading(true);
+      try {
+        const settings = await getUserSettings(user.id);
+        
+        if (settings) {
+          // Update profile data
+          setFullName(settings.fullName || user?.fullName || '');
+          setBio(settings.bio || '');
+          
+          // Update preferences
+          setDarkModeEnabled(settings.preferences.darkMode);
+          setEmailNotifications(settings.preferences.emailNotifications);
+          setPushNotifications(settings.preferences.pushNotifications);
+          
+          // Apply theme
+          document.documentElement.classList.toggle('dark', settings.preferences.darkMode);
+          localStorage.setItem('theme', settings.preferences.darkMode ? 'dark' : 'light');
+        } else {
+          // Set defaults from user data
+          setFullName(user?.fullName || '');
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error);
+        addNotification({
+          title: 'Error',
+          message: 'Failed to load settings',
+          type: 'error'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadSettings();
+  }, [user, addNotification]);
 
   const handleDarkModeToggle = () => {
     const newDarkModeState = !darkModeEnabled;
@@ -53,6 +100,126 @@ const Settings = () => {
       type: 'info'
     });
   };
+  
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    try {
+      const settings: UserSettings = {
+        userId: user.id,
+        fullName,
+        bio,
+        preferences: {
+          darkMode: darkModeEnabled,
+          emailNotifications,
+          pushNotifications
+        },
+        lastUpdated: new Date().toISOString()
+      };
+      
+      await saveUserSettings(settings);
+      
+      addNotification({
+        title: 'Success',
+        message: 'Profile settings saved successfully',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      addNotification({
+        title: 'Error',
+        message: 'Failed to save profile settings',
+        type: 'error'
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveAppearance = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    try {
+      const settings = await getUserSettings(user.id) || {
+        userId: user.id,
+        preferences: {
+          darkMode: darkModeEnabled,
+          emailNotifications: true,
+          pushNotifications: true
+        },
+        lastUpdated: new Date().toISOString()
+      };
+      
+      settings.preferences.darkMode = darkModeEnabled;
+      
+      await saveUserSettings(settings);
+      
+      addNotification({
+        title: 'Success',
+        message: 'Appearance settings saved successfully',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error("Error saving appearance settings:", error);
+      addNotification({
+        title: 'Error',
+        message: 'Failed to save appearance settings',
+        type: 'error'
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    try {
+      const settings = await getUserSettings(user.id) || {
+        userId: user.id,
+        preferences: {
+          darkMode: darkModeEnabled,
+          emailNotifications,
+          pushNotifications
+        },
+        lastUpdated: new Date().toISOString()
+      };
+      
+      settings.preferences.emailNotifications = emailNotifications;
+      settings.preferences.pushNotifications = pushNotifications;
+      
+      await saveUserSettings(settings);
+      
+      addNotification({
+        title: 'Success',
+        message: 'Notification settings saved successfully',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error("Error saving notification settings:", error);
+      addNotification({
+        title: 'Error',
+        message: 'Failed to save notification settings',
+        type: 'error'
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[70vh]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-medium">Loading settings...</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -112,7 +279,8 @@ const Settings = () => {
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input 
                     id="fullName" 
-                    defaultValue={user?.fullName || ''} 
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -123,18 +291,24 @@ const Settings = () => {
                     type="email" 
                     defaultValue={user?.primaryEmailAddress?.emailAddress || ''}
                     readOnly
+                    className="bg-gray-100"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
                   <Input 
                     id="bio" 
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
                     placeholder="Tell us about yourself"
                   />
                 </div>
               </CardContent>
               <CardFooter>
-                <Button>Save Changes</Button>
+                <Button disabled={isSaving} onClick={handleSaveProfile}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Changes
+                </Button>
               </CardFooter>
             </Card>
           )}
@@ -160,6 +334,12 @@ const Settings = () => {
                   />
                 </div>
               </CardContent>
+              <CardFooter>
+                <Button disabled={isSaving} onClick={handleSaveAppearance}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Changes
+                </Button>
+              </CardFooter>
             </Card>
           )}
           
@@ -210,6 +390,12 @@ const Settings = () => {
                   </div>
                 </div>
               </CardContent>
+              <CardFooter>
+                <Button disabled={isSaving} onClick={handleSaveNotifications}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Changes
+                </Button>
+              </CardFooter>
             </Card>
           )}
           
