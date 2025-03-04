@@ -11,57 +11,171 @@ type ExtendedDatabase = Database & {
   public: {
     Tables: {
       courses: {
-        Row: any;
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          level: string;
+          category: string;
+          duration: number;
+          prerequisites: string[];
+          author: string;
+          author_role: string | null;
+          image_url: string | null;
+          published: boolean | null;
+          slug: string;
+          popularity: number | null;
+          rating: number | null;
+          review_count: number | null;
+          tags: string[] | null;
+          price: number | null;
+          discount: number | null;
+          featured: boolean | null;
+          language: string | null;
+          certificate_available: boolean | null;
+          updated_at: string | null;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
       modules: {
-        Row: any;
+        Row: {
+          id: string;
+          course_id: string;
+          title: string;
+          description: string | null;
+          order_index: number;
+          duration: number | null;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
       lessons: {
-        Row: any;
+        Row: {
+          id: string;
+          module_id: string;
+          title: string;
+          content: string;
+          duration: number;
+          video_url: string | null;
+          order_index: number;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
       exercises: {
-        Row: any;
+        Row: {
+          id: string;
+          lesson_id: string;
+          title: string;
+          description: string;
+          difficulty: string;
+          code_template: string | null;
+          solution: string | null;
+          hints: string[] | null;
+          points: number | null;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
       test_cases: {
-        Row: any;
+        Row: {
+          id: string;
+          exercise_id: string;
+          input: string;
+          expected_output: string;
+          is_public: boolean | null;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
       resources: {
-        Row: any;
+        Row: {
+          id: string;
+          lesson_id: string;
+          title: string;
+          type: string;
+          url: string;
+          description: string | null;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
       quizzes: {
-        Row: any;
+        Row: {
+          id: string;
+          lesson_id: string;
+          question: string;
+          options: any;
+          correct_answer: number;
+          explanation: string | null;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
       user_progress: {
-        Row: any;
+        Row: {
+          id: string;
+          user_id: string;
+          course_id: string;
+          completed_lessons: string[];
+          completed_exercises: string[];
+          current_lesson: string | null;
+          started_at: string | null;
+          last_accessed_at: string | null;
+          completion_percentage: number | null;
+          quiz_scores: Record<string, number> | null;
+          certificate_issued: boolean | null;
+          notes: Record<string, string> | null;
+          bookmarks: string[] | null;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
       achievements: {
-        Row: any;
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          icon: string;
+          condition: string;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
       user_achievements: {
-        Row: any;
+        Row: {
+          id: string;
+          user_id: string;
+          achievement_id: string;
+          progress: number | null;
+          is_unlocked: boolean | null;
+          unlocked_at: string | null;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
       user_portfolio_progress: {
-        Row: any;
+        Row: {
+          id: string;
+          user_id: string;
+          current_level: number | null;
+          unlocked_years: string[] | null;
+          quiz_history: any | null;
+          achievements: string[] | null;
+          last_updated: string | null;
+          created_at: string | null;
+        };
         Insert: any;
         Update: any;
       };
