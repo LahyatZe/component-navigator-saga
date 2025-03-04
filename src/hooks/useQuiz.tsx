@@ -90,7 +90,7 @@ export const useQuiz = (
               });
             }
             
-            // Update statistics for display
+            // Update statistics for display - use safe property access
             console.log("Statistics updated:", {
               userId: progress?.userId,
               email: progress?.userEmail,
@@ -152,7 +152,7 @@ export const useQuiz = (
             duration: 3000
           });
           
-          // Get remaining questions - make sure questions array is valid before filtering
+          // Get remaining questions - ensure questions array is valid
           if (!Array.isArray(questions)) {
             console.error("Questions array is not properly defined");
             toast.error("Une erreur s'est produite. Veuillez rafraîchir la page.");
@@ -160,13 +160,17 @@ export const useQuiz = (
           }
           
           try {
-            const remainingQuestions = questions.filter(q => {
+            // Add a defensive check before filtering
+            const safeQuestionsArray = Array.isArray(questions) ? questions : [];
+            
+            const remainingQuestions = safeQuestionsArray.filter(q => {
               if (!q) return false;
               
               // Filter for current level
               if (q.level !== (progress?.currentLevel || 0) + 1) return false;
               
               // Only include questions that haven't been answered correctly
+              // Add null check before using some() on quizHistory
               return !(Array.isArray(currentQuizHistory) && currentQuizHistory.some(history => {
                 if (!history) return false;
                 
@@ -188,7 +192,7 @@ export const useQuiz = (
                 }));
               } else {
                 // If all questions are answered, show a random question from this level
-                // Safely access questions array
+                // Safely access questions array with a null check
                 if (!Array.isArray(questions)) {
                   setQuizState(prev => ({
                     ...prev,
@@ -350,34 +354,45 @@ export const useQuiz = (
         const quizHistory = Array.isArray(progress?.quizHistory) ? progress.quizHistory : [];
         
         // Safely get answered correctly questions
-        const answeredCorrectly = quizHistory
-          .filter(h => h && h.correct) // Make sure we have valid entries
-          .map(h => {
-            if (!h) return -1; // Handle null/undefined
-            // Find the corresponding question - ensure questions array is valid
-            if (!Array.isArray(questions)) return -1;
-            
-            const question = questions.find(q => q && q.level === h.level && q.id === quizState.currentQuestionId);
-            return question ? question.id : -1;
-          })
-          .filter(id => id !== -1); // Remove invalid entries
+        // Add a defensive check before using map/filter methods
+        const answeredCorrectly = Array.isArray(quizHistory) 
+          ? quizHistory
+              .filter(h => h && h.correct) // Make sure we have valid entries
+              .map(h => {
+                if (!h) return -1; // Handle null/undefined
+                // Find the corresponding question - ensure questions array is valid
+                if (!Array.isArray(questions)) return -1;
+                
+                const question = questions.find(q => q && q.level === h.level && q.id === quizState.currentQuestionId);
+                return question ? question.id : -1;
+              })
+              .filter(id => id !== -1) // Remove invalid entries
+          : [];
         
-        // Get unanswered questions
-        let unansweredQuestions = levelQuestions.filter(q => !answeredCorrectly.includes(q.id));
+        // Get unanswered questions with proper null check
+        let unansweredQuestions = Array.isArray(levelQuestions) 
+          ? levelQuestions.filter(q => !answeredCorrectly.includes(q.id))
+          : [];
         
         if (unansweredQuestions.length === 0) {
           unansweredQuestions = levelQuestions;
         }
         
-        // Get a random question
-        const randomQuestion = unansweredQuestions[Math.floor(Math.random() * unansweredQuestions.length)];
-        
-        setQuizState({
-          currentQuestionId: randomQuestion.id,
-          showQuiz: true
-        });
-        
-        console.log("Quiz started with question ID:", randomQuestion.id);
+        // Get a random question - add check to ensure there are questions
+        if (unansweredQuestions.length > 0) {
+          const randomQuestion = unansweredQuestions[Math.floor(Math.random() * unansweredQuestions.length)];
+          
+          setQuizState({
+            currentQuestionId: randomQuestion.id,
+            showQuiz: true
+          });
+          
+          console.log("Quiz started with question ID:", randomQuestion.id);
+        } else {
+          toast.error("Aucune question disponible pour ce niveau!", {
+            duration: 3000
+          });
+        }
       } else {
         toast.info("Vous avez déjà débloqué tous les niveaux !", {
           duration: 3000
@@ -429,3 +444,4 @@ export const useQuiz = (
     getCurrentQuestion
   };
 };
+
