@@ -55,7 +55,10 @@ export const saveUserProgress = async (progress: UserProgress) => {
         notes: progress.notes,
         bookmarks: progress.bookmarks,
         used_hints: progress.usedHints || {},
-        cv_downloaded: progress.cvDownloaded || false
+        cv_downloaded: progress.cvDownloaded || false,
+        quiz_history: progress.quizHistory || [],
+        current_level: progress.currentLevel || 0,
+        unlocked_years: progress.unlockedYears || []
       }, {
         onConflict: 'user_id,course_id'
       });
@@ -147,7 +150,10 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
       usedHints: typeof data.used_hints === 'object' && data.used_hints !== null
         ? data.used_hints as Record<string, string[]>
         : {},
-      cvDownloaded: !!data.cv_downloaded
+      cvDownloaded: !!data.cv_downloaded,
+      quizHistory: Array.isArray(data.quiz_history) ? data.quiz_history : [],
+      currentLevel: data.current_level || 0,
+      unlockedYears: Array.isArray(data.unlocked_years) ? data.unlocked_years : []
     };
   } catch (error) {
     console.error('Error in getUserProgress:', error);
