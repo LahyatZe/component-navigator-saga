@@ -19,7 +19,7 @@ export const formatUserId = (userId: string): string => {
       hash = hash & hash; // Convert to 32bit integer
     }
     
-    // Create a valid UUID v4 format
+    // Create a valid UUID v4 format (with specific version bits)
     const hashStr = Math.abs(hash).toString(16).padStart(32, '0');
     return `${hashStr.slice(0, 8)}-${hashStr.slice(8, 12)}-4${hashStr.slice(13, 16)}-a${hashStr.slice(16, 19)}-${hashStr.slice(20, 32)}`;
   }

@@ -80,8 +80,8 @@ export const saveUserSettings = async (settings: UserSettings): Promise<void> =>
   console.log("Formatted user ID for database:", formattedUserId);
   
   try {
-    // Bypass Supabase auth check since we're using Clerk for authentication
-    // Instead, directly use the formatted user ID from Clerk
+    // Use the Supabase service role key for this operation to bypass RLS
+    // We're authenticating the user through Clerk, not Supabase
     
     // Ensure preferences is a proper object, not a string
     const preferences = typeof settings.preferences === 'string'
@@ -96,7 +96,7 @@ export const saveUserSettings = async (settings: UserSettings): Promise<void> =>
       preferences: preferences
     });
       
-    // Use RLS bypass method - use a service role if available or anonymous access
+    // Use direct upsert operation
     const { error } = await supabase
       .from(SETTINGS_TABLE)
       .upsert({
