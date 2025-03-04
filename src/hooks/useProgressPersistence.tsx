@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { formatUserId } from '@/utils/formatUserId';
 
 export interface UserProgress {
   currentLevel: number;
@@ -14,31 +15,6 @@ export interface UserProgress {
 
 // Table name in Supabase for user progress
 const PROGRESS_TABLE = 'user_portfolio_progress';
-
-// Helper function to convert Clerk ID to a UUID-compatible format if needed
-const formatUserId = (userId: string): string => {
-  // If it already looks like a UUID, return it as is
-  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
-    return userId;
-  }
-  
-  // For Clerk IDs (starting with 'user_'), hash them to create a deterministic UUID
-  if (userId.startsWith('user_')) {
-    // We'll use a simple hash and format it as UUID
-    let hash = 0;
-    for (let i = 0; i < userId.length; i++) {
-      const char = userId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    
-    // Create a deterministic UUID-like string from the hash
-    const hashStr = Math.abs(hash).toString(16).padStart(8, '0');
-    return `${hashStr.slice(0, 8)}-${hashStr.slice(8, 12)}-4${hashStr.slice(12, 15)}-a${hashStr.slice(15, 18)}-${Date.now().toString(16).slice(0, 12)}`;
-  }
-  
-  return userId; // Return as is for other formats
-};
 
 export const useProgressPersistence = () => {
   const { user, isSignedIn } = useUser();
