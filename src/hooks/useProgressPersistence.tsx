@@ -15,6 +15,31 @@ export interface UserProgress {
 // Table name in Supabase for user progress
 const PROGRESS_TABLE = 'user_portfolio_progress';
 
+// Helper function to convert Clerk ID to a UUID-compatible format if needed
+const formatUserId = (userId: string): string => {
+  // If it already looks like a UUID, return it as is
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+    return userId;
+  }
+  
+  // For Clerk IDs (starting with 'user_'), hash them to create a deterministic UUID
+  if (userId.startsWith('user_')) {
+    // We'll use a simple hash and format it as UUID
+    let hash = 0;
+    for (let i = 0; i < userId.length; i++) {
+      const char = userId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    // Create a deterministic UUID-like string from the hash
+    const hashStr = Math.abs(hash).toString(16).padStart(8, '0');
+    return `${hashStr.slice(0, 8)}-${hashStr.slice(8, 12)}-4${hashStr.slice(12, 15)}-a${hashStr.slice(15, 18)}-${Date.now().toString(16).slice(0, 12)}`;
+  }
+  
+  return userId; // Return as is for other formats
+};
+
 export const useProgressPersistence = () => {
   const { user, isSignedIn } = useUser();
   const [progress, setProgress] = useState<UserProgress>({
@@ -35,19 +60,21 @@ export const useProgressPersistence = () => {
     const loadUserProgress = async () => {
       if (isSignedIn && user) {
         const userId = user.id;
+        const formattedUserId = formatUserId(userId);
         
         try {
           console.log("Fetching progress for user ID:", userId);
+          console.log("Formatted user ID for database:", formattedUserId);
           
           // Try to get progress from Supabase first
           const { data, error } = await supabase
             .from(PROGRESS_TABLE)
             .select('*')
-            .eq('user_id', userId)
+            .eq('user_id', formattedUserId)
             .maybeSingle();
           
           if (error) {
-            console.error("Erreur lors de la récupération de la progression:", error);
+            console.error("Error fetching progress:", error);
             loadFromLocalStorage(userId);
             return;
           }
@@ -87,13 +114,13 @@ export const useProgressPersistence = () => {
             };
             
             setProgress(userProgress);
-            console.log("Progression chargée depuis Supabase pour l'utilisateur:", userId);
+            console.log("Progress loaded from Supabase for user:", userId);
           } else {
             // No data in Supabase, try localStorage as fallback
             loadFromLocalStorage(userId);
           }
         } catch (error) {
-          console.error("Erreur lors du chargement de la progression:", error);
+          console.error("Error loading progress:", error);
           loadFromLocalStorage(userId);
         }
         
@@ -111,9 +138,9 @@ export const useProgressPersistence = () => {
         try {
           const parsedProgress = JSON.parse(savedProgress) as UserProgress;
           setProgress(parsedProgress);
-          console.log("Progression chargée depuis localStorage pour l'utilisateur:", userId);
+          console.log("Progress loaded from localStorage for user:", userId);
         } catch (error) {
-          console.error("Erreur lors du parsing de la progression:", error);
+          console.error("Error parsing progress:", error);
         }
       }
     };
@@ -125,6 +152,8 @@ export const useProgressPersistence = () => {
   const saveProgress = async (newProgress: Partial<UserProgress>) => {
     if (isSignedIn && user) {
       const userId = user.id;
+      const formattedUserId = formatUserId(userId);
+      
       const updatedProgress = {
         ...progress,
         ...newProgress,
@@ -142,12 +171,13 @@ export const useProgressPersistence = () => {
       // Save to Supabase
       try {
         console.log("Saving progress for user:", userId);
+        console.log("Formatted user ID for database:", formattedUserId);
         
         // Use upsert with onConflict to handle both insert and update cases
         const { error } = await supabase
           .from(PROGRESS_TABLE)
           .upsert({
-            user_id: userId,
+            user_id: formattedUserId,
             current_level: updatedProgress.currentLevel,
             unlocked_years: updatedProgress.unlockedYears,
             quiz_history: updatedProgress.quizHistory,
@@ -158,17 +188,17 @@ export const useProgressPersistence = () => {
           });
           
         if (error) {
-          console.error("Erreur lors de la sauvegarde dans Supabase:", error);
-          toast.error("Erreur lors de la sauvegarde de votre progression");
+          console.error("Error saving to Supabase:", error);
+          toast.error("Error saving your progress");
         } else {
-          console.log("Progression sauvegardée dans Supabase pour l'utilisateur:", userId);
+          console.log("Progress saved to Supabase for user:", userId);
         }
       } catch (error) {
-        console.error("Erreur lors de la sauvegarde de la progression:", error);
+        console.error("Error saving progress:", error);
       }
       
-      // Enregistrement des statistiques
-      console.log("Statistiques mises à jour:", {
+      // Record statistics
+      console.log("Statistics updated:", {
         userId: userId,
         email: user.primaryEmailAddress?.emailAddress,
         level: updatedProgress.currentLevel,

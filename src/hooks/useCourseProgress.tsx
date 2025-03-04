@@ -19,14 +19,18 @@ export const useCourseProgress = (courseId?: string) => {
 
       try {
         const userId = user.id;
+        console.log("Loading course progress for user:", userId, "and course:", courseId);
+        
         // Try to get progress from Supabase
         const progressData = await getUserProgress(userId, courseId);
         
         if (progressData) {
           // Set progress data retrieved from database
+          console.log("Retrieved progress data:", progressData);
           setProgress(progressData);
         } else {
           // Initialize a new progress for this course
+          console.log("No existing progress found, initializing new progress");
           const newProgress: UserProgress = {
             userId: userId,
             courseId: courseId,
@@ -45,8 +49,8 @@ export const useCourseProgress = (courseId?: string) => {
           await saveProgressToStorage(newProgress);
         }
       } catch (error) {
-        console.error("Erreur lors du chargement de la progression:", error);
-        toast.error("Erreur lors du chargement de votre progression");
+        console.error("Error loading progress:", error);
+        toast.error("Error loading your progress");
         
         // Fallback to localStorage if database fails
         const savedProgress = localStorage.getItem(`course_progress_${user.id}_${courseId}`);
@@ -54,8 +58,9 @@ export const useCourseProgress = (courseId?: string) => {
           try {
             const parsedProgress = JSON.parse(savedProgress) as UserProgress;
             setProgress(parsedProgress);
+            console.log("Loaded progress from localStorage as fallback");
           } catch (error) {
-            console.error("Erreur lors du parsing de la progression:", error);
+            console.error("Error parsing progress from localStorage:", error);
           }
         }
       } finally {
@@ -70,6 +75,7 @@ export const useCourseProgress = (courseId?: string) => {
     if (!isSignedIn || !user) return;
     
     try {
+      console.log("Saving progress to storage:", progressData);
       // Save to Supabase
       await saveUserProgress(progressData);
       
@@ -78,9 +84,10 @@ export const useCourseProgress = (courseId?: string) => {
         `course_progress_${progressData.userId}_${progressData.courseId}`,
         JSON.stringify(progressData)
       );
+      console.log("Progress saved successfully");
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde de la progression:", error);
-      toast.error("Erreur lors de la sauvegarde de votre progression");
+      console.error("Error saving progress:", error);
+      toast.error("Error saving your progress");
       
       // Fallback to localStorage only
       localStorage.setItem(
