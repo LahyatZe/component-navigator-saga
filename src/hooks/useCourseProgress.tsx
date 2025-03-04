@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Course, UserProgress } from '@/types/course';
@@ -76,13 +75,21 @@ export const useCourseProgress = (courseId?: string) => {
     
     try {
       console.log("Saving progress to storage:", progressData);
+      
+      // Validate data before saving
+      const validatedProgress = {
+        ...progressData,
+        // Ensure currentLesson is never undefined
+        currentLesson: progressData.currentLesson || ''
+      };
+      
       // Save to Supabase
-      await saveUserProgress(progressData);
+      await saveUserProgress(validatedProgress);
       
       // Also cache in localStorage as backup
       localStorage.setItem(
         `course_progress_${progressData.userId}_${progressData.courseId}`,
-        JSON.stringify(progressData)
+        JSON.stringify(validatedProgress)
       );
       console.log("Progress saved successfully");
     } catch (error) {

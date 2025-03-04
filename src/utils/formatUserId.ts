@@ -50,6 +50,11 @@ export const formatStringToUuid = (str: string): string => {
     return str;
   }
   
+  // If string is empty, return null (to handle empty currentLesson case)
+  if (!str) {
+    return null;
+  }
+  
   // Create a hash from the string
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
