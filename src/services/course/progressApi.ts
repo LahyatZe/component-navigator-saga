@@ -31,6 +31,14 @@ export const saveUserProgress = async (progress: UserProgress) => {
   }
   
   try {
+    // Make sure we have an authenticated session
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !sessionData.session) {
+      // If no session, attempt to sign in anonymously
+      await supabase.auth.signInAnonymously();
+    }
+    
     const { data, error } = await supabase
       .from('user_progress')
       .upsert({
@@ -72,6 +80,14 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
   console.log("Formatted user ID for database lookup:", formattedUserId);
   
   try {
+    // Make sure we have an authenticated session
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !sessionData.session) {
+      // If no session, attempt to sign in anonymously
+      await supabase.auth.signInAnonymously();
+    }
+    
     // Check if courseId is a UUID, if not convert it
     let formattedCourseId = courseId;
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(courseId)) {

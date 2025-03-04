@@ -5,6 +5,7 @@ import { Course, UserProgress } from '@/types/course';
 import { getUserProgress, saveUserProgress } from '@/services/course';
 import { toast } from 'sonner';
 import { formatStringToUuid } from '@/utils/formatUserId';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useCourseProgress = (courseId?: string) => {
   const { user, isSignedIn } = useUser();
@@ -12,6 +13,33 @@ export const useCourseProgress = (courseId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialLoadRef = useRef(true);
+  const [supabaseAuth, setSupabaseAuth] = useState(false);
+
+  // Ensure Supabase authentication is set up
+  useEffect(() => {
+    const setupSupabaseAuth = async () => {
+      if (isSignedIn && user) {
+        try {
+          // Check if we already have a session
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (!session) {
+            // Sign in anonymously if no session exists
+            await supabase.auth.signInAnonymously();
+            console.log("Signed in anonymously to Supabase");
+          }
+          
+          setSupabaseAuth(true);
+        } catch (error) {
+          console.error("Error setting up Supabase auth:", error);
+          // Continue anyway, we'll use localStorage as fallback
+          setSupabaseAuth(false);
+        }
+      }
+    };
+    
+    setupSupabaseAuth();
+  }, [isSignedIn, user]);
 
   useEffect(() => {
     const loadProgress = async () => {
@@ -73,11 +101,11 @@ export const useCourseProgress = (courseId?: string) => {
       }
     };
 
-    // Only load progress when component mounts
-    if (initialLoadRef.current) {
+    // Only load progress when component mounts and Supabase auth is ready
+    if (initialLoadRef.current && (supabaseAuth || !isSignedIn)) {
       loadProgress();
     }
-  }, [isSignedIn, user, courseId]);
+  }, [isSignedIn, user, courseId, supabaseAuth]);
 
   const saveProgressToStorage = async (progressData: UserProgress) => {
     if (!isSignedIn || !user) return;
