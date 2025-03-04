@@ -6,6 +6,7 @@ export interface Question {
   options: string[];
   correctAnswer: number;
   explanation?: string;
+  hints?: string[];
 }
 
 export interface QuizHistory {

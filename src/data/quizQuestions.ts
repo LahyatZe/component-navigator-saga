@@ -13,7 +13,11 @@ export const questions: Question[] = [
       "Bac L"
     ],
     correctAnswer: 1,
-    explanation: "J'ai obtenu un Bac ES en 2018 avant de poursuivre mes études en informatique."
+    explanation: "J'ai obtenu un Bac ES en 2018 avant de poursuivre mes études en informatique.",
+    hints: [
+      "C'est un baccalauréat général obtenu en 2018.",
+      "Ce bac comporte des matières en économie et sciences sociales."
+    ]
   },
   {
     id: 2,
@@ -26,7 +30,11 @@ export const questions: Question[] = [
       "Montpellier"
     ],
     correctAnswer: 2,
-    explanation: "J'ai commencé mes études supérieures à Saint-Étienne, où j'ai développé mes premières compétences en développement."
+    explanation: "J'ai commencé mes études supérieures à Saint-Étienne, où j'ai développé mes premières compétences en développement.",
+    hints: [
+      "C'est une ville de la région Auvergne-Rhône-Alpes.",
+      "Cette ville est connue pour son équipe de football 'Les Verts'."
+    ]
   },
   {
     id: 3,
@@ -39,7 +47,12 @@ export const questions: Question[] = [
       "IGSI Calliope"
     ],
     correctAnswer: 2,
-    explanation: "J'ai effectué mon alternance chez Capgemini Technologies & Services, où j'ai travaillé sur des projets d'applications bancaires."
+    explanation: "J'ai effectué mon alternance chez Capgemini Technologies & Services, où j'ai travaillé sur des projets d'applications bancaires.",
+    hints: [
+      "C'est une grande entreprise de conseil en technologies.",
+      "Son logo est bleu et comporte un symbole qui ressemble à un 'C'.",
+      "Cette entreprise est présente dans plus de 50 pays."
+    ]
   },
   {
     id: 4,
@@ -52,7 +65,12 @@ export const questions: Question[] = [
       "C++"
     ],
     correctAnswer: 2,
-    explanation: "J'ai principalement utilisé Express.js et React.js lors de mon stage chez MyPetsLife pour développer leur plateforme."
+    explanation: "J'ai principalement utilisé Express.js et React.js lors de mon stage chez MyPetsLife pour développer leur plateforme.",
+    hints: [
+      "Une de ces technologies est un framework backend basé sur Node.js.",
+      "L'autre est une bibliothèque frontend très populaire développée par Facebook.",
+      "Ces technologies sont souvent utilisées ensemble pour créer des applications web full-stack en JavaScript."
+    ]
   },
   {
     id: 5,
@@ -65,7 +83,12 @@ export const questions: Question[] = [
       "Niveau 4 - Technicien"
     ],
     correctAnswer: 1,
-    explanation: "J'ai obtenu le titre RNCP niveau 5 - Développeur Web, attestant de mes compétences en développement d'applications web."
+    explanation: "J'ai obtenu le titre RNCP niveau 6 - Concepteur Développeur, attestant de mes compétences en développement d'applications web.",
+    hints: [
+      "Le RNCP est le Répertoire National des Certifications Professionnelles.",
+      "Ce titre correspond à un niveau bac+3/4.",
+      "Ce titre est équivalent à un niveau licence ou master 1."
+    ]
   },
   {
     id: 6,
@@ -78,7 +101,12 @@ export const questions: Question[] = [
       "Plateforme e-commerce"
     ],
     correctAnswer: 1,
-    explanation: "En 2023, j'ai travaillé sur le logiciel de supervision Sam Tool Supervisor pour suivre l'activité de contenants automatisés intelligents."
+    explanation: "En 2023, j'ai travaillé sur le logiciel de supervision Sam Tool Supervisor pour suivre l'activité de contenants automatisés intelligents.",
+    hints: [
+      "Ce projet est lié à une entreprise d'outillage.",
+      "Il s'agit d'un logiciel de suivi et de gestion.",
+      "Ce projet implique des technologies IoT pour les outils connectés."
+    ]
   },
   {
     id: 7,
@@ -91,7 +119,12 @@ export const questions: Question[] = [
       "Svelte"
     ],
     correctAnswer: 2,
-    explanation: "Pour ICY, j'ai principalement utilisé Angular, avec TypeScript et PWA pour développer une solution robuste et performante."
+    explanation: "Pour ICY, j'ai principalement utilisé Angular, avec TypeScript et PWA pour développer une solution robuste et performante.",
+    hints: [
+      "Cette technologie est développée et maintenue par Google.",
+      "Elle utilise TypeScript par défaut.",
+      "Son logo est un bouclier rouge avec un 'A'."
+    ]
   },
   {
     id: 8,
@@ -104,6 +137,11 @@ export const questions: Question[] = [
       "Réalité virtuelle"
     ],
     correctAnswer: 1,
-    explanation: "Ces dernières années, j'ai particulièrement développé mes compétences en développement d'applications PWA, comme en témoigne le projet ICY."
+    explanation: "Ces dernières années, j'ai particulièrement développé mes compétences en développement d'applications PWA, comme en témoigne le projet ICY.",
+    hints: [
+      "Cette technologie permet de créer des applications web qui fonctionnent comme des applications natives.",
+      "Elle offre des fonctionnalités hors ligne et des performances améliorées.",
+      "Google est un grand promoteur de cette approche de développement."
+    ]
   }
 ];

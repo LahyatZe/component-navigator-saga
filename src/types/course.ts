@@ -1,4 +1,3 @@
-
 export interface Course {
   id: string;
   title: string;
@@ -86,16 +85,19 @@ export interface TestCase {
 export interface UserProgress {
   userId: string;
   courseId: string;
-  completedLessons: string[]; // IDs des leçons complétées
-  completedExercises: string[]; // IDs des exercices complétés
-  currentLesson: string; // ID de la leçon actuelle
-  startedAt: string; // Date de début au format ISO
-  lastAccessedAt: string; // Dernière date d'accès au format ISO
-  completionPercentage: number; // Pourcentage de progression
-  quizScores: Record<string, number>; // Score pour chaque quiz (id: score)
-  certificateIssued: boolean; // Si un certificat a été émis
-  notes: Record<string, string>; // Notes personnelles (id leçon: contenu)
-  bookmarks: string[]; // IDs des leçons mises en favoris
+  completedLessons: string[];
+  completedExercises: string[];
+  currentLesson: string;
+  startedAt: string;
+  lastAccessedAt: string;
+  completionPercentage: number;
+  quizScores: Record<string, number>;
+  certificateIssued: boolean;
+  notes: Record<string, string>;
+  bookmarks: string[];
+  usedHints?: Record<string, string[]>;
+  cvDownloaded?: boolean;
+  quizHistory?: QuizHistory[];
 }
 
 export interface Achievement {

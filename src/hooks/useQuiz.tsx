@@ -1,7 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Trophy, Star, Code, Award, Rocket } from 'lucide-react';
+import { Trophy, Star, Code, Award, Rocket, Download } from 'lucide-react';
 import { questions } from '@/data/quizQuestions';
 import { UserProgress } from '@/hooks/useProgressPersistence';
 import { Question, QuizState } from '@/types/quiz';
@@ -14,14 +14,24 @@ export const useQuiz = (
     showQuiz: false,
     currentQuestionId: 1,
   });
+  const [currentHints, setCurrentHints] = useState<string[]>([]);
+
+  // Initialiser les indices utilisés pour la question actuelle
+  useEffect(() => {
+    if (quizState.showQuiz) {
+      const questionId = quizState.currentQuestionId.toString();
+      const usedHints = progress.usedHints?.[questionId] || [];
+      setCurrentHints(usedHints);
+    }
+  }, [quizState.showQuiz, quizState.currentQuestionId, progress.usedHints]);
 
   const handleQuizAnswer = (correct: boolean) => {
-    const updatedQuizHistory = [...progress.quizHistory, { level: progress.currentLevel + 1, correct }];
+    const updatedQuizHistory = [...(progress.quizHistory || []), { level: progress.currentLevel + 1, correct }];
     saveProgress({ quizHistory: updatedQuizHistory });
     
     if (correct) {
       const questionsForLevel = questions.filter(q => q.level === progress.currentLevel + 1);
-      const correctAnswersForLevel = progress.quizHistory.filter(q => q.level === progress.currentLevel + 1 && q.correct).length + 1;
+      const correctAnswersForLevel = (progress.quizHistory || []).filter(q => q.level === progress.currentLevel + 1 && q.correct).length + 1;
       
       if (correctAnswersForLevel >= Math.ceil(questionsForLevel.length / 2)) {
         const nextLevel = progress.currentLevel + 1;
@@ -79,7 +89,11 @@ export const useQuiz = (
         
         const remainingQuestions = questions.filter(q => 
           q.level === progress.currentLevel + 1 && 
-          !progress.quizHistory.some(history => history.level === q.level && history.correct && questions.find(qu => qu.id === quizState.currentQuestionId)?.id === q.id)
+          !(progress.quizHistory || []).some(history => 
+            history.level === q.level && 
+            history.correct && 
+            questions.find(qu => qu.id === quizState.currentQuestionId)?.id === q.id
+          )
         );
         
         if (remainingQuestions.length > 0) {
@@ -100,12 +114,37 @@ export const useQuiz = (
       ...prev,
       showQuiz: false
     }));
+    
+    // Réinitialiser les indices utilisés pour la prochaine question
+    setCurrentHints([]);
+  };
+
+  const handleUseHint = (hintIndex: number) => {
+    const questionId = quizState.currentQuestionId.toString();
+    const usedHints = [...(currentHints || []), hintIndex.toString()];
+    
+    // Mettre à jour l'état local
+    setCurrentHints(usedHints);
+    
+    // Mettre à jour le stockage global
+    const updatedUsedHints = { ...(progress.usedHints || {}) };
+    updatedUsedHints[questionId] = usedHints;
+    
+    saveProgress({ usedHints: updatedUsedHints });
+  };
+
+  const handleCvDownload = () => {
+    saveProgress({ cvDownloaded: true });
+    toast.success("Merci d'avoir téléchargé mon CV !", {
+      duration: 3000,
+      icon: <Download className="w-5 h-5 text-blue-500" />
+    });
   };
 
   const startQuiz = () => {
     if (progress.currentLevel < 4) {
       const levelQuestions = questions.filter(q => q.level === progress.currentLevel + 1);
-      const answeredCorrectly = progress.quizHistory
+      const answeredCorrectly = (progress.quizHistory || [])
         .filter(h => h.correct)
         .map(h => {
           const question = questions.find(q => q.level === h.level && q.id === quizState.currentQuestionId);
@@ -139,6 +178,9 @@ export const useQuiz = (
     quizState,
     setQuizState,
     handleQuizAnswer,
+    handleUseHint,
+    handleCvDownload,
+    currentHints,
     startQuiz,
     getCurrentQuestion: (): Question => 
       questions.find(q => q.id === quizState.currentQuestionId) || questions[0]

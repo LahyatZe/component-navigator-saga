@@ -1,10 +1,10 @@
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, AlertCircle, HelpCircle } from 'lucide-react';
-import { useState } from 'react';
+import { Trophy, AlertCircle, HelpCircle, Download, Lightbulb } from 'lucide-react';
+import { Input } from "@/components/ui/input";
 
 interface Question {
   id: number;
@@ -12,6 +12,7 @@ interface Question {
   options: string[];
   correctAnswer: number;
   explanation?: string;
+  hints?: string[];
 }
 
 interface QuizModalProps {
@@ -25,6 +26,8 @@ interface QuizModalProps {
 const QuizModal: FC<QuizModalProps> = ({ isOpen, onClose, onAnswer, currentQuestion, level }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [usedHints, setUsedHints] = useState<number[]>([]);
+  const [userInput, setUserInput] = useState('');
   
   const handleAnswer = () => {
     if (selectedIndex === null) return;
@@ -35,10 +38,28 @@ const QuizModal: FC<QuizModalProps> = ({ isOpen, onClose, onAnswer, currentQuest
     // Reset state for next quiz
     setSelectedIndex(null);
     setShowExplanation(false);
+    setUsedHints([]);
+    setUserInput('');
   };
   
   const handleOptionClick = (index: number) => {
     setSelectedIndex(index);
+  };
+
+  const handleShowHint = (index: number) => {
+    if (!usedHints.includes(index)) {
+      setUsedHints([...usedHints, index]);
+    }
+  };
+
+  const handleDownloadCV = () => {
+    // Créer un lien vers le CV
+    const link = document.createElement('a');
+    link.href = '/CV_Sohaib_Zeghouani.pdf'; // Le chemin vers votre CV
+    link.download = 'CV_Sohaib_Zeghouani.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
   
   return (
@@ -82,6 +103,61 @@ const QuizModal: FC<QuizModalProps> = ({ isOpen, onClose, onAnswer, currentQuest
                 </div>
               </div>
             ))}
+          </div>
+          
+          {currentQuestion.hints && currentQuestion.hints.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <h4 className="text-sm font-medium flex items-center gap-1">
+                <Lightbulb className="w-4 h-4 text-yellow-500" />
+                Indices disponibles ({usedHints.length}/{currentQuestion.hints.length})
+              </h4>
+              <div className="space-y-2">
+                {currentQuestion.hints.map((hint, index) => (
+                  <div key={index} className="text-sm">
+                    {usedHints.includes(index) ? (
+                      <div className="p-2 bg-muted/50 rounded-md">
+                        {hint}
+                      </div>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full justify-start text-left"
+                        onClick={() => handleShowHint(index)}
+                      >
+                        <HelpCircle className="w-4 h-4 mr-2" />
+                        Révéler l'indice {index + 1}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4">
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Recherchez des informations dans mon CV..."
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                className="flex-1"
+              />
+              <Button 
+                variant="outline" 
+                onClick={handleDownloadCV} 
+                title="Télécharger mon CV"
+                className="flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                CV
+              </Button>
+            </div>
+            {userInput.length > 2 && (
+              <div className="mt-2 p-2 bg-muted/50 rounded-md text-sm">
+                Astuce: Consultez mon CV pour trouver plus d'informations sur {userInput}
+              </div>
+            )}
           </div>
           
           {showExplanation && currentQuestion.explanation && (
