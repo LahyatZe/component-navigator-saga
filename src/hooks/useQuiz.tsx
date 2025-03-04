@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Trophy, Star, Code, Award, Rocket, Download } from 'lucide-react';
@@ -53,9 +52,9 @@ export const useQuiz = (
           : 1;
           
         // Get current correct answers, handle safely
-        const correctAnswersForLevel = (currentQuizHistory || [])
+        const correctAnswersForLevel = (updatedQuizHistory || [])
           .filter(q => q && q.level === ((progress?.currentLevel || 0) + 1) && q.correct)
-          .length + 1;
+          .length;
         
         console.log(`Required correct: ${requiredCorrectAnswers}, Current correct: ${correctAnswersForLevel}`);
         
@@ -92,8 +91,8 @@ export const useQuiz = (
             
             // Update statistics for display - use safe property access
             console.log("Statistics updated:", {
-              userId: progress?.userId,
-              email: progress?.userEmail,
+              userId: progress?.userId || 'unknown',
+              email: progress?.userEmail || 'unknown',
               level: nextLevel,
               unlockedYears: newUnlockedYears,
               achievements: progress?.achievements || [],
@@ -171,7 +170,7 @@ export const useQuiz = (
               
               // Only include questions that haven't been answered correctly
               // Add null check before using some() on quizHistory
-              return !(Array.isArray(currentQuizHistory) && currentQuizHistory.some(history => {
+              return !(Array.isArray(updatedQuizHistory) && updatedQuizHistory.some(history => {
                 if (!history) return false;
                 
                 return history.level === q.level && 
@@ -371,7 +370,7 @@ export const useQuiz = (
         
         // Get unanswered questions with proper null check
         let unansweredQuestions = Array.isArray(levelQuestions) 
-          ? levelQuestions.filter(q => !answeredCorrectly.includes(q.id))
+          ? levelQuestions.filter(q => q && !answeredCorrectly.includes(q.id))
           : [];
         
         if (unansweredQuestions.length === 0) {
@@ -444,4 +443,3 @@ export const useQuiz = (
     getCurrentQuestion
   };
 };
-
