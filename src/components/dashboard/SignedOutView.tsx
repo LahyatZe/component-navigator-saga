@@ -13,8 +13,8 @@ const SignedOutView: FC = () => {
     if (isSignInLoaded && signIn) {
       signIn.create({
         identifier: '',
-      }).then(() => {
-        window.location.href = signIn.authorizedUrl;
+      }).then((result) => {
+        window.location.href = result.createdSessionId ? '/dashboard' : signIn.url;
       });
     }
   };
@@ -23,8 +23,8 @@ const SignedOutView: FC = () => {
     if (isSignUpLoaded && signUp) {
       signUp.create({
         emailAddress: '',
-      }).then(() => {
-        window.location.href = signUp.authorizedUrl;
+      }).then((result) => {
+        window.location.href = result.createdSessionId ? '/dashboard' : signUp.url;
       });
     }
   };
