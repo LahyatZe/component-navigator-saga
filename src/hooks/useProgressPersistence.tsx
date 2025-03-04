@@ -37,6 +37,8 @@ export const useProgressPersistence = () => {
         const userId = user.id;
         
         try {
+          console.log("Fetching progress for user ID:", userId);
+          
           // Try to get progress from Supabase first
           const { data, error } = await supabase
             .from(PROGRESS_TABLE)
@@ -51,6 +53,7 @@ export const useProgressPersistence = () => {
           }
           
           if (data) {
+            console.log("Progress data from Supabase:", data);
             // Convert Supabase data to our UserProgress type
             // Ensure quiz_history is properly parsed as an array of objects
             let parsedQuizHistory: {level: number, correct: boolean}[] = [];
@@ -138,6 +141,9 @@ export const useProgressPersistence = () => {
       
       // Save to Supabase
       try {
+        console.log("Saving progress for user:", userId);
+        
+        // Use upsert with onConflict to handle both insert and update cases
         const { error } = await supabase
           .from(PROGRESS_TABLE)
           .upsert({
@@ -147,8 +153,9 @@ export const useProgressPersistence = () => {
             quiz_history: updatedProgress.quizHistory,
             achievements: updatedProgress.achievements,
             last_updated: updatedProgress.lastUpdated
-          })
-          .select();
+          }, {
+            onConflict: 'user_id'
+          });
           
         if (error) {
           console.error("Erreur lors de la sauvegarde dans Supabase:", error);

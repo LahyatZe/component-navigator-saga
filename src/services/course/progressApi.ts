@@ -4,6 +4,8 @@ import { UserProgress } from "@/types/course";
 
 // Save course progress for a user
 export const saveUserProgress = async (progress: UserProgress) => {
+  console.log("Saving course progress for user:", progress.userId);
+  
   const { data, error } = await supabase
     .from('user_progress')
     .upsert({
@@ -33,6 +35,8 @@ export const saveUserProgress = async (progress: UserProgress) => {
 
 // Get user progress for a course
 export const getUserProgress = async (userId: string, courseId: string): Promise<UserProgress | null> => {
+  console.log("Getting course progress for user:", userId, "and course:", courseId);
+  
   const { data, error } = await supabase
     .from('user_progress')
     .select('*')
