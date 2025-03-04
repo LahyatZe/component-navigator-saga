@@ -1,4 +1,3 @@
-
 import { FC, useState } from 'react';
 import { useSignIn, useSignUp } from '@clerk/clerk-react';
 import { Button } from "@/components/ui/button";
@@ -22,31 +21,13 @@ const SignedOutView: FC = () => {
     if (isSignInLoaded && signIn) {
       try {
         setIsProcessing(true);
-        
-        // First, create the sign-in attempt
-        const result = await signIn.create({
+        await signIn.create({
           identifier: email,
           strategy: "email_code",
         });
-        
-        // Check if we need to provide the first factor
-        if (result.status === "needs_first_factor") {
-          // Find the email address ID from the supported first factors
-          const emailCodeFactor = result.supportedFirstFactors.find(
-            factor => factor.strategy === "email_code"
-          );
-          
-          if (emailCodeFactor?.emailAddressId) {
-            // Prepare the first factor with the email address ID
-            await signIn.prepareFirstFactor({
-              strategy: "email_code",
-              emailAddressId: emailCodeFactor.emailAddressId,
-            });
-            toast.success("Code de vérification envoyé. Vérifiez votre email.");
-          } else {
-            toast.error("Erreur lors de l'envoi du code. Veuillez réessayer.");
-          }
-        }
+
+        // The redirection is handled by ClerkProvider in main.tsx
+        toast.success("Code de vérification envoyé. Vérifiez votre email.");
       } catch (error) {
         console.error("Sign in error:", error);
         toast.error("Erreur lors de la connexion. Veuillez réessayer.");
@@ -65,17 +46,14 @@ const SignedOutView: FC = () => {
     if (isSignUpLoaded && signUp) {
       try {
         setIsProcessing(true);
-        
-        // Create the sign-up
-        const result = await signUp.create({
+        await signUp.create({
           emailAddress: email,
         });
         
-        // If requirements are missing, prepare email verification
-        if (result.status === "missing_requirements") {
-          await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-          toast.success("Code de vérification envoyé. Vérifiez votre email.");
-        }
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+        toast.success("Code de vérification envoyé. Vérifiez votre email.");
+        
+        // The redirection is handled by ClerkProvider in main.tsx
       } catch (error) {
         console.error("Sign up error:", error);
         toast.error("Erreur lors de l'inscription. Veuillez réessayer.");
