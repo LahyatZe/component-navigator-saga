@@ -1,18 +1,8 @@
-
-import { FC, useState } from 'react';
-import { useSignIn, useSignUp } from '@clerk/clerk-react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { FC } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, BookOpen, Code, Users, ArrowRight } from 'lucide-react';
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 
 const SignedOutView: FC = () => {
-  const { signIn, isLoaded: isSignInLoaded } = useSignIn();
-  const { signUp, isLoaded: isSignUpLoaded } = useSignUp();
-  const [email, setEmail] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-
   const clerkSignInUrl = "https://steady-starling-83.accounts.dev/sign-in";
   const clerkSignUpUrl = "https://steady-starling-83.accounts.dev/sign-up";
 
@@ -35,13 +25,6 @@ const SignedOutView: FC = () => {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col space-y-4">
-              <Input
-                type="email"
-                placeholder="Votre adresse email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mb-2"
-              />
               <div className="flex justify-center gap-4">
                 <a 
                   href={clerkSignInUrl}
