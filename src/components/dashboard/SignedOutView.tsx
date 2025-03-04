@@ -26,7 +26,6 @@ const SignedOutView: FC = () => {
           strategy: "email_code",
         });
 
-        // The redirection is handled by ClerkProvider in main.tsx
         toast.success("Code de vérification envoyé. Vérifiez votre email.");
       } catch (error) {
         console.error("Sign in error:", error);
@@ -52,8 +51,6 @@ const SignedOutView: FC = () => {
         
         await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
         toast.success("Code de vérification envoyé. Vérifiez votre email.");
-        
-        // The redirection is handled by ClerkProvider in main.tsx
       } catch (error) {
         console.error("Sign up error:", error);
         toast.error("Erreur lors de l'inscription. Veuillez réessayer.");

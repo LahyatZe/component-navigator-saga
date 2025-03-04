@@ -29,8 +29,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       publishableKey={PUBLISHABLE_KEY}
       afterSignInUrl={redirectUrl}
       afterSignUpUrl={redirectUrl}
-      signInUrl={`${currentOrigin}/#/`}
-      signUpUrl={`${currentOrigin}/#/`}
+      signInUrl="/#/"
+      signUpUrl="/#/"
+      signOutUrl="/#/"
     >
       <App />
     </ClerkProvider>
