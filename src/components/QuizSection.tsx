@@ -47,17 +47,26 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }
   // Handle the answer and ensure the quiz state is properly updated
   const handleAnswer = (correct: boolean) => {
     console.log("Answer submitted:", correct);
-    handleQuizAnswer(correct);
+    try {
+      handleQuizAnswer(correct);
+    } catch (error) {
+      console.error("Error handling quiz answer:", error);
+      // Prevent complete UI breakdown by ensuring modal stays visible
+      setQuizState(prev => ({ ...prev, showQuiz: true }));
+    }
   };
 
+  // Ensure we have a valid question before trying to render the modal
+  const currentQuestion = getCurrentQuestion();
+  
   return (
     <>
-      {quizState.showQuiz && (
+      {quizState.showQuiz && currentQuestion && (
         <QuizModal
           isOpen={quizState.showQuiz}
           onClose={handleCloseModal}
           onAnswer={handleAnswer}
-          currentQuestion={getCurrentQuestion()}
+          currentQuestion={currentQuestion}
           level={progress.currentLevel + 1}
           onUseHint={handleUseHint}
           onDownloadCV={handleCvDownload}
