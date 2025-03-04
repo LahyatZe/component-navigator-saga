@@ -7,6 +7,7 @@ export interface Question {
   correctAnswer: number;
   explanation?: string;
   hints?: string[];
+  usedHints?: string[];
 }
 
 export interface QuizHistory {

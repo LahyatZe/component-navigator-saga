@@ -29,10 +29,7 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }
           isOpen={quizState.showQuiz}
           onClose={() => quizState.showQuiz = false}
           onAnswer={handleQuizAnswer}
-          currentQuestion={{
-            ...getCurrentQuestion(),
-            usedHints: currentHints
-          }}
+          currentQuestion={getCurrentQuestion()}
           level={progress.currentLevel + 1}
           onUseHint={handleUseHint}
           onDownloadCV={handleCvDownload}

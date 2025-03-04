@@ -98,6 +98,9 @@ export interface UserProgress {
   usedHints?: Record<string, string[]>;
   cvDownloaded?: boolean;
   quizHistory?: QuizHistory[];
+  unlockedYears?: string[];
+  currentLevel?: number;
+  achievements?: string[];
 }
 
 export interface Achievement {

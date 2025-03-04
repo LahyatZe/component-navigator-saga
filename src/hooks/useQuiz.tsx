@@ -182,7 +182,12 @@ export const useQuiz = (
     handleCvDownload,
     currentHints,
     startQuiz,
-    getCurrentQuestion: (): Question => 
-      questions.find(q => q.id === quizState.currentQuestionId) || questions[0]
+    getCurrentQuestion: (): Question => {
+      const question = questions.find(q => q.id === quizState.currentQuestionId) || questions[0];
+      return {
+        ...question,
+        usedHints: currentHints
+      };
+    }
   };
 };

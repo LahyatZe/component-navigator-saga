@@ -5,15 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, AlertCircle, HelpCircle, Download, Lightbulb } from 'lucide-react';
 import { Input } from "@/components/ui/input";
-
-interface Question {
-  id: number;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation?: string;
-  hints?: string[];
-}
+import { Question } from '@/types/quiz';
 
 interface QuizModalProps {
   isOpen: boolean;
@@ -21,12 +13,21 @@ interface QuizModalProps {
   onAnswer: (correct: boolean) => void;
   currentQuestion: Question;
   level: number;
+  onUseHint: (hintIndex: number) => void;
+  onDownloadCV: () => void;
 }
 
-const QuizModal: FC<QuizModalProps> = ({ isOpen, onClose, onAnswer, currentQuestion, level }) => {
+const QuizModal: FC<QuizModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  onAnswer, 
+  currentQuestion, 
+  level,
+  onUseHint,
+  onDownloadCV 
+}) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [usedHints, setUsedHints] = useState<number[]>([]);
   const [userInput, setUserInput] = useState('');
   
   const handleAnswer = () => {
@@ -38,7 +39,6 @@ const QuizModal: FC<QuizModalProps> = ({ isOpen, onClose, onAnswer, currentQuest
     // Reset state for next quiz
     setSelectedIndex(null);
     setShowExplanation(false);
-    setUsedHints([]);
     setUserInput('');
   };
   
@@ -47,20 +47,11 @@ const QuizModal: FC<QuizModalProps> = ({ isOpen, onClose, onAnswer, currentQuest
   };
 
   const handleShowHint = (index: number) => {
-    if (!usedHints.includes(index)) {
-      setUsedHints([...usedHints, index]);
-    }
+    onUseHint(index);
   };
-
-  const handleDownloadCV = () => {
-    // Créer un lien vers le CV
-    const link = document.createElement('a');
-    link.href = '/CV_Sohaib_Zeghouani.pdf'; // Le chemin vers votre CV
-    link.download = 'CV_Sohaib_Zeghouani.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  
+  // Determine which hints have been used
+  const usedHints = currentQuestion.usedHints || [];
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -114,7 +105,7 @@ const QuizModal: FC<QuizModalProps> = ({ isOpen, onClose, onAnswer, currentQuest
               <div className="space-y-2">
                 {currentQuestion.hints.map((hint, index) => (
                   <div key={index} className="text-sm">
-                    {usedHints.includes(index) ? (
+                    {usedHints.includes(index.toString()) ? (
                       <div className="p-2 bg-muted/50 rounded-md">
                         {hint}
                       </div>
@@ -145,7 +136,7 @@ const QuizModal: FC<QuizModalProps> = ({ isOpen, onClose, onAnswer, currentQuest
               />
               <Button 
                 variant="outline" 
-                onClick={handleDownloadCV} 
+                onClick={onDownloadCV} 
                 title="Télécharger mon CV"
                 className="flex items-center gap-2"
               >
