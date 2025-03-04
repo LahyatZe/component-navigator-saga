@@ -22,19 +22,30 @@ const SignedOutView: FC = () => {
     if (isSignInLoaded && signIn) {
       try {
         setIsProcessing(true);
+        
+        // First, create the sign-in attempt
         const result = await signIn.create({
           identifier: email,
           strategy: "email_code",
         });
         
+        // Check if we need to provide the first factor
         if (result.status === "needs_first_factor") {
-          await signIn.prepareFirstFactor({
-            strategy: "email_code",
-            emailAddressId: result.supportedFirstFactors.find(
-              factor => factor.strategy === "email_code"
-            )?.emailAddressId,
-          });
-          toast.success("Code de vérification envoyé. Vérifiez votre email.");
+          // Find the email address ID from the supported first factors
+          const emailCodeFactor = result.supportedFirstFactors.find(
+            factor => factor.strategy === "email_code"
+          );
+          
+          if (emailCodeFactor?.emailAddressId) {
+            // Prepare the first factor with the email address ID
+            await signIn.prepareFirstFactor({
+              strategy: "email_code",
+              emailAddressId: emailCodeFactor.emailAddressId,
+            });
+            toast.success("Code de vérification envoyé. Vérifiez votre email.");
+          } else {
+            toast.error("Erreur lors de l'envoi du code. Veuillez réessayer.");
+          }
         }
       } catch (error) {
         console.error("Sign in error:", error);
@@ -54,10 +65,13 @@ const SignedOutView: FC = () => {
     if (isSignUpLoaded && signUp) {
       try {
         setIsProcessing(true);
+        
+        // Create the sign-up
         const result = await signUp.create({
           emailAddress: email,
         });
         
+        // If requirements are missing, prepare email verification
         if (result.status === "missing_requirements") {
           await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
           toast.success("Code de vérification envoyé. Vérifiez votre email.");
