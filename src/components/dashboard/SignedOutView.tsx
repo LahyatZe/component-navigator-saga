@@ -11,16 +11,20 @@ const SignedOutView: FC = () => {
 
   const handleSignIn = () => {
     if (isSignInLoaded && signIn) {
-      signIn.create().then(() => {
-        window.location.href = signIn.url;
+      signIn.create({
+        identifier: '',
+      }).then(() => {
+        window.location.href = signIn.authorizedUrl;
       });
     }
   };
 
   const handleSignUp = () => {
     if (isSignUpLoaded && signUp) {
-      signUp.create().then(() => {
-        window.location.href = signUp.url;
+      signUp.create({
+        emailAddress: '',
+      }).then(() => {
+        window.location.href = signUp.authorizedUrl;
       });
     }
   };
