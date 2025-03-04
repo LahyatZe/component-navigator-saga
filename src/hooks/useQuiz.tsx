@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Trophy, Star, Code, Award, Rocket, Download } from 'lucide-react';
 import { questions } from '@/data/quizQuestions';
@@ -19,23 +20,23 @@ export const useQuiz = (
   useEffect(() => {
     if (quizState.showQuiz) {
       const questionId = quizState.currentQuestionId.toString();
-      const usedHints = progress.usedHints?.[questionId] || [];
+      const usedHints = progress?.usedHints?.[questionId] || [];
       setCurrentHints(usedHints);
     }
-  }, [quizState.showQuiz, quizState.currentQuestionId, progress.usedHints]);
+  }, [quizState.showQuiz, quizState.currentQuestionId, progress?.usedHints]);
 
-  const handleQuizAnswer = (correct: boolean) => {
+  const handleQuizAnswer = useCallback((correct: boolean) => {
     try {
       // Make sure quizHistory is always an array
-      const currentQuizHistory = Array.isArray(progress.quizHistory) ? progress.quizHistory : [];
-      const updatedQuizHistory = [...currentQuizHistory, { level: progress.currentLevel + 1, correct }];
+      const currentQuizHistory = Array.isArray(progress?.quizHistory) ? [...progress.quizHistory] : [];
+      const updatedQuizHistory = [...currentQuizHistory, { level: (progress?.currentLevel || 0) + 1, correct }];
       
       // Save the updated quiz history immediately
       saveProgress({ quizHistory: updatedQuizHistory });
       
       if (correct) {
         // Get questions for the current level, handle safely
-        const questionsForCurrentLevel = questions.filter(q => q.level === progress.currentLevel + 1) || [];
+        const questionsForCurrentLevel = questions.filter(q => q.level === (progress?.currentLevel || 0) + 1) || [];
         
         // Calculate required correct answers safely
         const requiredCorrectAnswers = questionsForCurrentLevel.length > 0 
@@ -44,13 +45,13 @@ export const useQuiz = (
           
         // Get current correct answers, handle safely
         const correctAnswersForLevel = currentQuizHistory
-          .filter(q => q?.level === progress.currentLevel + 1 && q?.correct)
+          .filter(q => q?.level === (progress?.currentLevel || 0) + 1 && q?.correct)
           .length + 1;
         
         console.log(`Required correct: ${requiredCorrectAnswers}, Current correct: ${correctAnswersForLevel}`);
         
         if (correctAnswersForLevel >= requiredCorrectAnswers) {
-          const nextLevel = progress.currentLevel + 1;
+          const nextLevel = (progress?.currentLevel || 0) + 1;
           if (nextLevel <= 4) {
             let newUnlockedYears: string[] = [];
             
@@ -122,45 +123,71 @@ export const useQuiz = (
             duration: 3000
           });
           
-          // Get remaining questions safely
-          const remainingQuestions = questions.filter(q => {
-            // Filter for current level
-            if (q.level !== progress.currentLevel + 1) return false;
-            
-            // Only include questions that haven't been answered correctly
-            // This is where the filter error was occurring
-            return !(currentQuizHistory.some(history => {
-              if (!history) return false;
+          // Get remaining questions safely - THIS IS WHERE THE FILTER ERROR WAS OCCURRING
+          try {
+            const remainingQuestions = questions.filter(q => {
+              // Filter for current level
+              if (q.level !== (progress?.currentLevel || 0) + 1) return false;
               
-              return history.level === q.level && 
-                history.correct && 
-                quizState.currentQuestionId === q.id;
-            }));
-          }) || [];
-          
-          // Display another question with delay to prevent issues
-          setTimeout(() => {
-            if (remainingQuestions.length > 0) {
-              // Show a random remaining question
-              const randomQuestion = remainingQuestions[Math.floor(Math.random() * remainingQuestions.length)];
-              setQuizState(prev => ({
-                ...prev,
-                currentQuestionId: randomQuestion.id,
-                showQuiz: true
+              // Only include questions that haven't been answered correctly
+              return !(currentQuizHistory.some(history => {
+                if (!history) return false;
+                
+                return history.level === q.level && 
+                  history.correct && 
+                  quizState.currentQuestionId === q.id;
               }));
-            } else {
-              // If all questions are answered, show a random question from this level
-              const levelQuestions = questions.filter(q => q.level === progress.currentLevel + 1) || [];
-              if (levelQuestions.length > 0) {
-                const randomQuestion = levelQuestions[Math.floor(Math.random() * levelQuestions.length)];
+            }) || [];
+            
+            // Display another question with delay to prevent issues
+            setTimeout(() => {
+              if (remainingQuestions.length > 0) {
+                // Show a random remaining question
+                const randomQuestion = remainingQuestions[Math.floor(Math.random() * remainingQuestions.length)];
                 setQuizState(prev => ({
                   ...prev,
                   currentQuestionId: randomQuestion.id,
                   showQuiz: true
                 }));
+              } else {
+                // If all questions are answered, show a random question from this level
+                const levelQuestions = questions.filter(q => q.level === (progress?.currentLevel || 0) + 1) || [];
+                if (levelQuestions.length > 0) {
+                  const randomQuestion = levelQuestions[Math.floor(Math.random() * levelQuestions.length)];
+                  setQuizState(prev => ({
+                    ...prev,
+                    currentQuestionId: randomQuestion.id,
+                    showQuiz: true
+                  }));
+                } else {
+                  // Fallback if no questions at this level (shouldn't happen)
+                  setQuizState(prev => ({
+                    ...prev,
+                    showQuiz: false
+                  }));
+                }
               }
-            }
-          }, 300);
+            }, 300);
+          } catch (filterError) {
+            console.error("Error filtering questions:", filterError);
+            // Fallback in case of filter error - just show any question from this level
+            setTimeout(() => {
+              const fallbackQuestions = questions.filter(q => q.level === (progress?.currentLevel || 0) + 1) || [];
+              if (fallbackQuestions.length > 0) {
+                const randomQuestion = fallbackQuestions[Math.floor(Math.random() * fallbackQuestions.length)];
+                setQuizState(prev => ({
+                  ...prev,
+                  currentQuestionId: randomQuestion.id,
+                  showQuiz: true
+                }));
+              } else {
+                setQuizState(prev => ({
+                  ...prev,
+                  showQuiz: false
+                }));
+              }
+            }, 300);
+          }
         }
       } else {
         toast.error("Ce n'est pas la bonne réponse, essayez encore !", {
@@ -186,9 +213,9 @@ export const useQuiz = (
         }));
       }, 300);
     }
-  };
+  }, [progress, saveProgress, quizState.currentQuestionId]);
 
-  const handleUseHint = (hintIndex: number) => {
+  const handleUseHint = useCallback((hintIndex: number) => {
     try {
       const questionId = quizState.currentQuestionId.toString();
       const usedHints = [...(currentHints || []), hintIndex.toString()];
@@ -197,7 +224,7 @@ export const useQuiz = (
       setCurrentHints(usedHints);
       
       // Mettre à jour le stockage global
-      const updatedUsedHints = { ...(progress.usedHints || {}) };
+      const updatedUsedHints = { ...(progress?.usedHints || {}) };
       updatedUsedHints[questionId] = usedHints;
       
       saveProgress({ 
@@ -206,9 +233,9 @@ export const useQuiz = (
     } catch (error) {
       console.error("Error using hint:", error);
     }
-  };
+  }, [currentHints, progress?.usedHints, quizState.currentQuestionId, saveProgress]);
 
-  const handleCvDownload = () => {
+  const handleCvDownload = useCallback(() => {
     try {
       // Make sure to handle the case when usedHints is undefined
       saveProgress({ 
@@ -234,12 +261,12 @@ export const useQuiz = (
         duration: 3000
       });
     }
-  };
+  }, [saveProgress]);
 
-  const startQuiz = () => {
+  const startQuiz = useCallback(() => {
     try {
-      if (progress.currentLevel < 4) {
-        const levelQuestions = questions.filter(q => q.level === progress.currentLevel + 1) || [];
+      if ((progress?.currentLevel || 0) < 4) {
+        const levelQuestions = questions.filter(q => q.level === (progress?.currentLevel || 0) + 1) || [];
         
         if (levelQuestions.length === 0) {
           toast.error("Aucune question disponible pour ce niveau!", {
@@ -249,12 +276,14 @@ export const useQuiz = (
         }
         
         // Handle potentially undefined quizHistory safely
-        const quizHistory = Array.isArray(progress.quizHistory) ? progress.quizHistory : [];
+        const quizHistory = Array.isArray(progress?.quizHistory) ? progress.quizHistory : [];
         
+        // Fix here - Make sure we handle null properly and don't call filter on undefined
         const answeredCorrectly = quizHistory
           .filter(h => h?.correct) // Make sure we have valid entries
           .map(h => {
             if (!h) return -1; // Handle null/undefined
+            // Find the corresponding question
             const question = questions.find(q => q.level === h.level && q.id === quizState.currentQuestionId);
             return question ? question.id : -1;
           })
@@ -287,7 +316,46 @@ export const useQuiz = (
         duration: 3000
       });
     }
-  };
+  }, [progress?.currentLevel, progress?.quizHistory, quizState.currentQuestionId]);
+
+  const getCurrentQuestion = useCallback((): Question => {
+    try {
+      const question = questions.find(q => q.id === quizState.currentQuestionId);
+      
+      if (!question) {
+        console.error("Question not found for ID:", quizState.currentQuestionId);
+        // Fallback to first question if current not found
+        return {
+          ...(questions[0] || {
+            id: 1,
+            question: "Question temporairement indisponible.",
+            options: ["Option 1", "Option 2", "Option 3", "Option 4"],
+            correctOptionIndex: 0,
+            correctAnswer: 0,
+            level: 1,
+          }),
+          usedHints: currentHints
+        };
+      }
+      
+      return {
+        ...question,
+        usedHints: currentHints
+      };
+    } catch (error) {
+      console.error("Error getting current question:", error);
+      // Return a safe default in case of error
+      return {
+        id: 1,
+        question: "Une question est actuellement indisponible.",
+        options: ["Option 1", "Option 2", "Option 3", "Option 4"],
+        correctOptionIndex: 0,
+        correctAnswer: 0,
+        level: 1,
+        usedHints: []
+      };
+    }
+  }, [currentHints, quizState.currentQuestionId]);
 
   return {
     quizState,
@@ -297,36 +365,6 @@ export const useQuiz = (
     handleCvDownload,
     currentHints,
     startQuiz,
-    getCurrentQuestion: (): Question => {
-      try {
-        const question = questions.find(q => q.id === quizState.currentQuestionId);
-        
-        if (!question) {
-          console.error("Question not found for ID:", quizState.currentQuestionId);
-          // Fallback to first question if current not found
-          return {
-            ...questions[0],
-            usedHints: currentHints
-          };
-        }
-        
-        return {
-          ...question,
-          usedHints: currentHints
-        };
-      } catch (error) {
-        console.error("Error getting current question:", error);
-        // Return a safe default in case of error
-        return {
-          id: 1,
-          question: "Une question est actuellement indisponible.",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOptionIndex: 0,
-          correctAnswer: 0,
-          level: 1,
-          usedHints: []
-        };
-      }
-    }
+    getCurrentQuestion
   };
 };

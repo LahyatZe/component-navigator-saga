@@ -56,12 +56,20 @@ const QuizSection: FC<QuizSectionProps> = ({ progress, questions, saveProgress }
     }
   };
 
-  // Ensure we have a valid question before trying to render the modal
-  const currentQuestion = getCurrentQuestion();
+  // Get current question - use a try/catch to prevent render failures
+  let currentQuestion: Question | null = null;
+  try {
+    currentQuestion = getCurrentQuestion();
+  } catch (error) {
+    console.error("Error getting current question in QuizSection:", error);
+  }
+  
+  // Only render the modal if we have a valid question
+  const showModal = quizState.showQuiz && currentQuestion !== null;
   
   return (
     <>
-      {quizState.showQuiz && currentQuestion && (
+      {showModal && (
         <QuizModal
           isOpen={quizState.showQuiz}
           onClose={handleCloseModal}
