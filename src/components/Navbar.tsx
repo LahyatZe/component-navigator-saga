@@ -21,17 +21,23 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
   // In a real app, you'd check for a proper admin flag or role
   const isAdmin = isSignedIn && user?.primaryEmailAddress?.emailAddress?.endsWith('@admin.com');
 
-  // Get the current app URL to use as redirect
-  const currentUrl = window.location.origin;
+  // Get the app URL with hash-based routing
+  const currentUrl = `${window.location.origin}/#/dashboard`;
+  console.log("Authentication redirect URL:", currentUrl);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
 
-  // Console log to help debug authentication state
+  // Enhanced console logging to debug authentication state
   React.useEffect(() => {
-    console.log("Navbar auth state:", { isSignedIn, user: user?.id });
+    console.log("Navbar auth state:", { 
+      isSignedIn, 
+      userId: user?.id,
+      userEmail: user?.primaryEmailAddress?.emailAddress,
+      userFullName: user?.fullName 
+    });
   }, [isSignedIn, user]);
 
   return (
@@ -96,10 +102,10 @@ const Navbar: React.FC<NavbarProps> = ({ onAdminClick }) => {
               </>
             ) : (
               <>
-                <a href={`https://steady-starling-83.accounts.dev/sign-in?redirect_url=${currentUrl}`}>
+                <a href={`https://steady-starling-83.accounts.dev/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`}>
                   <Button variant="outline" size="sm">Sign In</Button>
                 </a>
-                <a href={`https://steady-starling-83.accounts.dev/sign-up?redirect_url=${currentUrl}`}>
+                <a href={`https://steady-starling-83.accounts.dev/sign-up?redirect_url=${encodeURIComponent(currentUrl)}`}>
                   <Button size="sm">Sign Up</Button>
                 </a>
               </>

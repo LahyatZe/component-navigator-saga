@@ -33,22 +33,41 @@ function App() {
       // Add a small delay to ensure authentication state is properly synced
       const timer = setTimeout(() => {
         setIsLoading(false);
-      }, 500);
+        console.log("App loaded, auth state:", { isSignedIn, userId: user?.id });
+      }, 1000); // Increased timeout to ensure auth state is fully resolved
       
       return () => clearTimeout(timer);
     }
-  }, [isLoaded]);
+  }, [isLoaded, isSignedIn, user]);
 
   // Log authentication state for debugging
   useEffect(() => {
     if (isLoaded) {
-      console.log("Authentication state:", { isSignedIn, userId: user?.id });
+      console.log("Authentication state updated:", { 
+        isSignedIn, 
+        userId: user?.id,
+        userEmail: user?.primaryEmailAddress?.emailAddress,
+        isLoaded 
+      });
     }
   }, [isLoaded, isSignedIn, user]);
 
   const toggleAdmin = () => {
     setIsAdminOpen(!isAdminOpen);
   };
+
+  // If Clerk hasn't loaded yet, show loading spinner
+  if (!isLoaded) {
+    console.log("Clerk is still loading...");
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-muted-foreground">Loading authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
