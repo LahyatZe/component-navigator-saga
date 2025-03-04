@@ -11,7 +11,8 @@ export interface UserProgress {
   quizHistory: {level: number, correct: boolean}[];
   achievements: string[];
   lastUpdated: string;
-  cvDownloaded?: boolean; // Add the missing property
+  cvDownloaded?: boolean;
+  usedHints?: Record<string, string[]>;
 }
 
 // Table name in Supabase for user progress

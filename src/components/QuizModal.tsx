@@ -55,7 +55,7 @@ const QuizModal: FC<QuizModalProps> = ({
     onUseHint(index);
   };
   
-  // Determine which hints have been used
+  // Safely handle usedHints, ensuring it's always an array
   const usedHints = currentQuestion.usedHints || [];
   
   return (

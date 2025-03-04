@@ -136,9 +136,18 @@ export const useQuiz = (
   };
 
   const handleCvDownload = () => {
+    // Make sure to handle the case when usedHints is undefined
     saveProgress({ 
       cvDownloaded: true 
     } as Partial<UserProgress>);
+    
+    // Create a link element to download the CV
+    const link = document.createElement('a');
+    link.href = '/CV_Sohaib_ZEGHOUANI.pdf'; // Update this with the actual path to your CV
+    link.download = 'CV_Sohaib_ZEGHOUANI.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     
     toast.success("Merci d'avoir téléchargé mon CV !", {
       duration: 3000,
