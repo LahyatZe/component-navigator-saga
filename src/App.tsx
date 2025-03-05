@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { useClerkSupabaseSync } from '@/hooks/useClerkSupabaseSync';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -27,23 +28,28 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const { isSignedIn, isLoaded } = useAuth();
   const { user } = useUser();
+  
+  // Sync Clerk session with Supabase
+  const { isSynced, isSyncing, error: syncError } = useClerkSupabaseSync();
 
   useEffect(() => {
-    // Only set loading to false once Clerk has loaded
-    if (isLoaded) {
+    // Only set loading to false once Clerk has loaded and sync attempt is complete
+    if (isLoaded && (!isSignedIn || (isSignedIn && (isSynced || syncError)))) {
       // Add a small delay to ensure authentication state is properly synced
       const timer = setTimeout(() => {
         setIsLoading(false);
         console.log("App loaded, auth state:", { 
           isSignedIn, 
           userId: user?.id,
-          location: window.location.href
+          location: window.location.href,
+          supabaseSynced: isSynced,
+          syncError: syncError
         });
       }, 1500); // Increased timeout to ensure auth state is fully resolved
       
       return () => clearTimeout(timer);
     }
-  }, [isLoaded, isSignedIn, user]);
+  }, [isLoaded, isSignedIn, user, isSynced, syncError]);
 
   // Log authentication state for debugging
   useEffect(() => {
@@ -53,23 +59,26 @@ function App() {
         userId: user?.id,
         userEmail: user?.primaryEmailAddress?.emailAddress,
         isLoaded,
+        supabaseSynced: isSynced,
         currentPath: window.location.href
       });
     }
-  }, [isLoaded, isSignedIn, user]);
+  }, [isLoaded, isSignedIn, user, isSynced]);
 
   const toggleAdmin = () => {
     setIsAdminOpen(!isAdminOpen);
   };
 
-  // If Clerk hasn't loaded yet, show loading spinner
-  if (!isLoaded) {
-    console.log("Clerk is still loading...");
+  // If Clerk hasn't loaded yet, or we're waiting for Supabase sync, show loading spinner
+  if (!isLoaded || (isSignedIn && isSyncing)) {
+    console.log("Clerk is still loading or syncing with Supabase...");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-          <p className="text-muted-foreground">Loading authentication...</p>
+          <p className="text-muted-foreground">
+            {isSyncing ? "Synchronizing authentication..." : "Loading authentication..."}
+          </p>
         </div>
       </div>
     );

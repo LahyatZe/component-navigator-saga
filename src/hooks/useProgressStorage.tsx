@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { UserProgress } from '@/types/course';
 import { getUserProgress, saveUserProgress } from '@/services/course';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useProgressStorage = (
   userId?: string,
@@ -19,20 +20,34 @@ export const useProgressStorage = (
     try {
       console.log("Loading course progress for user:", userId, "and course:", courseId);
       
-      // Try to get progress from Supabase
-      try {
-        const progressData = await getUserProgress(userId, courseId);
-        
-        if (progressData) {
-          // Set progress data retrieved from database
-          console.log("Retrieved progress data:", progressData);
-          setProgress(progressData);
-          setIsLoading(false);
-          return;
+      // Check Supabase session first
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+      }
+      
+      // Log session status to help with debugging
+      console.log("Supabase session status when loading progress:", session ? "Active" : "None");
+      
+      // Try to get progress from Supabase if we have a session
+      if (session) {
+        try {
+          const progressData = await getUserProgress(userId, courseId);
+          
+          if (progressData) {
+            // Set progress data retrieved from database
+            console.log("Retrieved progress data from Supabase:", progressData);
+            setProgress(progressData);
+            setIsLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error("Error loading progress from Supabase:", error);
+          // Continue to localStorage fallback
         }
-      } catch (error) {
-        console.error("Error loading progress:", error);
-        // Continue to localStorage fallback
+      } else {
+        console.log("No active Supabase session, using localStorage only");
       }
       
       // Fallback to localStorage if Supabase fails or returns no data
@@ -95,13 +110,27 @@ export const useProgressStorage = (
         JSON.stringify(progressData)
       );
       
+      // Check if we have an active Supabase session before trying to save
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Session check error:", sessionError);
+      }
+      
+      // Log session status to help with debugging
+      console.log("Supabase session status when saving progress:", session ? "Active" : "None");
+      
       // Then try to save to Supabase if we have a session
-      try {
-        await saveUserProgress(progressData);
-        console.log("Progress saved successfully to Supabase");
-      } catch (error) {
-        console.error("Error saving to Supabase, using localStorage only:", error);
-        // We've already saved to localStorage as a backup, so we're good
+      if (session) {
+        try {
+          await saveUserProgress(progressData);
+          console.log("Progress saved successfully to Supabase");
+        } catch (error) {
+          console.error("Error saving to Supabase, using localStorage only:", error);
+          // We've already saved to localStorage as a backup, so we're good
+        }
+      } else {
+        console.log("No active Supabase session, saved to localStorage only");
       }
     } catch (error) {
       console.error("Error saving progress:", error);
