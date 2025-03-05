@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { toast } from 'sonner';
 import { Trophy, Star, Code, Award, Rocket } from 'lucide-react';
 import { Question, QuizHistory } from '@/types/quiz';
