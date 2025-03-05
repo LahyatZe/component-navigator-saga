@@ -78,11 +78,12 @@ export const useAchievements = (progress: UserProgress, userId?: string) => {
       
       updatedAchievements[0].unlocked = true;
       
-      if (progress.currentLevel >= 1) updatedAchievements[1].unlocked = true;
-      if (progress.currentLevel >= 2) updatedAchievements[2].unlocked = true;
-      if (progress.currentLevel >= 3) updatedAchievements[3].unlocked = true;
+      // Use optional chaining to safely access currentLevel
+      if (progress.currentLevel && progress.currentLevel >= 1) updatedAchievements[1].unlocked = true;
+      if (progress.currentLevel && progress.currentLevel >= 2) updatedAchievements[2].unlocked = true;
+      if (progress.currentLevel && progress.currentLevel >= 3) updatedAchievements[3].unlocked = true;
       
-      const visitedAllSections = progress.currentLevel >= 4;
+      const visitedAllSections = progress.currentLevel && progress.currentLevel >= 4;
       updatedAchievements[4].unlocked = visitedAllSections;
       
       setAchievements(updatedAchievements);

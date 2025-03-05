@@ -1,3 +1,4 @@
+
 export interface Course {
   id: string;
   title: string;
@@ -42,7 +43,6 @@ export interface Lesson {
   exercises: Exercise[];
   videoUrl?: string; // URL de la vidéo associée
   resources?: Resource[]; // Ressources supplémentaires
-  quiz?: Quiz[]; // Quiz de fin de leçon
   order?: number; // Ordre d'affichage de la leçon
 }
 
@@ -67,14 +67,6 @@ export interface Resource {
   description?: string;
 }
 
-export interface Quiz {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswer: number; // index de la bonne réponse
-  explanation?: string; // explication de la réponse
-}
-
 export interface TestCase {
   id: string;
   input: string;
@@ -97,7 +89,6 @@ export interface UserProgress {
   bookmarks: string[];
   usedHints: Record<string, string[]>;
   cvDownloaded: boolean;
-  quizHistory: import('@/types/quiz').QuizHistory[];
   unlockedYears: string[];
   currentLevel: number;
   achievements?: string[];
@@ -109,13 +100,8 @@ export interface Achievement {
   title: string;
   description: string;
   icon: string;
-  condition: 'course_completion' | 'exercise_streak' | 'quiz_score' | 'first_login' | 'community_participation';
+  condition: 'course_completion' | 'exercise_streak' | 'first_login' | 'community_participation';
   progress: number; // progression actuelle (0-100)
   isUnlocked: boolean;
   unlockedAt?: string; // Date de déverrouillage au format ISO
-}
-
-export interface QuizHistory {
-  level: number;
-  correct: boolean;
 }

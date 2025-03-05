@@ -11,6 +11,7 @@ export interface UserProgress {
   cvDownloaded?: boolean;
   userId?: string;
   userEmail?: string;
+  currentLevel?: number; // Added missing property
 }
 
 // Table name in Supabase for user progress
@@ -21,7 +22,8 @@ export const useProgressPersistence = () => {
   const [progress, setProgress] = useState<UserProgress>({
     unlockedYears: [],
     achievements: [],
-    lastUpdated: new Date().toISOString()
+    lastUpdated: new Date().toISOString(),
+    currentLevel: 0 // Initialize with default value
   });
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -65,7 +67,8 @@ export const useProgressPersistence = () => {
           const updatedProgress = {
             ...parsedProgress,
             userId: userId,
-            userEmail: user?.primaryEmailAddress?.emailAddress
+            userEmail: user?.primaryEmailAddress?.emailAddress,
+            currentLevel: parsedProgress.currentLevel || 0 // Ensure currentLevel exists
           };
           setProgress(updatedProgress);
           console.log("Progress loaded from localStorage for user:", userId);
@@ -79,7 +82,8 @@ export const useProgressPersistence = () => {
           achievements: [],
           lastUpdated: new Date().toISOString(),
           userId: userId,
-          userEmail: user?.primaryEmailAddress?.emailAddress
+          userEmail: user?.primaryEmailAddress?.emailAddress,
+          currentLevel: 0 // Initialize with default value
         });
       }
     };
