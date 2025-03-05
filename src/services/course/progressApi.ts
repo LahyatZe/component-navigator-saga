@@ -127,6 +127,12 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
     // Get the original lesson ID from the UUID format if needed
     let currentLesson = data.current_lesson || '';
     
+    // Create a type-safe accessor for the achievements field that may not exist in the returned data type
+    // This prevents TypeScript errors while still allowing us to safely access the field
+    const getAchievements = (data: any): string[] => {
+      return Array.isArray(data.achievements) ? data.achievements : [];
+    };
+
     // Transform the data to match our UserProgress type with proper type handling
     return {
       userId: userId, // Keep the original user ID in the returned object
@@ -153,8 +159,8 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
         ? data.used_hints as Record<string, string[]>
         : {},
       currentLevel: data.current_level || 0,
-      // Safely access achievements property with a fallback
-      achievements: Array.isArray(data.achievements) ? data.achievements : []
+      // Use our safe accessor function to get achievements
+      achievements: getAchievements(data)
     };
   } catch (error) {
     console.error('Error in getUserProgress:', error);
