@@ -74,10 +74,11 @@ export const useProgressStorage = (
       certificateIssued: false,
       notes: {},
       bookmarks: [],
-      usedHints: {}, // Add this property that was missing
+      usedHints: {},
       cvDownloaded: false,
       unlockedYears: [],
-      currentLevel: 0 // Add this property that was missing
+      currentLevel: 0,
+      achievements: [] // Add this missing property to match the type
     };
     setProgressFn(newProgress);
   };
