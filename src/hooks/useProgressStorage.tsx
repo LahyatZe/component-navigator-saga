@@ -74,10 +74,10 @@ export const useProgressStorage = (
       certificateIssued: false,
       notes: {},
       bookmarks: [],
-      usedHints: {},
+      usedHints: {}, // Add this property that was missing
       cvDownloaded: false,
       unlockedYears: [],
-      currentLevel: 0
+      currentLevel: 0 // Add this property that was missing
     };
     setProgressFn(newProgress);
   };
