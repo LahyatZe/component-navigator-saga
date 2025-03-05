@@ -5,6 +5,7 @@ import { useAuth } from '@clerk/clerk-react';
 
 export const useSupabaseSession = () => {
   const [supaSessioChecked, setSupaSessionChecked] = useState(false);
+  const [hasSupabaseSession, setHasSupabaseSession] = useState(false);
   const { isSignedIn } = useAuth();
 
   useEffect(() => {
@@ -16,6 +17,8 @@ export const useSupabaseSession = () => {
         if (error) {
           console.error("Error checking Supabase session:", error);
         }
+        
+        setHasSupabaseSession(!!session);
         
         if (!session && isSignedIn) {
           console.log("Clerk is signed in but no Supabase session found. This may indicate a sync issue.");
@@ -33,5 +36,5 @@ export const useSupabaseSession = () => {
     checkSupabaseSession();
   }, [isSignedIn]);
 
-  return { supaSessioChecked };
+  return { supaSessioChecked, hasSupabaseSession };
 };

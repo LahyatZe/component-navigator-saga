@@ -31,34 +31,38 @@ export const useClerkSupabaseSync = () => {
         
         console.log('Syncing Clerk session with Supabase...');
         
-        // Create a custom JWT for Supabase using Clerk's getToken method
-        // Here we're simulating a token for demonstration - in a production app,
-        // you would need a custom JWT template in Clerk or a server endpoint
-        // that converts Clerk token to a Supabase-compatible token
+        // Get the Clerk token - in a production app, this would be used
+        // to generate a custom JWT for Supabase
         const clerkToken = await getToken();
         
         if (!clerkToken) {
           throw new Error('Could not get auth token from Clerk');
         }
+
+        // For demonstration, we'll use the Supabase anonymous auth
+        // In a production app, you'd want to implement a proper JWT exchange
+        // through a secure backend API
         
-        // For demonstration, we'll use the anonymous key flow in Supabase
-        // In a production app, you'd use the Clerk token to authenticate with Supabase
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email: 'anon@example.com',
-          password: 'password123',
+        // Try to sign in with magic link using the user's email
+        // This is a more robust approach than using a fixed email
+        const userEmail = user.primaryEmailAddress?.emailAddress;
+        
+        if (!userEmail) {
+          throw new Error('User email not available');
+        }
+        
+        // Try to sign in with magic link
+        const { data, error: signInError } = await supabase.auth.signInWithOtp({
+          email: userEmail,
+          options: {
+            // Don't actually send an email, just create a session
+            shouldCreateUser: true
+          }
         });
         
         if (signInError) {
-          // If the anon user doesn't exist, try to sign up
-          console.log('Anon user does not exist, attempting signup...');
-          const { error: signUpError } = await supabase.auth.signUp({
-            email: 'anon@example.com',
-            password: 'password123',
-          });
-          
-          if (signUpError) {
-            throw new Error(`Failed to create Supabase session: ${signUpError.message}`);
-          }
+          console.error('Error signing in with OTP:', signInError);
+          throw new Error(`Failed to create Supabase session: ${signInError.message}`);
         }
         
         console.log('Successfully created Supabase session for Clerk user');
@@ -69,7 +73,7 @@ export const useClerkSupabaseSync = () => {
           data: {
             clerk_user_id: user.id,
             formatted_user_id: formatUserId(user.id),
-            email: user.primaryEmailAddress?.emailAddress,
+            email: userEmail,
           }
         });
         

@@ -43,7 +43,7 @@ export const useProgressStorage = (
             return;
           }
         } catch (error) {
-          console.error("Error loading progress from Supabase:", error);
+          console.warn("Could not load progress from Supabase, using localStorage fallback:", error.message);
           // Continue to localStorage fallback
         }
       } else {
@@ -126,7 +126,7 @@ export const useProgressStorage = (
           await saveUserProgress(progressData);
           console.log("Progress saved successfully to Supabase");
         } catch (error) {
-          console.error("Error saving to Supabase, using localStorage only:", error);
+          console.warn("Error saving to Supabase, using localStorage only:", error.message);
           // We've already saved to localStorage as a backup, so we're good
         }
       } else {
