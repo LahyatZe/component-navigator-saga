@@ -78,7 +78,7 @@ export const useProgressStorage = (
       cvDownloaded: false,
       unlockedYears: [],
       currentLevel: 0,
-      achievements: [] // Add this missing property to match the type
+      achievements: []
     };
     setProgressFn(newProgress);
   };
