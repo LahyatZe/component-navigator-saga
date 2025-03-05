@@ -1,3 +1,4 @@
+
 import { Course } from "@/types/course";
 
 export const courses: Course[] = [
@@ -167,20 +168,6 @@ export const courses: Course[] = [
                   "Utilisez 'h1', 'p' pour cibler ces éléments spécifiques"
                 ]
               }
-            ],
-            quiz: [
-              {
-                id: "css-basics-quiz",
-                question: "Quelle syntaxe CSS est correcte?",
-                options: [
-                  "body { color = black; }",
-                  "body: { color: black; }",
-                  "body { color: black; }",
-                  "{body color: black;}"
-                ],
-                correctAnswer: 2,
-                explanation: "La syntaxe correcte en CSS est: sélecteur { propriété: valeur; }"
-              }
             ]
           }
         ]
@@ -245,20 +232,6 @@ export const courses: Course[] = [
                     isPublic: true
                   }
                 ]
-              }
-            ],
-            quiz: [
-              {
-                id: "js-data-types-quiz",
-                question: "Quel n'est PAS un type de données en JavaScript?",
-                options: [
-                  "String",
-                  "Boolean",
-                  "Float",
-                  "Object"
-                ],
-                correctAnswer: 2,
-                explanation: "JavaScript n'a pas de type 'Float' distinct. Les nombres à virgule flottante sont simplement de type 'number'."
               }
             ]
           }
@@ -382,20 +355,6 @@ export const courses: Course[] = [
                 codeTemplate: "// Créez un composant fonctionnel Greeting qui prend un prop 'name'\n// et affiche 'Bonjour, [name]!'\n\n// Votre code ici\n\n",
                 solution: "function Greeting({ name }) {\n  return <h1>Bonjour, {name}!</h1>;\n}\n\nexport default Greeting;",
                 completed: false
-              }
-            ],
-            quiz: [
-              {
-                id: "react-component-quiz",
-                question: "Quelle est la syntaxe correcte pour un composant fonctionnel React?",
-                options: [
-                  "function MyComponent(props) { return <div>{props.text}</div>; }",
-                  "const MyComponent = (props) => { <div>{props.text}</div> }",
-                  "function MyComponent { return <div>Hello</div>; }",
-                  "class MyComponent extends React { render() { return <div>Hello</div>; } }"
-                ],
-                correctAnswer: 0,
-                explanation: "Un composant fonctionnel est une fonction JavaScript qui accepte des props et retourne du JSX."
               }
             ]
           }
