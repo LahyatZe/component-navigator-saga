@@ -1,24 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { formatUserId, formatStringToUuid } from "@/utils/formatUserId";
-
-// Type simplifiée sans références aux quiz
-interface UserProgress {
-  userId: string;
-  courseId: string;
-  completedLessons: string[];
-  completedExercises: string[];
-  currentLesson: string;
-  startedAt: string;
-  lastAccessedAt: string;
-  completionPercentage: number;
-  quizScores: Record<string, number>;
-  certificateIssued: boolean;
-  notes: Record<string, string>;
-  bookmarks: string[];
-  cvDownloaded?: boolean;
-  unlockedYears?: string[];
-}
+import { UserProgress } from "@/types/course";
 
 // Save course progress for a user
 export const saveUserProgress = async (progress: UserProgress) => {
@@ -72,7 +55,11 @@ export const saveUserProgress = async (progress: UserProgress) => {
         notes: progress.notes,
         bookmarks: progress.bookmarks,
         cv_downloaded: progress.cvDownloaded || false,
-        unlocked_years: progress.unlockedYears || []
+        unlocked_years: progress.unlockedYears || [],
+        current_level: progress.currentLevel || 0,
+        used_hints: progress.usedHints || {},
+        // Include achievements array if present
+        ...(progress.achievements ? { achievements: progress.achievements } : {})
       }, {
         onConflict: 'user_id,course_id'
       });
@@ -162,7 +149,12 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
         : {},
       bookmarks: data.bookmarks || [],
       cvDownloaded: !!data.cv_downloaded,
-      unlockedYears: Array.isArray(data.unlocked_years) ? data.unlocked_years : []
+      unlockedYears: Array.isArray(data.unlocked_years) ? data.unlocked_years : [],
+      usedHints: typeof data.used_hints === 'object' && data.used_hints !== null
+        ? data.used_hints as Record<string, string[]>
+        : {},
+      currentLevel: data.current_level || 0,
+      achievements: Array.isArray(data.achievements) ? data.achievements : []
     };
   } catch (error) {
     console.error('Error in getUserProgress:', error);
