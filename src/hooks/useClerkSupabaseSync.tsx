@@ -39,23 +39,30 @@ export const useClerkSupabaseSync = () => {
           throw new Error('Could not get auth token from Clerk');
         }
 
-        // For demonstration, we'll use the Supabase anonymous auth
-        // In a production app, you'd want to implement a proper JWT exchange
-        // through a secure backend API
-        
-        // Try to sign in with magic link using the user's email
-        // This is a more robust approach than using a fixed email
+        // Try to get the user's email
         const userEmail = user.primaryEmailAddress?.emailAddress;
         
         if (!userEmail) {
           throw new Error('User email not available');
         }
         
-        // Try to sign in with magic link
+        // Check if we already have a session first
+        const { data: existingSession } = await supabase.auth.getSession();
+        
+        if (existingSession?.session) {
+          console.log('Existing Supabase session found, using it');
+          setIsSynced(true);
+          
+          // Update user metadata with Clerk data
+          await updateUserMetadata(user.id, userEmail);
+          return;
+        }
+        
+        // No existing session, create a new one with OTP
+        console.log('No existing session, creating new one with OTP');
         const { data, error: signInError } = await supabase.auth.signInWithOtp({
           email: userEmail,
           options: {
-            // Don't actually send an email, just create a session
             shouldCreateUser: true
           }
         });
@@ -68,18 +75,9 @@ export const useClerkSupabaseSync = () => {
         console.log('Successfully created Supabase session for Clerk user');
         setIsSynced(true);
         
-        // Set custom user metadata in Supabase session
-        const { error: metadataError } = await supabase.auth.updateUser({
-          data: {
-            clerk_user_id: user.id,
-            formatted_user_id: formatUserId(user.id),
-            email: userEmail,
-          }
-        });
+        // Update user metadata after ensuring session exists
+        await updateUserMetadata(user.id, userEmail);
         
-        if (metadataError) {
-          console.warn('Failed to set user metadata:', metadataError);
-        }
       } catch (err) {
         console.error('Error syncing auth session:', err);
         setError(err.message);
@@ -89,11 +87,37 @@ export const useClerkSupabaseSync = () => {
       }
     };
 
+    const updateUserMetadata = async (userId: string, email: string) => {
+      try {
+        // Make sure we have a session before attempting to update metadata
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (!sessionData?.session) {
+          console.warn('No active session found when updating metadata');
+          return;
+        }
+        
+        const { error: metadataError } = await supabase.auth.updateUser({
+          data: {
+            clerk_user_id: userId,
+            formatted_user_id: formatUserId(userId),
+            email: email,
+          }
+        });
+        
+        if (metadataError) {
+          console.warn('Failed to set user metadata:', metadataError);
+        }
+      } catch (error) {
+        console.warn('Error updating user metadata:', error);
+      }
+    };
+
     syncSupabaseSession();
     
-    // Listen for Clerk session changes
+    // Cleanup if needed
     return () => {
-      // Cleanup if needed
+      // Any cleanup code here
     };
   }, [isSignedIn, user, getToken]);
 
