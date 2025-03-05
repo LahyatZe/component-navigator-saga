@@ -161,25 +161,6 @@ export const migrateCoursesToSupabase = async () => {
               }
             }
           }
-          
-          // Insert quizzes
-          if (lesson.quiz) {
-            for (const quiz of lesson.quiz) {
-              const { error: quizError } = await supabase
-                .from('quizzes')
-                .insert({
-                  lesson_id: lessonId,
-                  question: quiz.question,
-                  options: quiz.options,
-                  correct_answer: quiz.correctAnswer,
-                  explanation: quiz.explanation
-                });
-              
-              if (quizError) {
-                console.error(`Error inserting quiz:`, quizError);
-              }
-            }
-          }
         }
       }
       

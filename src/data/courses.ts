@@ -1,4 +1,3 @@
-
 import { Course } from "@/types/course";
 
 export const courses: Course[] = [
@@ -54,32 +53,6 @@ export const courses: Course[] = [
                   "La balise <img> nécessite les attributs src et alt"
                 ],
                 points: 10
-              }
-            ],
-            quiz: [
-              {
-                id: "html-basics-quiz-1",
-                question: "Que signifie HTML?",
-                options: [
-                  "Hyper Text Markup Language",
-                  "High Tech Modern Language",
-                  "Hyper Type Machine Learning",
-                  "Home Tool Markup Language"
-                ],
-                correctAnswer: 0,
-                explanation: "HTML signifie HyperText Markup Language. C'est le langage standard pour créer et structurer le contenu des pages web."
-              },
-              {
-                id: "html-basics-quiz-2",
-                question: "Quelle balise est utilisée pour créer un lien hypertexte?",
-                options: [
-                  "<link>",
-                  "<a>",
-                  "<href>",
-                  "<hyperlink>"
-                ],
-                correctAnswer: 1,
-                explanation: "La balise <a> (pour 'anchor' en anglais) est utilisée pour créer des liens hypertextes, avec l'attribut href pour spécifier la destination."
               }
             ]
           },
@@ -138,20 +111,6 @@ export const courses: Course[] = [
                   "Utilisez <textarea> pour le champ de message"
                 ],
                 points: 20
-              }
-            ],
-            quiz: [
-              {
-                id: "html-form-quiz-1",
-                question: "Quel attribut d'un élément <input> définit son type?",
-                options: [
-                  "inputType",
-                  "type",
-                  "form-type",
-                  "data-type"
-                ],
-                correctAnswer: 1,
-                explanation: "L'attribut 'type' définit le type d'input, comme 'text', 'email', 'password', etc."
               }
             ]
           }

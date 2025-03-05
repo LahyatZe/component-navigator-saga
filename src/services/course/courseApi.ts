@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { Course, CourseModule, Lesson, Exercise, Resource, Quiz } from "@/types/course";
+import { Course, CourseModule, Lesson, Exercise, Resource } from "@/types/course";
 
 // Fetch all published courses
 export const fetchPublishedCourses = async () => {
@@ -123,17 +122,6 @@ export const fetchCourseBySlug = async (slug: string) => {
         });
       }
 
-      // Fetch quizzes
-      const { data: quizzesData, error: quizzesError } = await supabase
-        .from('quizzes')
-        .select('*')
-        .eq('lesson_id', lesson.id);
-
-      if (quizzesError) {
-        console.error('Error fetching quizzes:', quizzesError);
-        throw new Error(quizzesError.message);
-      }
-
       lessons.push({
         id: lesson.id,
         title: lesson.title,
@@ -148,13 +136,6 @@ export const fetchCourseBySlug = async (slug: string) => {
           type: r.type as 'article' | 'video' | 'book' | 'github' | 'documentation' | 'other',
           url: r.url,
           description: r.description
-        })),
-        quiz: quizzesData.map(q => ({
-          id: q.id,
-          question: q.question,
-          options: q.options,
-          correctAnswer: q.correct_answer,
-          explanation: q.explanation
         })),
         order: lesson.order_index
       });

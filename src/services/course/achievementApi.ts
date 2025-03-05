@@ -33,7 +33,7 @@ export const getUserAchievements = async (userId: string): Promise<Achievement[]
       description: item.achievement.description,
       icon: item.achievement.icon,
       // Cast condition to the specific union type
-      condition: item.achievement.condition as 'course_completion' | 'exercise_streak' | 'quiz_score' | 'first_login' | 'community_participation',
+      condition: item.achievement.condition as 'course_completion' | 'exercise_streak' | 'first_login' | 'community_participation',
       progress: item.progress,
       isUnlocked: item.is_unlocked,
       unlockedAt: item.unlocked_at
