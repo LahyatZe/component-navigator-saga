@@ -34,7 +34,18 @@ export const useSupabaseSession = () => {
     };
     
     checkSupabaseSession();
-  }, [isSignedIn]);
+
+    // Set up periodic checks for session status when signed in with Clerk
+    // This helps detect when Supabase session becomes available after rate limiting
+    let intervalId;
+    if (isSignedIn && !hasSupabaseSession) {
+      intervalId = setInterval(checkSupabaseSession, 30000); // Check every 30 seconds
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isSignedIn, hasSupabaseSession]);
 
   return { supaSessioChecked, hasSupabaseSession };
 };

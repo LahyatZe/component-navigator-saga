@@ -1,5 +1,5 @@
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { UserProgress } from '@/types/course';
 import { getUserProgress, saveUserProgress } from '@/services/course';
 import { toast } from 'sonner';
@@ -11,6 +11,41 @@ export const useProgressStorage = (
   setProgress?: (progress: UserProgress) => void,
   setIsLoading?: (loading: boolean) => void
 ) => {
+  const [lastSupabaseAttempt, setLastSupabaseAttempt] = useState<number>(0);
+  const [hasSynced, setHasSynced] = useState<boolean>(false);
+
+  // Periodically try to sync localStorage data to Supabase if we have a valid session
+  useEffect(() => {
+    if (!userId || !courseId || hasSynced) return;
+    
+    const syncInterval = setInterval(async () => {
+      try {
+        // Don't attempt more than once every 30 seconds
+        const now = Date.now();
+        if (now - lastSupabaseAttempt < 30000) return;
+        
+        setLastSupabaseAttempt(now);
+        
+        // Check for Supabase session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        
+        // If we have a session, try to sync localStorage data to Supabase
+        const localData = localStorage.getItem(`course_progress_${userId}_${courseId}`);
+        if (localData) {
+          const progressData = JSON.parse(localData) as UserProgress;
+          await saveUserProgress(progressData);
+          console.log("Successfully synced localStorage progress to Supabase");
+          setHasSynced(true);
+        }
+      } catch (error) {
+        console.log("Background sync attempt failed:", error.message);
+      }
+    }, 30000);
+    
+    return () => clearInterval(syncInterval);
+  }, [userId, courseId, lastSupabaseAttempt, hasSynced]);
+
   const loadProgress = useCallback(async () => {
     if (!courseId || !userId || !setProgress || !setIsLoading) {
       if (setIsLoading) setIsLoading(false);
@@ -125,6 +160,7 @@ export const useProgressStorage = (
         try {
           await saveUserProgress(progressData);
           console.log("Progress saved successfully to Supabase");
+          setHasSynced(true);
         } catch (error) {
           console.warn("Error saving to Supabase, using localStorage only:", error.message);
           // We've already saved to localStorage as a backup, so we're good

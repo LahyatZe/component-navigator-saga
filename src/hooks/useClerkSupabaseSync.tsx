@@ -15,6 +15,7 @@ export const useClerkSupabaseSync = () => {
   const [isSynced, setIsSynced] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastAttempt, setLastAttempt] = useState<number>(0);
 
   useEffect(() => {
     // Only attempt to sync if the user is signed in with Clerk
@@ -26,8 +27,18 @@ export const useClerkSupabaseSync = () => {
 
     const syncSupabaseSession = async () => {
       try {
+        // Check if we've attempted recently (within 30 seconds)
+        const now = Date.now();
+        const timeSinceLastAttempt = now - lastAttempt;
+        
+        if (lastAttempt > 0 && timeSinceLastAttempt < 30000) {
+          console.log(`Rate limiting: waiting before retry (${Math.ceil((30000 - timeSinceLastAttempt) / 1000)}s)`);
+          return; // Exit early if we've attempted too recently
+        }
+        
         setIsSyncing(true);
         setError(null);
+        setLastAttempt(now);
         
         console.log('Syncing Clerk session with Supabase...');
         
@@ -60,23 +71,37 @@ export const useClerkSupabaseSync = () => {
         
         // No existing session, create a new one with OTP
         console.log('No existing session, creating new one with OTP');
-        const { data, error: signInError } = await supabase.auth.signInWithOtp({
-          email: userEmail,
-          options: {
-            shouldCreateUser: true
+        
+        try {
+          const { data, error: signInError } = await supabase.auth.signInWithOtp({
+            email: userEmail,
+            options: {
+              shouldCreateUser: true
+            }
+          });
+          
+          if (signInError) {
+            // Check if it's a rate limiting error
+            if (signInError.message.includes('security purposes') || signInError.message.includes('rate limit')) {
+              console.log('Rate limiting detected, will retry later:', signInError.message);
+              // Don't throw, just set error and return
+              setError(`Rate limited. Will retry automatically: ${signInError.message}`);
+              return;
+            }
+            
+            console.error('Error signing in with OTP:', signInError);
+            throw new Error(`Failed to create Supabase session: ${signInError.message}`);
           }
-        });
-        
-        if (signInError) {
-          console.error('Error signing in with OTP:', signInError);
-          throw new Error(`Failed to create Supabase session: ${signInError.message}`);
+          
+          console.log('Successfully created Supabase session for Clerk user');
+          setIsSynced(true);
+          
+          // Update user metadata after ensuring session exists
+          await updateUserMetadata(user.id, userEmail);
+        } catch (signInErr) {
+          console.error('Error in OTP sign in:', signInErr);
+          throw signInErr;
         }
-        
-        console.log('Successfully created Supabase session for Clerk user');
-        setIsSynced(true);
-        
-        // Update user metadata after ensuring session exists
-        await updateUserMetadata(user.id, userEmail);
         
       } catch (err) {
         console.error('Error syncing auth session:', err);
@@ -115,11 +140,19 @@ export const useClerkSupabaseSync = () => {
 
     syncSupabaseSession();
     
-    // Cleanup if needed
+    // Set up a retry mechanism
+    const intervalId = setInterval(() => {
+      if (!isSynced && error && error.includes('rate limit')) {
+        console.log('Attempting to retry Supabase sync after rate limit...');
+        syncSupabaseSession();
+      }
+    }, 30000); // Check every 30 seconds
+    
+    // Cleanup
     return () => {
-      // Any cleanup code here
+      clearInterval(intervalId);
     };
-  }, [isSignedIn, user, getToken]);
+  }, [isSignedIn, user, getToken, isSynced, error, lastAttempt]);
 
   return { isSynced, isSyncing, error };
 };
