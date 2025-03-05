@@ -16,6 +16,7 @@ export const useClerkSupabaseSync = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastAttempt, setLastAttempt] = useState<number>(0);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     // Only attempt to sync if the user is signed in with Clerk
@@ -57,15 +58,23 @@ export const useClerkSupabaseSync = () => {
           throw new Error('User email not available');
         }
         
-        // Check if we already have a session first
+        // First check if we already have a session
         const { data: existingSession } = await supabase.auth.getSession();
         
         if (existingSession?.session) {
-          console.log('Existing Supabase session found, using it');
-          setIsSynced(true);
+          console.log('Existing Supabase session found');
           
-          // Update user metadata with Clerk data
-          await updateUserMetadata(user.id, userEmail);
+          // Add a small delay to ensure the session is fully established
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Now update metadata
+          const metadataResult = await updateUserMetadata(user.id, userEmail);
+          
+          if (metadataResult) {
+            console.log('Successfully updated user metadata after session confirmation');
+            setIsSynced(true);
+          }
+          
           return;
         }
         
@@ -86,6 +95,7 @@ export const useClerkSupabaseSync = () => {
               console.log('Rate limiting detected, will retry later:', signInError.message);
               // Don't throw, just set error and return
               setError(`Rate limited. Will retry automatically: ${signInError.message}`);
+              setRetryCount(prev => prev + 1);
               return;
             }
             
@@ -94,10 +104,24 @@ export const useClerkSupabaseSync = () => {
           }
           
           console.log('Successfully created Supabase session for Clerk user');
-          setIsSynced(true);
           
-          // Update user metadata after ensuring session exists
-          await updateUserMetadata(user.id, userEmail);
+          // Add a delay to ensure the session is properly established
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          // Check if session creation was successful by verifying session exists
+          const { data: sessionCheck } = await supabase.auth.getSession();
+          
+          if (sessionCheck?.session) {
+            console.log('Session confirmed after creation');
+            // Now update metadata
+            await updateUserMetadata(user.id, userEmail);
+            setIsSynced(true);
+            setRetryCount(0); // Reset retry count on success
+          } else {
+            console.log('Session not found after creation attempt, will retry');
+            setError('Session not confirmed after creation');
+            setRetryCount(prev => prev + 1);
+          }
         } catch (signInErr) {
           console.error('Error in OTP sign in:', signInErr);
           throw signInErr;
@@ -119,7 +143,7 @@ export const useClerkSupabaseSync = () => {
         
         if (!sessionData?.session) {
           console.warn('No active session found when updating metadata');
-          return;
+          return false;
         }
         
         const { error: metadataError } = await supabase.auth.updateUser({
@@ -132,27 +156,38 @@ export const useClerkSupabaseSync = () => {
         
         if (metadataError) {
           console.warn('Failed to set user metadata:', metadataError);
+          return false;
         }
+        
+        return true;
       } catch (error) {
         console.warn('Error updating user metadata:', error);
+        return false;
       }
     };
 
     syncSupabaseSession();
     
-    // Set up a retry mechanism
+    // Set up a retry mechanism with exponential backoff
     const intervalId = setInterval(() => {
-      if (!isSynced && error && error.includes('rate limit')) {
-        console.log('Attempting to retry Supabase sync after rate limit...');
-        syncSupabaseSession();
+      if (!isSynced && (error || retryCount > 0)) {
+        // Exponential backoff - increase time between retries with each attempt
+        const backoffDelay = Math.min(60000, 5000 * Math.pow(2, retryCount));
+        
+        // Only retry if it's been longer than the backoff delay since last attempt
+        const now = Date.now();
+        if (now - lastAttempt >= backoffDelay) {
+          console.log(`Attempting to retry Supabase sync (attempt ${retryCount + 1})...`);
+          syncSupabaseSession();
+        }
       }
-    }, 30000); // Check every 30 seconds
+    }, 5000); // Check every 5 seconds
     
     // Cleanup
     return () => {
       clearInterval(intervalId);
     };
-  }, [isSignedIn, user, getToken, isSynced, error, lastAttempt]);
+  }, [isSignedIn, user, getToken, isSynced, error, lastAttempt, retryCount]);
 
   return { isSynced, isSyncing, error };
 };

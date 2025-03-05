@@ -13,6 +13,39 @@ export const useProgressStorage = (
 ) => {
   const [lastSupabaseAttempt, setLastSupabaseAttempt] = useState<number>(0);
   const [hasSynced, setHasSynced] = useState<boolean>(false);
+  const [sessionListenerActive, setSessionListenerActive] = useState(false);
+
+  // Set up a listener for Supabase session changes to sync data when session becomes available
+  useEffect(() => {
+    if (!userId || !courseId || sessionListenerActive) return;
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          console.log("Supabase session established - attempting to sync course progress");
+          
+          // Try to sync localStorage data with Supabase
+          try {
+            const localData = localStorage.getItem(`course_progress_${userId}_${courseId}`);
+            if (localData) {
+              const progressData = JSON.parse(localData) as UserProgress;
+              await saveUserProgress(progressData);
+              console.log("Successfully synced localStorage progress to Supabase after session established");
+              setHasSynced(true);
+            }
+          } catch (error) {
+            console.error("Failed to sync data after session established:", error);
+          }
+        }
+      }
+    );
+    
+    setSessionListenerActive(true);
+    
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [userId, courseId, sessionListenerActive]);
 
   // Periodically try to sync localStorage data to Supabase if we have a valid session
   useEffect(() => {

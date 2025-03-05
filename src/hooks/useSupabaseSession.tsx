@@ -22,8 +22,10 @@ export const useSupabaseSession = () => {
         
         if (!session && isSignedIn) {
           console.log("Clerk is signed in but no Supabase session found. This may indicate a sync issue.");
+        } else if (session) {
+          console.log("Supabase session found:", session.user.id);
         } else {
-          console.log("Supabase session status:", session ? "Authenticated" : "Not authenticated");
+          console.log("No Supabase session found");
         }
         
         setSupaSessionChecked(true);
@@ -35,6 +37,20 @@ export const useSupabaseSession = () => {
     
     checkSupabaseSession();
 
+    // Set up session listener to update state when session changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Supabase auth state changed:", event);
+        setHasSupabaseSession(!!session);
+        
+        if (event === 'SIGNED_IN') {
+          console.log("Supabase session established");
+        } else if (event === 'SIGNED_OUT') {
+          console.log("Supabase session ended");
+        }
+      }
+    );
+    
     // Set up periodic checks for session status when signed in with Clerk
     // This helps detect when Supabase session becomes available after rate limiting
     let intervalId;
@@ -43,6 +59,7 @@ export const useSupabaseSession = () => {
     }
     
     return () => {
+      subscription?.unsubscribe();
       if (intervalId) clearInterval(intervalId);
     };
   }, [isSignedIn, hasSupabaseSession]);
