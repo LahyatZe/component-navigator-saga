@@ -58,8 +58,7 @@ export const saveUserProgress = async (progress: UserProgress) => {
         unlocked_years: progress.unlockedYears || [],
         current_level: progress.currentLevel || 0,
         used_hints: progress.usedHints || {},
-        // Include achievements array if present
-        ...(progress.achievements ? { achievements: progress.achievements } : {})
+        achievements: progress.achievements || []
       }, {
         onConflict: 'user_id,course_id'
       });
@@ -154,6 +153,7 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
         ? data.used_hints as Record<string, string[]>
         : {},
       currentLevel: data.current_level || 0,
+      // Safely access achievements property with a fallback
       achievements: Array.isArray(data.achievements) ? data.achievements : []
     };
   } catch (error) {
