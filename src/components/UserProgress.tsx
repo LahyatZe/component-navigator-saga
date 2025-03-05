@@ -1,4 +1,3 @@
-
 import { FC } from 'react';
 import { UserProgress as UserProgressType } from '@/hooks/useProgressPersistence';
 import Timeline from '@/components/Timeline';
@@ -87,7 +86,7 @@ export const sections = [
   {
     id: 'timeline',
     title: 'Parcours',
-    level: 1,
+    level: 0,
     component: null,
     icon: <BookOpen className="w-6 h-6" />,
     description: "Découvrez mon évolution professionnelle et académique à travers les années."
@@ -95,7 +94,7 @@ export const sections = [
   {
     id: 'about',
     title: 'À propos',
-    level: 2,
+    level: 0,
     component: <About />,
     icon: <Heart className="w-6 h-6" />,
     description: "Apprenez-en plus sur ma personnalité, mes motivations et mes centres d'intérêt."
@@ -103,7 +102,7 @@ export const sections = [
   {
     id: 'projects',
     title: 'Projets',
-    level: 3,
+    level: 0,
     component: <Projects />,
     icon: <Code className="w-6 h-6" />,
     description: "Explorez mes réalisations techniques et projets professionnels."
@@ -111,7 +110,7 @@ export const sections = [
   {
     id: 'contact',
     title: 'Contact',
-    level: 4,
+    level: 0,
     component: <Contact />,
     icon: <Briefcase className="w-6 h-6" />,
     description: "Comment me contacter pour des opportunités ou des collaborations."
@@ -121,16 +120,14 @@ export const sections = [
 const UserProgress: FC<UserProgressProps> = ({ progress, isSignedIn, isLoaded, achievements }) => {
   return (
     <>
-      {/* Timeline - uniquement pour les utilisateurs connectés avec niveau suffisant */}
-      {isSignedIn && isLoaded && progress.currentLevel >= 1 && (
-        <section id="timeline" className="py-16 bg-secondary/5">
-          <Timeline events={timelineEvents} unlockedYears={progress.unlockedYears} />
-        </section>
-      )}
+      {/* Timeline - accessible à tous */}
+      <section id="timeline" className="py-16 bg-secondary/5">
+        <Timeline events={timelineEvents} unlockedYears={[]} />
+      </section>
 
-      {/* Grille de progression - uniquement pour les utilisateurs connectés */}
+      {/* Grille de progression - accessible à tous */}
       {isSignedIn && isLoaded && (
-        <ProgressGrid sections={sections} currentLevel={progress.currentLevel} />
+        <ProgressGrid sections={sections} currentLevel={0} />
       )}
 
       {/* Badges - uniquement pour les utilisateurs connectés */}
@@ -138,20 +135,15 @@ const UserProgress: FC<UserProgressProps> = ({ progress, isSignedIn, isLoaded, a
         <Achievements achievements={achievements} />
       )}
 
-      {/* Sections du portfolio - visible par tous mais certaines sections limitées par niveau */}
+      {/* Sections du portfolio - visible par tous */}
       {sections.map((section) => {
         if (section.id === 'timeline') return null; // La timeline est gérée séparément
-        
-        // Déterminer si la section doit être affichée en fonction du niveau
-        const isAccessible = !isSignedIn || (isLoaded && progress.currentLevel >= section.level);
         
         return (
           <section 
             key={section.id} 
             id={section.id} 
-            className={`py-20 transition-all duration-500 ${
-              isAccessible ? 'opacity-100' : 'opacity-30 filter blur-sm pointer-events-none'
-            }`}
+            className="py-20 transition-all duration-500 opacity-100"
           >
             {section.component}
           </section>

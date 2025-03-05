@@ -2,17 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { formatUserId } from '@/utils/formatUserId';
 
 export interface UserProgress {
-  currentLevel: number;
   unlockedYears: string[];
-  quizHistory: {level: number, correct: boolean}[];
   achievements: string[];
   lastUpdated: string;
   cvDownloaded?: boolean;
-  usedHints?: Record<string, string[]>;
   userId?: string;
   userEmail?: string;
 }
@@ -23,15 +19,13 @@ const PROGRESS_TABLE = 'user_portfolio_progress';
 export const useProgressPersistence = () => {
   const { user, isSignedIn } = useUser();
   const [progress, setProgress] = useState<UserProgress>({
-    currentLevel: 0,
     unlockedYears: [],
-    quizHistory: [],
     achievements: [],
     lastUpdated: new Date().toISOString()
   });
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load progress from Supabase or fallback to localStorage
+  // Load progress from localStorage
   useEffect(() => {
     if (isLoaded) {
       return;
@@ -46,7 +40,7 @@ export const useProgressPersistence = () => {
           console.log("Fetching progress for user ID:", userId);
           console.log("Formatted user ID for database:", formattedUserId);
           
-          // Try to get progress from localStorage first as a fallback
+          // Try to get progress from localStorage
           loadFromLocalStorage(userId);
           
           setIsLoaded(true);
@@ -81,9 +75,7 @@ export const useProgressPersistence = () => {
       } else {
         // Initialize new progress
         setProgress({
-          currentLevel: 0,
           unlockedYears: [],
-          quizHistory: [],
           achievements: [],
           lastUpdated: new Date().toISOString(),
           userId: userId,
@@ -95,7 +87,7 @@ export const useProgressPersistence = () => {
     loadUserProgress();
   }, [isSignedIn, user, isLoaded]);
 
-  // Save progress to localStorage only for now (due to RLS policy error with Supabase)
+  // Save progress to localStorage
   const saveProgress = async (newProgress: Partial<UserProgress>) => {
     if (isSignedIn && user) {
       const userId = user.id;
@@ -111,7 +103,7 @@ export const useProgressPersistence = () => {
         
         setProgress(updatedProgress);
         
-        // Save to localStorage as primary storage method
+        // Save to localStorage
         localStorage.setItem(
           `portfolio_progress_${userId}`, 
           JSON.stringify(updatedProgress)
@@ -121,7 +113,6 @@ export const useProgressPersistence = () => {
         console.log("Statistics updated:", {
           userId: userId,
           email: user.primaryEmailAddress?.emailAddress,
-          level: updatedProgress.currentLevel,
           unlockedYears: updatedProgress.unlockedYears,
           achievements: updatedProgress.achievements,
           timestamp: updatedProgress.lastUpdated

@@ -1,8 +1,24 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { UserProgress } from "@/types/course";
-import { QuizHistory } from "@/types/quiz";
 import { formatUserId, formatStringToUuid } from "@/utils/formatUserId";
+
+// Type simplifiée sans références aux quiz
+interface UserProgress {
+  userId: string;
+  courseId: string;
+  completedLessons: string[];
+  completedExercises: string[];
+  currentLesson: string;
+  startedAt: string;
+  lastAccessedAt: string;
+  completionPercentage: number;
+  quizScores: Record<string, number>;
+  certificateIssued: boolean;
+  notes: Record<string, string>;
+  bookmarks: string[];
+  cvDownloaded?: boolean;
+  unlockedYears?: string[];
+}
 
 // Save course progress for a user
 export const saveUserProgress = async (progress: UserProgress) => {
@@ -55,10 +71,7 @@ export const saveUserProgress = async (progress: UserProgress) => {
         certificate_issued: progress.certificateIssued,
         notes: progress.notes,
         bookmarks: progress.bookmarks,
-        used_hints: progress.usedHints || {},
         cv_downloaded: progress.cvDownloaded || false,
-        quiz_history: progress.quizHistory || [],
-        current_level: progress.currentLevel || 0,
         unlocked_years: progress.unlockedYears || []
       }, {
         onConflict: 'user_id,course_id'
@@ -128,21 +141,6 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
     // Get the original lesson ID from the UUID format if needed
     let currentLesson = data.current_lesson || '';
     
-    // Parse quiz_history to ensure it's properly converted to QuizHistory[]
-    let quizHistory: QuizHistory[] = [];
-    if (data.quiz_history) {
-      try {
-        if (Array.isArray(data.quiz_history)) {
-          quizHistory = data.quiz_history.map((item: any) => ({
-            level: typeof item.level === 'number' ? item.level : 0,
-            correct: !!item.correct
-          }));
-        }
-      } catch (e) {
-        console.error('Error parsing quiz history:', e);
-      }
-    }
-    
     // Transform the data to match our UserProgress type with proper type handling
     return {
       userId: userId, // Keep the original user ID in the returned object
@@ -163,12 +161,7 @@ export const getUserProgress = async (userId: string, courseId: string): Promise
         ? data.notes as Record<string, string> 
         : {},
       bookmarks: data.bookmarks || [],
-      usedHints: typeof data.used_hints === 'object' && data.used_hints !== null
-        ? data.used_hints as Record<string, string[]>
-        : {},
       cvDownloaded: !!data.cv_downloaded,
-      quizHistory: quizHistory,
-      currentLevel: data.current_level || 0,
       unlockedYears: Array.isArray(data.unlocked_years) ? data.unlocked_years : []
     };
   } catch (error) {
