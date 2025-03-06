@@ -43,7 +43,6 @@ export const useSyncManager = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
-  // Break the infinite type recursion by using explicit type annotations
   const syncToCloud = useCallback(async (
     localData: SyncableData | SyncableData[],
     options: SyncOptions
@@ -77,9 +76,9 @@ export const useSyncManager = () => {
         last_synced_at: new Date().toISOString()
       }));
 
-      // Explicitly type the Supabase operation
+      // Use a type assertion to help TypeScript understand this is a valid table name
       const result = await supabase
-        .from(tableName as string)
+        .from(tableName)
         .upsert(formattedData, { 
           onConflict: primaryKey.join(',') 
         });
@@ -101,7 +100,6 @@ export const useSyncManager = () => {
     }
   }, [user]);
 
-  // Further simplify the syncFromCloud function
   const syncFromCloud = useCallback(async (
     options: SyncOptions,
     localStorageKey?: string
@@ -122,10 +120,10 @@ export const useSyncManager = () => {
         throw new Error("No active Supabase session");
       }
 
-      // Simplify the query structure
       const userId = formatUserId(user.id);
+      // Use the validated tableName directly
       const result = await supabase
-        .from(tableName as string)
+        .from(tableName)
         .select('*')
         .eq('user_id', userId);
 
@@ -136,7 +134,6 @@ export const useSyncManager = () => {
         return { success: true, data: [] };
       }
 
-      // Apply format response if provided
       const processedData = formatResponse ? formatResponse(result.data) : result.data;
       
       if (localStorageKey) {
