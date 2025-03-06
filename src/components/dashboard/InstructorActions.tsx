@@ -13,17 +13,17 @@ const InstructorActions: FC = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-3 sm:space-y-4">
-          <Button className="w-full flex items-center gap-2 h-auto py-2 sm:py-3">
+          <Button className="w-full flex items-center gap-2 h-auto py-3 px-4 mobile-touch-target">
             <Plus className="h-4 w-4" />
             <span>Créer un nouveau cours</span>
           </Button>
           
-          <Button variant="outline" className="w-full flex items-center gap-2 h-auto py-2 sm:py-3">
+          <Button variant="outline" className="w-full flex items-center gap-2 h-auto py-3 px-4 mobile-touch-target">
             <FileText className="h-4 w-4" />
             <span>Gérer les cours existants</span>
           </Button>
           
-          <Button variant="outline" className="w-full flex items-center gap-2 h-auto py-2 sm:py-3">
+          <Button variant="outline" className="w-full flex items-center gap-2 h-auto py-3 px-4 mobile-touch-target">
             <Users className="h-4 w-4" />
             <span>Voir les étudiants</span>
           </Button>

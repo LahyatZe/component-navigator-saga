@@ -19,7 +19,7 @@ const InstructorDashboard: FC = () => {
   const { isMobile } = useResponsive();
   
   return (
-    <div className="space-y-4 sm:space-y-6 md:space-y-8 px-3 sm:px-1 md:px-0 mobile-container">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8 mobile-container animate-fade-in">
       <InstructorStats />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">

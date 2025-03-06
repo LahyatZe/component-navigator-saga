@@ -3,7 +3,7 @@
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0.75rem;
   text-align: center;
 }
 
@@ -57,7 +57,7 @@
 }
 
 .card {
-  padding: 1.5em;
+  padding: 1.25em;
 }
 
 @media (min-width: 768px) {
@@ -70,14 +70,14 @@
   color: #888;
 }
 
-/* Responsive container classes */
+/* Responsive container classes with improved mobile sizing */
 .container-sm {
   width: 100%;
   max-width: 640px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
 .container-md {
@@ -85,8 +85,8 @@
   max-width: 768px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
 .container-lg {
@@ -94,8 +94,8 @@
   max-width: 1024px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
 @media (min-width: 640px) {
@@ -116,17 +116,46 @@
   }
 }
 
-/* Touch-friendly interactive elements */
+/* Enhanced touch-friendly interactive elements */
 .touch-action-button {
-  min-height: 44px;
-  min-width: 44px;
+  min-height: 48px;
+  min-width: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+
+/* Active state for touch feedback */
+.touch-action-button:active {
+  transform: scale(0.98);
+  opacity: 0.9;
 }
 
 /* Fix for sticky positioning on iOS */
 .sticky-fix {
   position: -webkit-sticky;
   position: sticky;
+  z-index: 10;
+}
+
+/* Prevent 100vh issues on mobile browsers */
+.full-height {
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Loading performance improvements */
+.content-visibility-auto {
+  content-visibility: auto;
+}
+
+/* Space for fixed mobile elements */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1.5rem);
+}
+
+/* Fast tap highlight for mobile */
+.tap-highlight {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
 }

@@ -28,6 +28,10 @@ export const useResponsive = () => {
         width: window.innerWidth,
         height: window.innerHeight,
       });
+      
+      // Fix for 100vh in mobile browsers
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
     
     // Initial check
@@ -92,10 +96,20 @@ export const useResponsive = () => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     
     if (isIOS) {
-      return `${window.innerHeight}px`;
+      return `calc(var(--vh, 1vh) * 100)`;
     }
     
     return '100vh';
+  };
+  
+  // Get safe area insets
+  const getSafeAreaInsets = () => {
+    return {
+      top: 'env(safe-area-inset-top, 0px)',
+      right: 'env(safe-area-inset-right, 0px)',
+      bottom: 'env(safe-area-inset-bottom, 0px)',
+      left: 'env(safe-area-inset-left, 0px)',
+    };
   };
   
   return {
@@ -111,6 +125,7 @@ export const useResponsive = () => {
     isTouchDevice: isTouchDevice(),
     viewportHeight: getViewportHeight(),
     orientation: screenSize.width > screenSize.height ? 'landscape' : 'portrait',
+    safeAreaInsets: getSafeAreaInsets(),
   };
 };
 

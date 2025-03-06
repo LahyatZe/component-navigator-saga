@@ -27,7 +27,7 @@ const StudentDashboard: FC = () => {
   })).slice(0, 3);
   
   return (
-    <div className="space-y-4 sm:space-y-6 md:space-y-8 px-3 sm:px-1 md:px-0 mobile-container">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8 mobile-container animate-fade-in">
       <StudentStats 
         coursesCount={userCourseProgress.length} 
         totalCourses={courses.length} 
