@@ -1,13 +1,13 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { useSyncManager, SyncableData } from '@/hooks/useSyncManager';
+import { useSyncManager, SyncableData, ValidTableName } from '@/hooks/useSyncManager';
 import { Loader2, Upload, Download, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
 interface SyncControlsProps {
-  tableName: string;
+  tableName: ValidTableName;
   primaryKey: string[];
   localData: SyncableData | SyncableData[];
   localStorageKey?: string;

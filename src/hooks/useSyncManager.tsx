@@ -33,6 +33,12 @@ interface SyncOptions {
   formatResponse?: (data: any) => any;
 }
 
+interface SyncResult {
+  success: boolean;
+  data?: any;
+  error?: any;
+}
+
 export const useSyncManager = () => {
   const { user } = useUser();
   const [isSyncing, setIsSyncing] = useState(false);
@@ -41,7 +47,7 @@ export const useSyncManager = () => {
   const syncToCloud = useCallback(async (
     localData: SyncableData | SyncableData[],
     options: SyncOptions
-  ) => {
+  ): Promise<SyncResult> => {
     if (!user) {
       toast.error("You must be signed in to sync data");
       return { success: false, error: "Authentication required" };
@@ -109,7 +115,7 @@ export const useSyncManager = () => {
   const syncFromCloud = useCallback(async (
     options: SyncOptions,
     localStorageKey?: string
-  ) => {
+  ): Promise<SyncResult> => {
     if (!user) {
       toast.error("You must be signed in to sync data");
       return { success: false, error: "Authentication required" };
