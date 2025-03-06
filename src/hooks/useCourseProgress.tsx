@@ -13,7 +13,7 @@ export const useCourseProgress = (courseId?: string) => {
   const initialLoadRef = useRef(true);
   
   // Check Supabase session status
-  const { supaSessioChecked } = useSupabaseSession();
+  const { supaSessionChecked, hasSupabaseSession } = useSupabaseSession();
   
   // Handle progress storage and retrieval
   const { loadProgress, saveProgressToStorage } = useProgressStorage(
@@ -28,11 +28,11 @@ export const useCourseProgress = (courseId?: string) => {
   
   // Load progress on initial component mount
   useEffect(() => {
-    if (initialLoadRef.current && supaSessioChecked) {
+    if (initialLoadRef.current && supaSessionChecked) {
       loadProgress();
       initialLoadRef.current = false;
     }
-  }, [isSignedIn, user, courseId, supaSessioChecked, loadProgress]);
+  }, [isSignedIn, user, courseId, supaSessionChecked, loadProgress]);
   
   // Helper functions to update specific aspects of progress
   const markLessonAsCompleted = (lessonId: string, course: Course) => {
