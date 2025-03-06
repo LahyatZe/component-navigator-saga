@@ -14,6 +14,7 @@ export const useProgressStorage = (
   const [lastSupabaseAttempt, setLastSupabaseAttempt] = useState<number>(0);
   const [hasSynced, setHasSynced] = useState<boolean>(false);
   const [sessionListenerActive, setSessionListenerActive] = useState(false);
+  const [syncRetryCount, setSyncRetryCount] = useState(0);
 
   // Set up a listener for Supabase session changes to sync data when session becomes available
   useEffect(() => {
@@ -24,18 +25,25 @@ export const useProgressStorage = (
         if (event === 'SIGNED_IN' && session) {
           console.log("Supabase session established - attempting to sync course progress");
           
-          // Try to sync localStorage data with Supabase
-          try {
-            const localData = localStorage.getItem(`course_progress_${userId}_${courseId}`);
-            if (localData) {
-              const progressData = JSON.parse(localData) as UserProgress;
-              await saveUserProgress(progressData);
-              console.log("Successfully synced localStorage progress to Supabase after session established");
-              setHasSynced(true);
+          // Add a small delay to ensure session is fully established
+          setTimeout(async () => {
+            // Try to sync localStorage data with Supabase
+            try {
+              const localData = localStorage.getItem(`course_progress_${userId}_${courseId}`);
+              if (localData) {
+                const progressData = JSON.parse(localData) as UserProgress;
+                await saveUserProgress(progressData);
+                console.log("Successfully synced localStorage progress to Supabase after session established");
+                setHasSynced(true);
+                toast.success("Course progress synchronized", {
+                  id: "progress-synced",
+                  duration: 3000
+                });
+              }
+            } catch (error) {
+              console.error("Failed to sync data after session established:", error);
             }
-          } catch (error) {
-            console.error("Failed to sync data after session established:", error);
-          }
+          }, 2000);
         }
       }
     );
@@ -61,7 +69,10 @@ export const useProgressStorage = (
         
         // Check for Supabase session
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
+        if (!session) {
+          console.log("No active session for background sync, skipping attempt");
+          return;
+        }
         
         // If we have a session, try to sync localStorage data to Supabase
         const localData = localStorage.getItem(`course_progress_${userId}_${courseId}`);
@@ -70,14 +81,24 @@ export const useProgressStorage = (
           await saveUserProgress(progressData);
           console.log("Successfully synced localStorage progress to Supabase");
           setHasSynced(true);
+          setSyncRetryCount(0);
+          
+          if (syncRetryCount > 0) {
+            // Only show toast if we've been retrying (not on first successful sync)
+            toast.success("Course progress synchronized", {
+              id: "progress-synced-background",
+              duration: 3000
+            });
+          }
         }
       } catch (error) {
         console.log("Background sync attempt failed:", error.message);
+        setSyncRetryCount(prev => prev + 1);
       }
-    }, 30000);
+    }, Math.min(30000, 5000 * (syncRetryCount + 1))); // Adaptive retry interval
     
     return () => clearInterval(syncInterval);
-  }, [userId, courseId, lastSupabaseAttempt, hasSynced]);
+  }, [userId, courseId, lastSupabaseAttempt, hasSynced, syncRetryCount]);
 
   const loadProgress = useCallback(async () => {
     if (!courseId || !userId || !setProgress || !setIsLoading) {

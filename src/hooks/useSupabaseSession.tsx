@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@clerk/clerk-react';
+import { toast } from 'sonner';
 
 export const useSupabaseSession = () => {
-  const [supaSessioChecked, setSupaSessionChecked] = useState(false);
+  const [supaSessionChecked, setSupaSessionChecked] = useState(false);
   const [hasSupabaseSession, setHasSupabaseSession] = useState(false);
   const { isSignedIn } = useAuth();
 
@@ -45,6 +46,10 @@ export const useSupabaseSession = () => {
         
         if (event === 'SIGNED_IN') {
           console.log("Supabase session established");
+          toast.success("Connected to database successfully", {
+            id: "supabase-session-established",
+            duration: 3000
+          });
         } else if (event === 'SIGNED_OUT') {
           console.log("Supabase session ended");
         }
@@ -64,5 +69,5 @@ export const useSupabaseSession = () => {
     };
   }, [isSignedIn, hasSupabaseSession]);
 
-  return { supaSessioChecked, hasSupabaseSession };
+  return { supaSessionChecked, hasSupabaseSession };
 };

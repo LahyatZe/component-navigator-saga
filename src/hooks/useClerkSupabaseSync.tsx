@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUserId } from '@/utils/formatUserId';
@@ -17,6 +16,29 @@ export const useClerkSupabaseSync = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastAttempt, setLastAttempt] = useState<number>(0);
   const [retryCount, setRetryCount] = useState(0);
+  const [sessionVerified, setSessionVerified] = useState(false);
+
+  // Helper to verify if a session has been established
+  const verifySession = useCallback(async () => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const sessionExists = !!sessionData?.session;
+      if (sessionExists) {
+        console.log("Session verified successfully");
+        setSessionVerified(true);
+        setIsSynced(true);
+        setRetryCount(0); // Reset retry count on success
+        
+        // Log a success message for debugging
+        console.log("Authentication sync successful");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.warn("Error verifying session:", err);
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
     // Only attempt to sync if the user is signed in with Clerk
@@ -35,6 +57,11 @@ export const useClerkSupabaseSync = () => {
         if (lastAttempt > 0 && timeSinceLastAttempt < 30000) {
           console.log(`Rate limiting: waiting before retry (${Math.ceil((30000 - timeSinceLastAttempt) / 1000)}s)`);
           return; // Exit early if we've attempted too recently
+        }
+        
+        // Check if we already have a valid session
+        if (await verifySession()) {
+          return; // Exit if we already have a valid session
         }
         
         setIsSyncing(true);
@@ -64,15 +91,16 @@ export const useClerkSupabaseSync = () => {
         if (existingSession?.session) {
           console.log('Existing Supabase session found');
           
-          // Add a small delay to ensure the session is fully established
           await new Promise(resolve => setTimeout(resolve, 1000));
           
-          // Now update metadata
-          const metadataResult = await updateUserMetadata(user.id, userEmail);
-          
-          if (metadataResult) {
-            console.log('Successfully updated user metadata after session confirmation');
-            setIsSynced(true);
+          // Run the verification to make sure session is valid and update metadata
+          if (await verifySession()) {
+            // Now update metadata
+            const metadataResult = await updateUserMetadata(user.id, userEmail);
+            
+            if (metadataResult) {
+              console.log('Successfully updated user metadata after session confirmation');
+            }
           }
           
           return;
@@ -106,21 +134,28 @@ export const useClerkSupabaseSync = () => {
           console.log('Successfully created Supabase session for Clerk user');
           
           // Add a delay to ensure the session is properly established
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          await new Promise(resolve => setTimeout(resolve, 3000));
           
           // Check if session creation was successful by verifying session exists
-          const { data: sessionCheck } = await supabase.auth.getSession();
+          const sessionSuccess = await verifySession();
           
-          if (sessionCheck?.session) {
+          if (sessionSuccess) {
             console.log('Session confirmed after creation');
             // Now update metadata
             await updateUserMetadata(user.id, userEmail);
-            setIsSynced(true);
-            setRetryCount(0); // Reset retry count on success
           } else {
             console.log('Session not found after creation attempt, will retry');
             setError('Session not confirmed after creation');
             setRetryCount(prev => prev + 1);
+            
+            // Try one more immediate verification with a longer timeout
+            setTimeout(async () => {
+              const secondCheck = await verifySession();
+              if (secondCheck) {
+                console.log('Session confirmed on second check');
+                await updateUserMetadata(user.id, userEmail);
+              }
+            }, 5000);
           }
         } catch (signInErr) {
           console.error('Error in OTP sign in:', signInErr);
@@ -168,11 +203,14 @@ export const useClerkSupabaseSync = () => {
 
     syncSupabaseSession();
     
-    // Set up a retry mechanism with exponential backoff
+    // Set up a retry mechanism with exponential backoff and more frequent initial retries
     const intervalId = setInterval(() => {
       if (!isSynced && (error || retryCount > 0)) {
         // Exponential backoff - increase time between retries with each attempt
-        const backoffDelay = Math.min(60000, 5000 * Math.pow(2, retryCount));
+        // For the first few retries, keep it fairly quick
+        const backoffDelay = retryCount <= 3 
+          ? 5000 * (retryCount + 1)  // First few retries: 5s, 10s, 15s, 20s
+          : Math.min(60000, 5000 * Math.pow(2, retryCount - 3));  // Then exponential
         
         // Only retry if it's been longer than the backoff delay since last attempt
         const now = Date.now();
@@ -187,7 +225,7 @@ export const useClerkSupabaseSync = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [isSignedIn, user, getToken, isSynced, error, lastAttempt, retryCount]);
+  }, [isSignedIn, user, getToken, isSynced, error, lastAttempt, retryCount, verifySession]);
 
-  return { isSynced, isSyncing, error };
+  return { isSynced, isSyncing, error, sessionVerified };
 };
