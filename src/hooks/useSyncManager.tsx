@@ -82,9 +82,10 @@ export const useSyncManager = () => {
         };
       });
 
-      // Perform upsert operation
+      // Perform upsert operation with explicit typing for tableName
+      const tableName_typed = tableName as ValidTableName;
       const { data, error } = await supabase
-        .from(tableName)
+        .from(tableName_typed)
         .upsert(formattedData, { 
           onConflict: primaryKey.join(',') 
         })
@@ -112,6 +113,7 @@ export const useSyncManager = () => {
     }
   }, [user]);
 
+  // Define return type explicitly to prevent infinite type instantiation
   const syncFromCloud = useCallback(async (
     options: SyncOptions,
     localStorageKey?: string
@@ -134,9 +136,12 @@ export const useSyncManager = () => {
         throw new Error("No active Supabase session");
       }
 
-      // Fetch data from Supabase
+      // Explicitly type the tableName to help TypeScript
+      const tableName_typed = tableName as ValidTableName;
+      
+      // Fetch data from Supabase with explicit typing
       const { data, error } = await supabase
-        .from(tableName)
+        .from(tableName_typed)
         .select('*')
         .eq('user_id', formattedUserId);
 
