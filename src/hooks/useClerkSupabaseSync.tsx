@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,12 +23,15 @@ export const useClerkSupabaseSync = () => {
   const verifySession = useCallback(async () => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
+      console.log("Verifying Supabase session:", sessionData?.session ? "Found" : "Not found");
+      
       const sessionExists = !!sessionData?.session;
       if (sessionExists) {
-        console.log("Session verified successfully");
+        console.log("Session verified successfully:", sessionData.session.user.id);
         setSessionVerified(true);
         setIsSynced(true);
         setRetryCount(0); // Reset retry count on success
+        setError(null);
         
         // Log a success message for debugging
         console.log("Authentication sync successful");
@@ -61,6 +65,7 @@ export const useClerkSupabaseSync = () => {
         
         // Check if we already have a valid session
         if (await verifySession()) {
+          console.log("Using existing Supabase session");
           return; // Exit if we already have a valid session
         }
         
@@ -70,11 +75,18 @@ export const useClerkSupabaseSync = () => {
         
         console.log('Syncing Clerk session with Supabase...');
         
-        // Get the Clerk token - in a production app, this would be used
-        // to generate a custom JWT for Supabase
-        const clerkToken = await getToken();
+        // Try to get the JWT token from Clerk with Supabase custom claims
+        let token;
+        try {
+          // First try with Supabase template if available
+          token = await getToken({ template: "supabase" });
+        } catch (tokenErr) {
+          // Fall back to regular JWT if template not available
+          console.log("Supabase template not available, using regular token");
+          token = await getToken();
+        }
         
-        if (!clerkToken) {
+        if (!token) {
           throw new Error('Could not get auth token from Clerk');
         }
 
@@ -91,6 +103,31 @@ export const useClerkSupabaseSync = () => {
         if (existingSession?.session) {
           console.log('Existing Supabase session found');
           
+          // Try to directly use the token if we have one
+          if (token) {
+            try {
+              console.log("Attempting to set session with Clerk token");
+              const { data, error: setSessionError } = await supabase.auth.setSession({
+                access_token: token,
+                refresh_token: existingSession.session.refresh_token
+              });
+              
+              if (setSessionError) {
+                console.warn("Error setting session with token:", setSessionError);
+              } else if (data?.session) {
+                console.log("Successfully updated session with Clerk token");
+                // Update metadata
+                await updateUserMetadata(user.id, userEmail);
+                setIsSynced(true);
+                setIsSyncing(false);
+                return;
+              }
+            } catch (setErr) {
+              console.warn("Failed to set session:", setErr);
+              // Continue with OTP as fallback
+            }
+          }
+          
           await new Promise(resolve => setTimeout(resolve, 1000));
           
           // Run the verification to make sure session is valid and update metadata
@@ -101,19 +138,25 @@ export const useClerkSupabaseSync = () => {
             if (metadataResult) {
               console.log('Successfully updated user metadata after session confirmation');
             }
+            
+            setIsSyncing(false);
+            return;
           }
-          
-          return;
         }
         
-        // No existing session, create a new one with OTP
+        // No existing session or session refresh failed, create a new one with OTP
         console.log('No existing session, creating new one with OTP');
         
         try {
           const { data, error: signInError } = await supabase.auth.signInWithOtp({
             email: userEmail,
             options: {
-              shouldCreateUser: true
+              shouldCreateUser: true,
+              data: {
+                clerk_user_id: user.id,
+                formatted_user_id: formatUserId(user.id),
+                email: userEmail,
+              }
             }
           });
           
@@ -124,6 +167,7 @@ export const useClerkSupabaseSync = () => {
               // Don't throw, just set error and return
               setError(`Rate limited. Will retry automatically: ${signInError.message}`);
               setRetryCount(prev => prev + 1);
+              setIsSyncing(false);
               return;
             }
             
@@ -132,6 +176,10 @@ export const useClerkSupabaseSync = () => {
           }
           
           console.log('Successfully created Supabase session for Clerk user');
+          toast.success("Verification email sent. Please check your inbox.", {
+            id: "verification-email-sent",
+            duration: 5000
+          });
           
           // Add a delay to ensure the session is properly established
           await new Promise(resolve => setTimeout(resolve, 3000));
@@ -141,6 +189,11 @@ export const useClerkSupabaseSync = () => {
           
           if (sessionSuccess) {
             console.log('Session confirmed after creation');
+            toast.success("Authentication successful", {
+              id: "auth-success",
+              duration: 3000
+            });
+            
             // Now update metadata
             await updateUserMetadata(user.id, userEmail);
           } else {
@@ -153,6 +206,10 @@ export const useClerkSupabaseSync = () => {
               const secondCheck = await verifySession();
               if (secondCheck) {
                 console.log('Session confirmed on second check');
+                toast.success("Authentication successful", {
+                  id: "auth-success-delayed",
+                  duration: 3000
+                });
                 await updateUserMetadata(user.id, userEmail);
               }
             }, 5000);
@@ -203,11 +260,10 @@ export const useClerkSupabaseSync = () => {
 
     syncSupabaseSession();
     
-    // Set up a retry mechanism with exponential backoff and more frequent initial retries
+    // Set up a retry mechanism with adaptive backoff
     const intervalId = setInterval(() => {
       if (!isSynced && (error || retryCount > 0)) {
-        // Exponential backoff - increase time between retries with each attempt
-        // For the first few retries, keep it fairly quick
+        // Adaptive backoff - increase time between retries with each attempt
         const backoffDelay = retryCount <= 3 
           ? 5000 * (retryCount + 1)  // First few retries: 5s, 10s, 15s, 20s
           : Math.min(60000, 5000 * Math.pow(2, retryCount - 3));  // Then exponential

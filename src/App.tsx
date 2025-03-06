@@ -30,11 +30,11 @@ function App() {
   const { user } = useUser();
   
   // Sync Clerk session with Supabase
-  const { isSynced, isSyncing, error: syncError } = useClerkSupabaseSync();
+  const { isSynced, isSyncing, error: syncError, sessionVerified } = useClerkSupabaseSync();
 
   useEffect(() => {
     // Only set loading to false once Clerk has loaded and sync attempt is complete
-    if (isLoaded && (!isSignedIn || (isSignedIn && (isSynced || syncError)))) {
+    if (isLoaded && (!isSignedIn || (isSignedIn && (isSynced || sessionVerified || syncError)))) {
       // Add a small delay to ensure authentication state is properly synced
       const timer = setTimeout(() => {
         setIsLoading(false);
@@ -43,13 +43,14 @@ function App() {
           userId: user?.id,
           location: window.location.href,
           supabaseSynced: isSynced,
+          sessionVerified: sessionVerified,
           syncError: syncError
         });
       }, 1500); // Increased timeout to ensure auth state is fully resolved
       
       return () => clearTimeout(timer);
     }
-  }, [isLoaded, isSignedIn, user, isSynced, syncError]);
+  }, [isLoaded, isSignedIn, user, isSynced, syncError, sessionVerified]);
 
   // Log authentication state for debugging
   useEffect(() => {
@@ -60,10 +61,11 @@ function App() {
         userEmail: user?.primaryEmailAddress?.emailAddress,
         isLoaded,
         supabaseSynced: isSynced,
+        sessionVerified: sessionVerified,
         currentPath: window.location.href
       });
     }
-  }, [isLoaded, isSignedIn, user, isSynced]);
+  }, [isLoaded, isSignedIn, user, isSynced, sessionVerified]);
 
   const toggleAdmin = () => {
     setIsAdminOpen(!isAdminOpen);
@@ -79,6 +81,11 @@ function App() {
           <p className="text-muted-foreground">
             {isSyncing ? "Synchronizing authentication..." : "Loading authentication..."}
           </p>
+          {syncError && (
+            <p className="text-sm text-red-500 mt-2 max-w-md text-center">
+              {syncError} <br /> Please wait, retrying automatically...
+            </p>
+          )}
         </div>
       </div>
     );
