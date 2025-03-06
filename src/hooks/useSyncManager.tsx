@@ -11,6 +11,7 @@ export type SyncableData = {
   [key: string]: any;
 };
 
+// Use a union type for valid table names to prevent type recursion
 export type ValidTableName = 
   | 'achievements'
   | 'courses'
@@ -65,8 +66,9 @@ export const useSyncManager = () => {
       console.log(`Starting sync to cloud for ${tableName}...`);
       const formattedUserId = formatUserId(user.id);
       
-      const sessionResult = await supabase.auth.getSession();
-      if (!sessionResult.data.session) {
+      // Simplify session check
+      const { data, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !data.session) {
         throw new Error("No active Supabase session");
       }
 
@@ -76,21 +78,21 @@ export const useSyncManager = () => {
         last_synced_at: new Date().toISOString()
       }));
 
-      // Use a type assertion to help TypeScript understand this is a valid table name
-      const result = await supabase
+      // Use the strongly-typed tableName directly without any type assertions
+      const { data: resultData, error } = await supabase
         .from(tableName)
         .upsert(formattedData, { 
           onConflict: primaryKey.join(',') 
         });
       
-      if (result.error) throw result.error;
+      if (error) throw error;
 
       const syncTime = new Date();
       setLastSyncTime(syncTime);
       localStorage.setItem(`last_sync_${tableName}`, syncTime.toISOString());
       
       toast.success(`Successfully synced data to cloud`);
-      return { success: true, data: result.data };
+      return { success: true, data: resultData };
     } catch (error: any) {
       console.error("Sync to cloud failed:", error);
       toast.error(error.message || "Failed to sync data to cloud");
@@ -115,26 +117,28 @@ export const useSyncManager = () => {
     try {
       console.log(`Starting sync from cloud for ${tableName}...`);
       
-      const sessionResult = await supabase.auth.getSession();
-      if (!sessionResult.data.session) {
+      // Simplify session check
+      const { data, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !data.session) {
         throw new Error("No active Supabase session");
       }
 
       const userId = formatUserId(user.id);
-      // Use the validated tableName directly
-      const result = await supabase
+      
+      // Use the strongly-typed tableName directly without type assertions
+      const { data: resultData, error } = await supabase
         .from(tableName)
         .select('*')
         .eq('user_id', userId);
 
-      if (result.error) throw result.error;
+      if (error) throw error;
 
-      if (!result.data?.length) {
+      if (!resultData?.length) {
         toast.info("No data found in cloud to sync");
         return { success: true, data: [] };
       }
 
-      const processedData = formatResponse ? formatResponse(result.data) : result.data;
+      const processedData = formatResponse ? formatResponse(resultData) : resultData;
       
       if (localStorageKey) {
         localStorage.setItem(localStorageKey, JSON.stringify(processedData));
