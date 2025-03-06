@@ -14,8 +14,8 @@ const breakpoints: Record<BreakpointKey, number> = {
 
 export const useResponsive = () => {
   const [screenSize, setScreenSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
+    height: typeof window !== 'undefined' ? window.innerHeight : 768,
   });
   
   const [mounted, setMounted] = useState(false);
@@ -30,10 +30,26 @@ export const useResponsive = () => {
       });
     };
     
-    window.addEventListener('resize', handleResize);
+    // Initial check
+    handleResize();
+    
+    // Throttled resize handler for better performance
+    let resizeTimer: ReturnType<typeof setTimeout>;
+    
+    const throttledResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(handleResize, 100);
+    };
+    
+    window.addEventListener('resize', throttledResize);
+    
+    // Check for orientation changes on mobile
+    window.addEventListener('orientationchange', handleResize);
     
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', throttledResize);
+      window.removeEventListener('orientationchange', handleResize);
+      clearTimeout(resizeTimer);
     };
   }, []);
   
@@ -62,6 +78,26 @@ export const useResponsive = () => {
     return 'xs';
   };
   
+  // Is this a touch device?
+  const isTouchDevice = () => {
+    if (!mounted) return false;
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  };
+  
+  // Calculate viewport height correctly (fixing iOS issues)
+  const getViewportHeight = () => {
+    if (!mounted) return '100vh';
+    
+    // For iOS devices that have issues with 100vh
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    
+    if (isIOS) {
+      return `${window.innerHeight}px`;
+    }
+    
+    return '100vh';
+  };
+  
   return {
     screenSize,
     isAbove,
@@ -71,6 +107,10 @@ export const useResponsive = () => {
     isMobile: isBelow('md'),
     isTablet: isBetween('md', 'lg'),
     isDesktop: isAbove('lg'),
+    isSmallScreen: isBelow('sm'),
+    isTouchDevice: isTouchDevice(),
+    viewportHeight: getViewportHeight(),
+    orientation: screenSize.width > screenSize.height ? 'landscape' : 'portrait',
   };
 };
 

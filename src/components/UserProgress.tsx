@@ -7,6 +7,7 @@ import About from '@/pages/About';
 import Projects from '@/pages/Projects';
 import Contact from '@/pages/Contact';
 import { BookOpen, Heart, Code, Briefcase, Rocket } from 'lucide-react';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface UserProgressProps {
   progress: UserProgressType;
@@ -118,10 +119,12 @@ export const sections = [
 ];
 
 const UserProgress: FC<UserProgressProps> = ({ progress, isSignedIn, isLoaded, achievements }) => {
+  const { isMobile } = useResponsive();
+  
   return (
     <>
       {/* Timeline - accessible à tous */}
-      <section id="timeline" className="py-16 bg-secondary/5">
+      <section id="timeline" className="py-10 sm:py-16 bg-secondary/5">
         <Timeline events={timelineEvents} unlockedYears={[]} />
       </section>
 
@@ -132,7 +135,9 @@ const UserProgress: FC<UserProgressProps> = ({ progress, isSignedIn, isLoaded, a
 
       {/* Badges - uniquement pour les utilisateurs connectés */}
       {isSignedIn && isLoaded && (
-        <Achievements achievements={achievements} />
+        <div className="px-3 sm:px-0">
+          <Achievements achievements={achievements} />
+        </div>
       )}
 
       {/* Sections du portfolio - visible par tous */}
@@ -143,7 +148,7 @@ const UserProgress: FC<UserProgressProps> = ({ progress, isSignedIn, isLoaded, a
           <section 
             key={section.id} 
             id={section.id} 
-            className="py-20 transition-all duration-500 opacity-100"
+            className={`py-10 ${isMobile ? 'py-12' : 'py-20'} transition-all duration-500 opacity-100 mobile-padding`}
           >
             {section.component}
           </section>

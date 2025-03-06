@@ -39,8 +39,8 @@ const CourseCard: FC<CourseCardProps> = ({ course, progress }) => {
   const categoryStyle = getCategoryBadge(category);
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow duration-300">
-      <div className="relative w-full h-32 sm:h-40 overflow-hidden">
+    <Card className="h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow duration-300 mobile-card">
+      <div className="relative w-full h-28 sm:h-32 md:h-40 overflow-hidden">
         {imageUrl ? (
           <img 
             src={imageUrl} 
@@ -50,13 +50,13 @@ const CourseCard: FC<CourseCardProps> = ({ course, progress }) => {
           />
         ) : (
           <div className="w-full h-full bg-secondary/20 flex items-center justify-center">
-            <BookOpen className="w-8 h-8 sm:w-12 sm:h-12 text-muted-foreground" />
+            <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
           </div>
         )}
       </div>
       
-      <CardHeader className="pb-2 space-y-2">
-        <div className="flex flex-wrap gap-1 sm:gap-2">
+      <CardHeader className="pb-2 pt-3 px-3 sm:px-4 space-y-1 sm:space-y-2">
+        <div className="flex flex-wrap gap-1">
           <Badge variant={getBadgeVariant(level)} className="text-xs">
             {level === 'beginner' ? 'Débutant' : level === 'intermediate' ? 'Intermédiaire' : 'Avancé'}
           </Badge>
@@ -64,30 +64,30 @@ const CourseCard: FC<CourseCardProps> = ({ course, progress }) => {
             {category.toUpperCase()}
           </Badge>
         </div>
-        <CardTitle className="text-lg sm:text-xl line-clamp-1">{title}</CardTitle>
-        <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
-          <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" /> {Math.floor(duration / 60)}h{duration % 60 > 0 ? ` ${duration % 60}min` : ''}
+        <CardTitle className="text-base sm:text-lg line-clamp-1">{title}</CardTitle>
+        <div className="flex items-center text-xs text-muted-foreground">
+          <Clock className="w-3 h-3 mr-1" /> {Math.floor(duration / 60)}h{duration % 60 > 0 ? ` ${duration % 60}min` : ''}
         </div>
       </CardHeader>
       
-      <CardContent className="pb-2 flex-grow">
-        <CardDescription className="text-xs sm:text-sm line-clamp-2 sm:line-clamp-3">{description}</CardDescription>
+      <CardContent className="pb-2 px-3 sm:px-4 flex-grow">
+        <CardDescription className="text-xs sm:text-sm line-clamp-2">{description}</CardDescription>
         
         {progress !== undefined && (
-          <div className="mt-3 sm:mt-4">
-            <div className="flex justify-between text-xs sm:text-sm mb-1">
+          <div className="mt-3">
+            <div className="flex justify-between text-xs mb-1">
               <span>Progression</span>
               <span>{progress}%</span>
             </div>
-            <Progress value={progress} />
+            <Progress value={progress} className="h-1.5" />
           </div>
         )}
       </CardContent>
       
-      <CardFooter className="pt-2">
+      <CardFooter className="pt-1 pb-3 px-3 sm:px-4">
         <div className="w-full flex gap-2 justify-between items-center">
-          <div className="text-xs text-muted-foreground truncate max-w-[40%]">{author}</div>
-          <Button asChild size="sm" className="touch-target">
+          <div className="text-xs text-muted-foreground truncate max-w-[35%]">{author}</div>
+          <Button asChild size="sm" className="mobile-touch-target h-9 rounded-lg">
             <Link to={`/courses/${slug}`}>
               Voir le cours
             </Link>

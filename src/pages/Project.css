@@ -1,4 +1,5 @@
 
+/* Base animations */
 @keyframes fade-in {
   0% {
     opacity: 0;
@@ -12,32 +13,52 @@
   animation: fade-in ease-in;
 }
 
-/* Mobile-specific styles */
-@media (max-width: 640px) {
-  .mobile-scrollable {
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* For Firefox */
-    -ms-overflow-style: none; /* For Internet Explorer and Edge */
+/* Mobile-first approach with responsive utilities */
+.mobile-container {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .mobile-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
-  
-  .mobile-scrollable::-webkit-scrollbar {
-    display: none; /* For Chrome, Safari, and Opera */
+}
+
+@media (min-width: 768px) {
+  .mobile-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
-  
-  .mobile-padding {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  .mobile-touch-target {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  .mobile-text-adjust {
-    text-size-adjust: 100%;
-    -webkit-text-size-adjust: 100%;
-  }
+}
+
+/* Touch-optimized styles */
+.mobile-scrollable {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+  overflow-x: auto;
+}
+
+.mobile-scrollable::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.mobile-padding {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.mobile-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.mobile-text-adjust {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Prevent text from being too small on mobile devices */
@@ -62,4 +83,63 @@
   height: -webkit-fill-available;
   height: -moz-available;
   height: fill-available;
+}
+
+/* Responsive grid layouts */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+/* Mobile navigation utilities */
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: hsl(var(--background));
+  border-top: 1px solid hsl(var(--border));
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-around;
+  z-index: 50;
+}
+
+@media (min-width: 768px) {
+  .mobile-nav {
+    display: none;
+  }
+}
+
+/* Improved form elements for touch */
+.mobile-input {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  width: 100%;
+}
+
+/* Mobile-optimized card styles */
+.mobile-card {
+  border-radius: 1rem;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* Mobile-specific spacing */
+.mobile-stack > * + * {
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .mobile-stack > * + * {
+    margin-top: 1.5rem;
+  }
 }
