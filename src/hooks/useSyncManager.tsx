@@ -78,12 +78,11 @@ export const useSyncManager = () => {
         last_synced_at: new Date().toISOString()
       }));
 
-      // Use a type assertion that preserves the literal type
-      const { data: resultData, error } = await supabase
-        .from(tableName)
-        .upsert(formattedData, { 
-          onConflict: primaryKey.join(',') 
-        });
+      // Type assertion to handle the tableName type correctly
+      const query = supabase.from(tableName);
+      const { data: resultData, error } = await query.upsert(formattedData, { 
+        onConflict: primaryKey.join(',') 
+      });
       
       if (error) throw error;
 
@@ -125,9 +124,9 @@ export const useSyncManager = () => {
 
       const userId = formatUserId(user.id);
       
-      // Use a type assertion that preserves the literal type
-      const { data: resultData, error } = await supabase
-        .from(tableName)
+      // Type assertion to handle the tableName type correctly
+      const query = supabase.from(tableName);
+      const { data: resultData, error } = await query
         .select('*')
         .eq('user_id', userId);
 
