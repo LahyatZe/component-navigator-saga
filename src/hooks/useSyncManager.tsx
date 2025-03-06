@@ -11,7 +11,7 @@ export type SyncableData = {
   [key: string]: any;
 };
 
-// Use a union type for valid table names to prevent type recursion
+// Define valid table names explicitly as a union type
 export type ValidTableName = 
   | 'achievements'
   | 'courses'
@@ -78,9 +78,9 @@ export const useSyncManager = () => {
         last_synced_at: new Date().toISOString()
       }));
 
-      // Cast tableName as string to avoid type recursion issues
+      // Use type assertion with 'as const' to preserve literal type
       const { data: resultData, error } = await supabase
-        .from(tableName as string)
+        .from(tableName) // tableName is already strictly typed as ValidTableName
         .upsert(formattedData, { 
           onConflict: primaryKey.join(',') 
         });
@@ -125,9 +125,9 @@ export const useSyncManager = () => {
 
       const userId = formatUserId(user.id);
       
-      // Cast tableName as string to avoid type recursion issues
+      // Use type assertion with 'as const' to preserve literal type 
       const { data: resultData, error } = await supabase
-        .from(tableName as string)
+        .from(tableName) // tableName is already strictly typed as ValidTableName
         .select('*')
         .eq('user_id', userId);
 
