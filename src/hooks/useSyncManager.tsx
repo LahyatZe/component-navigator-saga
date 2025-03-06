@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
@@ -42,6 +43,7 @@ export const useSyncManager = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
+  // Explicitly typing return value to break infinite type instantiation
   const syncToCloud = useCallback(async (
     localData: SyncableData | SyncableData[],
     options: SyncOptions
@@ -75,21 +77,22 @@ export const useSyncManager = () => {
         last_synced_at: new Date().toISOString()
       }));
 
-      const { data, error } = await supabase
+      // Use a more direct approach without complex type inference
+      const result = await supabase
         .from(tableName)
         .upsert(formattedData, { 
           onConflict: primaryKey.join(',') 
         })
         .select();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       const syncTime = new Date();
       setLastSyncTime(syncTime);
       localStorage.setItem(`last_sync_${tableName}`, syncTime.toISOString());
       
       toast.success(`Successfully synced data to cloud`);
-      return { success: true, data };
+      return { success: true, data: result.data };
     } catch (error) {
       console.error("Sync to cloud failed:", error);
       toast.error(error.message || "Failed to sync data to cloud");
@@ -99,6 +102,7 @@ export const useSyncManager = () => {
     }
   }, [user]);
 
+  // Also explicitly typing return value here
   const syncFromCloud = useCallback(async (
     options: SyncOptions,
     localStorageKey?: string
@@ -113,26 +117,27 @@ export const useSyncManager = () => {
 
     try {
       console.log(`Starting sync from cloud for ${tableName}...`);
-      const formattedUserId = formatUserId(user.id);
       
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
         throw new Error("No active Supabase session");
       }
 
-      const { data, error } = await supabase
+      // Use a more direct approach to avoid complex type inference
+      const userId = formatUserId(user.id);
+      const result = await supabase
         .from(tableName)
         .select('*')
-        .eq('user_id', formatUserId(user.id));
+        .eq('user_id', userId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
-      if (!data?.length) {
+      if (!result.data?.length) {
         toast.info("No data found in cloud to sync");
         return { success: true, data: [] };
       }
 
-      const processedData = formatResponse ? formatResponse(data) : data;
+      const processedData = formatResponse ? formatResponse(result.data) : result.data;
       
       if (localStorageKey) {
         localStorage.setItem(localStorageKey, JSON.stringify(processedData));
