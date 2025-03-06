@@ -11,8 +11,23 @@ export type SyncableData = {
   [key: string]: any;
 };
 
+// Define valid table names based on Supabase types
+export type ValidTableName = 
+  | 'achievements'
+  | 'courses'
+  | 'exercises'
+  | 'lessons'
+  | 'modules' 
+  | 'quizzes'
+  | 'resources'
+  | 'test_cases'
+  | 'user_achievements'
+  | 'user_portfolio_progress'
+  | 'user_progress'
+  | 'user_settings';
+
 interface SyncOptions {
-  tableName: string;
+  tableName: ValidTableName;
   primaryKey: string[];
   formatData?: (data: any) => any;
   formatResponse?: (data: any) => any;
@@ -155,7 +170,7 @@ export const useSyncManager = () => {
   }, [user]);
 
   // Get last sync time for a specific table
-  const getLastSyncTime = useCallback((tableName: string) => {
+  const getLastSyncTime = useCallback((tableName: ValidTableName) => {
     const syncTimeStr = localStorage.getItem(`last_sync_${tableName}`);
     return syncTimeStr ? new Date(syncTimeStr) : null;
   }, []);
