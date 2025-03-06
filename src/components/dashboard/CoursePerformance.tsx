@@ -10,21 +10,27 @@ interface ChartData {
 
 const CoursePerformance: FC<{ data: ChartData[] }> = ({ data }) => {
   return (
-    <Card className="md:col-span-2">
+    <Card className="lg:col-span-2">
       <CardHeader>
-        <CardTitle>Performances des cours</CardTitle>
+        <CardTitle className="text-lg sm:text-xl">Performances des cours</CardTitle>
         <CardDescription>Nombre d'étudiants par cours</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-80">
+        <div className="h-60 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
-              margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+              margin={{ top: 5, right: 10, left: 0, bottom: 25 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <XAxis 
+                dataKey="name" 
+                angle={-45}
+                textAnchor="end"
+                height={50}
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
               <Bar dataKey="value" fill="#8884d8" />
             </BarChart>

@@ -35,19 +35,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -88,6 +81,23 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* Responsive typography */
+  html {
+    font-size: 100%;
+  }
+
+  @media (max-width: 768px) {
+    html {
+      font-size: 87.5%; /* Slightly smaller font base for tablets */
+    }
+  }
+
+  @media (max-width: 480px) {
+    html {
+      font-size: 81.25%; /* Even smaller font base for mobile phones */
+    }
+  }
 }
 
 @layer base {
@@ -98,4 +108,25 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Enhanced touch targets for mobile */
+@layer utilities {
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+}
+
+/* Improved animation for mobile performance */
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in-out;
 }

@@ -6,26 +6,26 @@ import { Plus, FileText, Users } from 'lucide-react';
 
 const InstructorActions: FC = () => {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle>Actions</CardTitle>
+        <CardTitle className="text-lg sm:text-xl">Actions</CardTitle>
         <CardDescription>Gérer vos cours</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <Button className="w-full flex items-center gap-2">
+        <div className="space-y-3 sm:space-y-4">
+          <Button className="w-full flex items-center gap-2 h-auto py-2 sm:py-3">
             <Plus className="h-4 w-4" />
-            Créer un nouveau cours
+            <span>Créer un nouveau cours</span>
           </Button>
           
-          <Button variant="outline" className="w-full flex items-center gap-2">
+          <Button variant="outline" className="w-full flex items-center gap-2 h-auto py-2 sm:py-3">
             <FileText className="h-4 w-4" />
-            Gérer les cours existants
+            <span>Gérer les cours existants</span>
           </Button>
           
-          <Button variant="outline" className="w-full flex items-center gap-2">
+          <Button variant="outline" className="w-full flex items-center gap-2 h-auto py-2 sm:py-3">
             <Users className="h-4 w-4" />
-            Voir les étudiants
+            <span>Voir les étudiants</span>
           </Button>
         </div>
       </CardContent>

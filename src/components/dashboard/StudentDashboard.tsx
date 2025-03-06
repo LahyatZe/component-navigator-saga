@@ -24,7 +24,7 @@ const StudentDashboard: FC = () => {
   })).slice(0, 3);
   
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
       <StudentStats 
         coursesCount={userCourseProgress.length} 
         totalCourses={courses.length} 
@@ -32,7 +32,7 @@ const StudentDashboard: FC = () => {
       
       <CourseProgress courses={userCourseProgress} />
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <LearningDistribution data={studentData} />
         <UpcomingCertifications />
       </div>
