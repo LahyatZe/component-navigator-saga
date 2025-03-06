@@ -66,9 +66,9 @@ export const useSyncManager = () => {
       console.log(`Starting sync to cloud for ${tableName}...`);
       const formattedUserId = formatUserId(user.id);
       
-      // Simplify session check
-      const { data, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !data.session) {
+      // Simplified session check
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
         throw new Error("No active Supabase session");
       }
 
@@ -78,9 +78,9 @@ export const useSyncManager = () => {
         last_synced_at: new Date().toISOString()
       }));
 
-      // Use the strongly-typed tableName directly without any type assertions
+      // Cast tableName as string to avoid type recursion issues
       const { data: resultData, error } = await supabase
-        .from(tableName)
+        .from(tableName as string)
         .upsert(formattedData, { 
           onConflict: primaryKey.join(',') 
         });
@@ -117,17 +117,17 @@ export const useSyncManager = () => {
     try {
       console.log(`Starting sync from cloud for ${tableName}...`);
       
-      // Simplify session check
-      const { data, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !data.session) {
+      // Simplified session check
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
         throw new Error("No active Supabase session");
       }
 
       const userId = formatUserId(user.id);
       
-      // Use the strongly-typed tableName directly without type assertions
+      // Cast tableName as string to avoid type recursion issues
       const { data: resultData, error } = await supabase
-        .from(tableName)
+        .from(tableName as string)
         .select('*')
         .eq('user_id', userId);
 
