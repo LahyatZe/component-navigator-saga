@@ -78,9 +78,10 @@ export const useSyncManager = () => {
         last_synced_at: new Date().toISOString()
       }));
 
-      // Use type assertion with 'as const' to preserve literal type
+      // Fix for type instantiation error - use explicit function implementations
+      // instead of letting TypeScript infer complex types
       const { data: resultData, error } = await supabase
-        .from(tableName) // tableName is already strictly typed as ValidTableName
+        .from(tableName as string) // Cast to string to simplify type handling
         .upsert(formattedData, { 
           onConflict: primaryKey.join(',') 
         });
@@ -125,9 +126,10 @@ export const useSyncManager = () => {
 
       const userId = formatUserId(user.id);
       
-      // Use type assertion with 'as const' to preserve literal type 
+      // Fix for type instantiation error - use explicit function implementations
+      // instead of letting TypeScript infer complex types
       const { data: resultData, error } = await supabase
-        .from(tableName) // tableName is already strictly typed as ValidTableName
+        .from(tableName as string) // Cast to string to simplify type handling
         .select('*')
         .eq('user_id', userId);
 
