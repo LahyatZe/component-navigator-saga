@@ -75,15 +75,15 @@ export const useClerkSupabaseSync = () => {
         
         console.log('Syncing Clerk session with Supabase...');
         
-        // Try to get the JWT token from Clerk with Supabase custom claims
+        // Try to get the JWT token from Clerk - IMPORTANT CHANGE: Don't use template parameter
         let token;
         try {
-          // First try with Supabase template if available
-          token = await getToken({ template: "supabase" });
-        } catch (tokenErr) {
-          // Fall back to regular JWT if template not available
-          console.log("Supabase template not available, using regular token");
+          // Get a regular JWT token instead of using the template
           token = await getToken();
+          console.log("Got Clerk token without template:", token ? "Success" : "Failed");
+        } catch (tokenErr) {
+          console.error("Error getting Clerk token:", tokenErr);
+          throw new Error('Could not get auth token from Clerk');
         }
         
         if (!token) {
@@ -103,35 +103,10 @@ export const useClerkSupabaseSync = () => {
         if (existingSession?.session) {
           console.log('Existing Supabase session found');
           
-          // Try to directly use the token if we have one
-          if (token) {
-            try {
-              console.log("Attempting to set session with Clerk token");
-              const { data, error: setSessionError } = await supabase.auth.setSession({
-                access_token: token,
-                refresh_token: existingSession.session.refresh_token
-              });
-              
-              if (setSessionError) {
-                console.warn("Error setting session with token:", setSessionError);
-              } else if (data?.session) {
-                console.log("Successfully updated session with Clerk token");
-                // Update metadata
-                await updateUserMetadata(user.id, userEmail);
-                setIsSynced(true);
-                setIsSyncing(false);
-                return;
-              }
-            } catch (setErr) {
-              console.warn("Failed to set session:", setErr);
-              // Continue with OTP as fallback
-            }
-          }
-          
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Run the verification to make sure session is valid and update metadata
+          // Try to verify the session
           if (await verifySession()) {
+            console.log('Session confirmed after verification');
+            
             // Now update metadata
             const metadataResult = await updateUserMetadata(user.id, userEmail);
             
@@ -144,10 +119,11 @@ export const useClerkSupabaseSync = () => {
           }
         }
         
-        // No existing session or session refresh failed, create a new one with OTP
-        console.log('No existing session, creating new one with OTP');
+        // No existing session or session verification failed, create a new one with OTP
+        console.log('Creating new Supabase session with OTP for email:', userEmail);
         
         try {
+          // Use OTP (magic link) authentication as fallback
           const { data, error: signInError } = await supabase.auth.signInWithOtp({
             email: userEmail,
             options: {
@@ -178,7 +154,8 @@ export const useClerkSupabaseSync = () => {
           console.log('Successfully created Supabase session for Clerk user');
           toast.success("Verification email sent. Please check your inbox.", {
             id: "verification-email-sent",
-            duration: 5000
+            duration:
+            5000
           });
           
           // Add a delay to ensure the session is properly established
