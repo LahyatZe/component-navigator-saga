@@ -43,7 +43,7 @@ export const useSyncManager = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
-  // Explicitly typing return value to break infinite type instantiation
+  // Break the infinite type recursion by using explicit type annotations
   const syncToCloud = useCallback(async (
     localData: SyncableData | SyncableData[],
     options: SyncOptions
@@ -66,25 +66,24 @@ export const useSyncManager = () => {
       console.log(`Starting sync to cloud for ${tableName}...`);
       const formattedUserId = formatUserId(user.id);
       
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
+      const sessionResult = await supabase.auth.getSession();
+      if (!sessionResult.data.session) {
         throw new Error("No active Supabase session");
       }
 
       const formattedData = dataArray.map(item => ({
-        ...formatData?.(item) ?? item,
+        ...formatData ? formatData(item) : item,
         user_id: formattedUserId,
         last_synced_at: new Date().toISOString()
       }));
 
-      // Use a more direct approach without complex type inference
+      // Explicitly type the Supabase operation
       const result = await supabase
-        .from(tableName)
+        .from(tableName as string)
         .upsert(formattedData, { 
           onConflict: primaryKey.join(',') 
-        })
-        .select();
-
+        });
+      
       if (result.error) throw result.error;
 
       const syncTime = new Date();
@@ -93,7 +92,7 @@ export const useSyncManager = () => {
       
       toast.success(`Successfully synced data to cloud`);
       return { success: true, data: result.data };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sync to cloud failed:", error);
       toast.error(error.message || "Failed to sync data to cloud");
       return { success: false, error };
@@ -102,7 +101,7 @@ export const useSyncManager = () => {
     }
   }, [user]);
 
-  // Also explicitly typing return value here
+  // Further simplify the syncFromCloud function
   const syncFromCloud = useCallback(async (
     options: SyncOptions,
     localStorageKey?: string
@@ -118,15 +117,15 @@ export const useSyncManager = () => {
     try {
       console.log(`Starting sync from cloud for ${tableName}...`);
       
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
+      const sessionResult = await supabase.auth.getSession();
+      if (!sessionResult.data.session) {
         throw new Error("No active Supabase session");
       }
 
-      // Use a more direct approach to avoid complex type inference
+      // Simplify the query structure
       const userId = formatUserId(user.id);
       const result = await supabase
-        .from(tableName)
+        .from(tableName as string)
         .select('*')
         .eq('user_id', userId);
 
@@ -137,6 +136,7 @@ export const useSyncManager = () => {
         return { success: true, data: [] };
       }
 
+      // Apply format response if provided
       const processedData = formatResponse ? formatResponse(result.data) : result.data;
       
       if (localStorageKey) {
@@ -149,7 +149,7 @@ export const useSyncManager = () => {
       
       toast.success(`Successfully synced data from cloud`);
       return { success: true, data: processedData };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sync from cloud failed:", error);
       toast.error(error.message || "Failed to sync data from cloud");
       return { success: false, error };
