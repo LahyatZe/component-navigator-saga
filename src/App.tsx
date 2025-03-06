@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/sonner";
@@ -29,13 +28,10 @@ function App() {
   const { isSignedIn, isLoaded } = useAuth();
   const { user } = useUser();
   
-  // Sync Clerk session with Supabase
   const { isSynced, isSyncing, error: syncError, sessionVerified } = useClerkSupabaseSync();
 
   useEffect(() => {
-    // Only set loading to false once Clerk has loaded and sync attempt is complete
     if (isLoaded && (!isSignedIn || (isSignedIn && (isSynced || sessionVerified || syncError)))) {
-      // Add a small delay to ensure authentication state is properly synced
       const timer = setTimeout(() => {
         setIsLoading(false);
         console.log("App loaded, auth state:", { 
@@ -46,13 +42,12 @@ function App() {
           sessionVerified: sessionVerified,
           syncError: syncError
         });
-      }, 1500); // Increased timeout to ensure auth state is fully resolved
+      }, 1500);
       
       return () => clearTimeout(timer);
     }
   }, [isLoaded, isSignedIn, user, isSynced, syncError, sessionVerified]);
 
-  // Log authentication state for debugging
   useEffect(() => {
     if (isLoaded) {
       console.log("Authentication state updated:", { 
@@ -71,7 +66,6 @@ function App() {
     setIsAdminOpen(!isAdminOpen);
   };
 
-  // If Clerk hasn't loaded yet, or we're waiting for Supabase sync, show loading spinner
   if (!isLoaded || (isSignedIn && isSyncing)) {
     console.log("Clerk is still loading or syncing with Supabase...");
     return (
@@ -91,7 +85,6 @@ function App() {
     );
   }
 
-  // Create a protected route component
   const ProtectedRoute = ({ children }) => {
     if (isLoading) {
       return (
@@ -114,7 +107,6 @@ function App() {
           <Navbar onAdminClick={toggleAdmin} />
           
           <Routes>
-            {/* Public root route with SignedOutView for non-authenticated users */}
             <Route 
               path="/" 
               element={
@@ -122,7 +114,6 @@ function App() {
               } 
             />
             
-            {/* All other routes protected */}
             <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
             <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
             <Route path="/courses/:slug" element={<ProtectedRoute><CourseDetail /></ProtectedRoute>} />
