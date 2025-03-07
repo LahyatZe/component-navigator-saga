@@ -424,6 +424,7 @@ export type Database = {
       }
       user_progress: {
         Row: {
+          achievements: string[] | null
           bookmarks: string[] | null
           certificate_issued: boolean | null
           completed_exercises: string[] | null
@@ -431,14 +432,19 @@ export type Database = {
           completion_percentage: number | null
           course_id: string
           current_lesson: string | null
+          current_level: number | null
+          cv_downloaded: boolean | null
           id: string
           last_accessed_at: string | null
           notes: Json | null
           quiz_scores: Json | null
           started_at: string | null
+          unlocked_years: string[] | null
+          used_hints: Json | null
           user_id: string
         }
         Insert: {
+          achievements?: string[] | null
           bookmarks?: string[] | null
           certificate_issued?: boolean | null
           completed_exercises?: string[] | null
@@ -446,14 +452,19 @@ export type Database = {
           completion_percentage?: number | null
           course_id: string
           current_lesson?: string | null
+          current_level?: number | null
+          cv_downloaded?: boolean | null
           id?: string
           last_accessed_at?: string | null
           notes?: Json | null
           quiz_scores?: Json | null
           started_at?: string | null
+          unlocked_years?: string[] | null
+          used_hints?: Json | null
           user_id: string
         }
         Update: {
+          achievements?: string[] | null
           bookmarks?: string[] | null
           certificate_issued?: boolean | null
           completed_exercises?: string[] | null
@@ -461,11 +472,15 @@ export type Database = {
           completion_percentage?: number | null
           course_id?: string
           current_lesson?: string | null
+          current_level?: number | null
+          cv_downloaded?: boolean | null
           id?: string
           last_accessed_at?: string | null
           notes?: Json | null
           quiz_scores?: Json | null
           started_at?: string | null
+          unlocked_years?: string[] | null
+          used_hints?: Json | null
           user_id?: string
         }
         Relationships: [
@@ -477,6 +492,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_settings: {
+        Row: {
+          bio: string | null
+          full_name: string | null
+          id: string
+          last_updated: string
+          preferences: Json
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          full_name?: string | null
+          id?: string
+          last_updated?: string
+          preferences?: Json
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          full_name?: string | null
+          id?: string
+          last_updated?: string
+          preferences?: Json
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
