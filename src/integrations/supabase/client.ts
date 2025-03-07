@@ -183,6 +183,9 @@ type ExtendedDatabase = Database & {
   };
 };
 
+// Creating a typed version of supabase.from for our tables
+export type FromStringLiteral = keyof ExtendedDatabase['public']['Tables'];
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 

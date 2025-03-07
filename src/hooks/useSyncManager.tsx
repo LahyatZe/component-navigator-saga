@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, FromStringLiteral } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import { formatUserId } from '@/utils/formatUserId';
@@ -12,19 +12,7 @@ export type SyncableData = {
 };
 
 // Define valid table names explicitly as a union type
-export type ValidTableName = 
-  | 'achievements'
-  | 'courses'
-  | 'exercises'
-  | 'lessons'
-  | 'modules' 
-  | 'quizzes'
-  | 'resources'
-  | 'test_cases'
-  | 'user_achievements'
-  | 'user_portfolio_progress'
-  | 'user_progress'
-  | 'user_settings';
+export type ValidTableName = FromStringLiteral;
 
 interface SyncOptions {
   tableName: ValidTableName;
@@ -78,9 +66,10 @@ export const useSyncManager = () => {
         last_synced_at: new Date().toISOString()
       }));
 
-      // Use type casting to avoid deep type instantiation
+      // Use explicit type casting to work with the correct table type
+      // Create a strongly-typed query with the specific table type
       const { data: resultData, error } = await supabase
-        .from(tableName as ValidTableName)
+        .from(tableName)
         .upsert(formattedData, { 
           onConflict: primaryKey.join(',') 
         });
@@ -125,9 +114,10 @@ export const useSyncManager = () => {
 
       const userId = formatUserId(user.id);
       
-      // Use explicit type casting to prevent deep type instantiation
+      // Use the table name directly without casting
+      // This works because we're now using proper typing
       const { data: resultData, error } = await supabase
-        .from(tableName as ValidTableName)
+        .from(tableName)
         .select('*')
         .eq('user_id', userId);
 
