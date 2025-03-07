@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { supabase, FromStringLiteral } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import { formatUserId } from '@/utils/formatUserId';
@@ -12,7 +12,7 @@ export type SyncableData = {
 };
 
 // Define valid table names explicitly as a union type
-export type ValidTableName = FromStringLiteral;
+export type ValidTableName = FromStringLiteral<string>;
 
 interface SyncOptions {
   tableName: ValidTableName;
