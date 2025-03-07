@@ -78,11 +78,12 @@ export const useSyncManager = () => {
         last_synced_at: new Date().toISOString()
       }));
 
-      // Type assertion to handle the tableName type correctly
-      const query = supabase.from(tableName);
-      const { data: resultData, error } = await query.upsert(formattedData, { 
-        onConflict: primaryKey.join(',') 
-      });
+      // Use type casting to avoid deep type instantiation
+      const { data: resultData, error } = await supabase
+        .from(tableName as ValidTableName)
+        .upsert(formattedData, { 
+          onConflict: primaryKey.join(',') 
+        });
       
       if (error) throw error;
 
@@ -124,9 +125,9 @@ export const useSyncManager = () => {
 
       const userId = formatUserId(user.id);
       
-      // Type assertion to handle the tableName type correctly
-      const query = supabase.from(tableName);
-      const { data: resultData, error } = await query
+      // Use explicit type casting to prevent deep type instantiation
+      const { data: resultData, error } = await supabase
+        .from(tableName as ValidTableName)
         .select('*')
         .eq('user_id', userId);
 

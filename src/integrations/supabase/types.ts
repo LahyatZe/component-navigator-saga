@@ -240,6 +240,39 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          level: number | null
+          role: string | null
+          updated_at: string
+          username: string | null
+          xp: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          level?: number | null
+          role?: string | null
+          updated_at?: string
+          username?: string | null
+          xp?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          level?: number | null
+          role?: string | null
+          updated_at?: string
+          username?: string | null
+          xp?: number | null
+        }
+        Relationships: []
+      }
       quizzes: {
         Row: {
           correct_answer: number
