@@ -1,11 +1,11 @@
 
 import { useState, useCallback } from 'react';
-import { supabase, FromStringLiteral } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import { formatUserId } from '@/utils/formatUserId';
 
-// Define valid table names
+// Define valid table names explicitly without using FromStringLiteral
 type ValidTableName = 'user_settings' | 'user_progress' | 'user_portfolio_progress' | 'user_achievements';
 
 interface SyncOptions {
@@ -63,8 +63,9 @@ export const useSyncManager = () => {
           conditions[key] = key === 'user_id' ? formattedUserId : formattedData[key];
         });
         
+        // Type assertion to any to avoid deep type instantiation issue
         const { data, error: updateError } = await supabase
-          .from(tableName)
+          .from(tableName as string)
           .update(formattedData)
           .match(conditions);
           
@@ -73,8 +74,9 @@ export const useSyncManager = () => {
       } else {
         // Insert new record
         console.log(`Inserting new record into ${tableName}`);
+        // Type assertion to any to avoid deep type instantiation issue
         const { data, error: insertError } = await supabase
-          .from(tableName)
+          .from(tableName as string)
           .insert([formattedData]);
           
         if (insertError) throw new Error(`Error inserting data: ${insertError.message}`);
@@ -103,6 +105,7 @@ export const useSyncManager = () => {
   const syncFromDatabase = useCallback(async ({
     tableName,
     primaryKey,
+    localData, // Required to extract user information
     onSyncComplete,
     localStorageKey
   }: SyncOptions) => {
@@ -116,8 +119,9 @@ export const useSyncManager = () => {
       
       console.log(`Fetching data from ${tableName} for user ID:`, formattedUserId);
       
+      // Type assertion to avoid deep type instantiation
       const { data, error: fetchError } = await supabase
-        .from(tableName)
+        .from(tableName as string)
         .select('*')
         .eq(primaryKey[0], formattedUserId);
         

@@ -5,11 +5,13 @@ import { useUser } from '@clerk/clerk-react';
 import { UserProgress } from '@/types/course';
 
 interface CourseProgressSyncProps {
+  courseId: string; // Add the missing courseId prop
   courseProgress: UserProgress;
   onProgressUpdate: (updatedProgress: UserProgress) => void;
 }
 
 export function CourseProgressSync({ 
+  courseId,
   courseProgress, 
   onProgressUpdate 
 }: CourseProgressSyncProps) {
@@ -65,7 +67,7 @@ export function CourseProgressSync({
     
     return {
       userId: user.id,
-      courseId: dbProgress.course_id,
+      courseId: courseId, // Use the courseId prop instead
       completedLessons: dbProgress.completed_lessons || [],
       completedExercises: dbProgress.completed_exercises || [],
       currentLesson: dbProgress.current_lesson || '',
@@ -98,7 +100,7 @@ export function CourseProgressSync({
       tableName="user_progress"
       primaryKey={['user_id', 'course_id']}
       localData={courseProgress}
-      localStorageKey={`course_progress_${user.id}_${courseProgress.courseId}`}
+      localStorageKey={`course_progress_${user.id}_${courseId}`}
       onSyncComplete={handleSyncComplete}
       formatDataForUpload={formatProgressForUpload}
       formatResponseForDownload={formatResponseForDownload}

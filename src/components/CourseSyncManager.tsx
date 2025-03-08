@@ -28,7 +28,7 @@ export function CourseSyncManager({
       <CardContent>
         <CourseProgressSync 
           courseId={courseId}
-          progress={progress}
+          courseProgress={progress}
           onProgressUpdate={onProgressUpdate}
         />
       </CardContent>
