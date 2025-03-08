@@ -42,8 +42,9 @@ export const useSyncManager = () => {
       console.log(`Syncing data to ${tableName}:`, formattedData);
       
       // Check if a record already exists
+      // Using type assertion to avoid type recursion issues
       const { data: existingData, error: fetchError } = await supabase
-        .from(tableName)
+        .from(tableName as any)
         .select('*')
         .eq(primaryKey[0], formattedUserId);
         
@@ -64,7 +65,7 @@ export const useSyncManager = () => {
         });
         
         const { data, error: updateError } = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .update(formattedData)
           .match(conditions);
           
@@ -74,7 +75,7 @@ export const useSyncManager = () => {
         // Insert new record
         console.log(`Inserting new record into ${tableName}`);
         const { data, error: insertError } = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .insert([formattedData]);
           
         if (insertError) throw new Error(`Error inserting data: ${insertError.message}`);
@@ -117,8 +118,9 @@ export const useSyncManager = () => {
       
       console.log(`Fetching data from ${tableName} for user ID:`, formattedUserId);
       
+      // Using type assertion to avoid deep type instantiation
       const { data, error: fetchError } = await supabase
-        .from(tableName)
+        .from(tableName as any)
         .select('*')
         .eq(primaryKey[0], formattedUserId);
         
