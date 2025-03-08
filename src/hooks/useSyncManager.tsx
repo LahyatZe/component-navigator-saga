@@ -5,160 +5,156 @@ import { useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import { formatUserId } from '@/utils/formatUserId';
 
-export type SyncableData = {
-  userId: string;
-  courseId?: string;
-  [key: string]: any;
-};
-
-// Define valid table names explicitly as a union type
-export type ValidTableName = FromStringLiteral<string>;
+// Define valid table names
+type ValidTableName = 'user_settings' | 'user_progress' | 'user_portfolio_progress' | 'user_achievements';
 
 interface SyncOptions {
   tableName: ValidTableName;
   primaryKey: string[];
-  formatData?: (data: any) => any;
-  formatResponse?: (data: any) => any;
-}
-
-interface SyncResult {
-  success: boolean;
-  data?: any;
-  error?: any;
+  localData: any;
+  formatDataForUpload?: (data: any) => any;
+  onSyncComplete?: (data: any) => void;
+  localStorageKey?: string;
 }
 
 export const useSyncManager = () => {
   const { user } = useUser();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [lastSynced, setLastSynced] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const syncToCloud = useCallback(async (
-    localData: SyncableData | SyncableData[],
-    options: SyncOptions
-  ): Promise<SyncResult> => {
-    if (!user) {
-      toast.error("You must be signed in to sync data");
-      return { success: false, error: "Authentication required" };
-    }
-
-    const dataArray = Array.isArray(localData) ? localData : [localData];
-    if (dataArray.length === 0) {
-      toast.info("No data to sync");
-      return { success: true, data: [] };
-    }
+  const syncToDatabase = useCallback(async ({
+    tableName,
+    primaryKey,
+    localData,
+    formatDataForUpload = (data) => data,
+    onSyncComplete
+  }: SyncOptions) => {
+    if (!user || !localData) return;
 
     setIsSyncing(true);
-    const { tableName, primaryKey, formatData } = options;
+    setError(null);
 
     try {
-      console.log(`Starting sync to cloud for ${tableName}...`);
       const formattedUserId = formatUserId(user.id);
+      const formattedData = formatDataForUpload(localData);
       
-      // Simplified session check
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session) {
-        throw new Error("No active Supabase session");
-      }
-
-      const formattedData = dataArray.map(item => ({
-        ...formatData ? formatData(item) : item,
-        user_id: formattedUserId,
-        last_synced_at: new Date().toISOString()
-      }));
-
-      // Use explicit type casting to work with the correct table type
-      // Create a strongly-typed query with the specific table type
-      const { data: resultData, error } = await supabase
-        .from(tableName)
-        .upsert(formattedData, { 
-          onConflict: primaryKey.join(',') 
-        });
+      console.log(`Syncing data to ${tableName}:`, formattedData);
       
-      if (error) throw error;
-
-      const syncTime = new Date();
-      setLastSyncTime(syncTime);
-      localStorage.setItem(`last_sync_${tableName}`, syncTime.toISOString());
-      
-      toast.success(`Successfully synced data to cloud`);
-      return { success: true, data: resultData };
-    } catch (error: any) {
-      console.error("Sync to cloud failed:", error);
-      toast.error(error.message || "Failed to sync data to cloud");
-      return { success: false, error };
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [user]);
-
-  const syncFromCloud = useCallback(async (
-    options: SyncOptions,
-    localStorageKey?: string
-  ): Promise<SyncResult> => {
-    if (!user) {
-      toast.error("You must be signed in to sync data");
-      return { success: false, error: "Authentication required" };
-    }
-
-    setIsSyncing(true);
-    const { tableName, formatResponse } = options;
-
-    try {
-      console.log(`Starting sync from cloud for ${tableName}...`);
-      
-      // Simplified session check
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session) {
-        throw new Error("No active Supabase session");
-      }
-
-      const userId = formatUserId(user.id);
-      
-      // Use the table name directly without casting
-      // This works because we're now using proper typing
-      const { data: resultData, error } = await supabase
+      // Check if a record already exists
+      const { data: existingData, error: fetchError } = await supabase
         .from(tableName)
         .select('*')
-        .eq('user_id', userId);
-
-      if (error) throw error;
-
-      if (!resultData?.length) {
-        toast.info("No data found in cloud to sync");
-        return { success: true, data: [] };
+        .eq(primaryKey[0], formattedUserId);
+        
+      if (fetchError) {
+        throw new Error(`Error checking existing data: ${fetchError.message}`);
       }
-
-      const processedData = formatResponse ? formatResponse(resultData) : resultData;
       
-      if (localStorageKey) {
-        localStorage.setItem(localStorageKey, JSON.stringify(processedData));
+      let result;
+      
+      if (existingData && existingData.length > 0) {
+        // Update existing record
+        console.log(`Updating existing record in ${tableName}`);
+        
+        // Create an object for the condition
+        const conditions: Record<string, any> = {};
+        primaryKey.forEach(key => {
+          conditions[key] = key === 'user_id' ? formattedUserId : formattedData[key];
+        });
+        
+        const { data, error: updateError } = await supabase
+          .from(tableName)
+          .update(formattedData)
+          .match(conditions);
+          
+        if (updateError) throw new Error(`Error updating data: ${updateError.message}`);
+        result = data;
+      } else {
+        // Insert new record
+        console.log(`Inserting new record into ${tableName}`);
+        const { data, error: insertError } = await supabase
+          .from(tableName)
+          .insert([formattedData]);
+          
+        if (insertError) throw new Error(`Error inserting data: ${insertError.message}`);
+        result = data;
       }
-
-      const syncTime = new Date();
-      setLastSyncTime(syncTime);
-      localStorage.setItem(`last_sync_${tableName}`, syncTime.toISOString());
       
-      toast.success(`Successfully synced data from cloud`);
-      return { success: true, data: processedData };
-    } catch (error: any) {
-      console.error("Sync from cloud failed:", error);
-      toast.error(error.message || "Failed to sync data from cloud");
-      return { success: false, error };
+      setLastSynced(new Date());
+      
+      if (onSyncComplete) {
+        onSyncComplete(result);
+      }
+      
+      toast.success('Data synced successfully');
+      return result;
+    } catch (err) {
+      console.error('Error syncing data:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while syncing data';
+      setError(errorMessage);
+      toast.error(`Sync failed: ${errorMessage}`);
+      return null;
     } finally {
       setIsSyncing(false);
     }
   }, [user]);
 
-  const getLastSyncTime = useCallback((tableName: ValidTableName) => {
-    const syncTimeStr = localStorage.getItem(`last_sync_${tableName}`);
-    return syncTimeStr ? new Date(syncTimeStr) : null;
-  }, []);
+  const syncFromDatabase = useCallback(async ({
+    tableName,
+    primaryKey,
+    onSyncComplete,
+    localStorageKey
+  }: SyncOptions) => {
+    if (!user) return null;
+    
+    setIsSyncing(true);
+    setError(null);
+    
+    try {
+      const formattedUserId = formatUserId(user.id);
+      
+      console.log(`Fetching data from ${tableName} for user ID:`, formattedUserId);
+      
+      const { data, error: fetchError } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq(primaryKey[0], formattedUserId);
+        
+      if (fetchError) {
+        throw new Error(`Error fetching data: ${fetchError.message}`);
+      }
+      
+      console.log(`Data fetched from ${tableName}:`, data);
+      
+      setLastSynced(new Date());
+      
+      if (onSyncComplete) {
+        onSyncComplete(data);
+      }
+      
+      if (localStorageKey && data && data.length > 0) {
+        localStorage.setItem(localStorageKey, JSON.stringify(data[0]));
+      }
+      
+      toast.success('Data loaded successfully');
+      return data;
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred while fetching data';
+      setError(errorMessage);
+      toast.error(`Fetch failed: ${errorMessage}`);
+      return null;
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [user]);
 
   return {
-    syncToCloud,
-    syncFromCloud,
+    syncToDatabase,
+    syncFromDatabase,
     isSyncing,
-    lastSyncTime,
-    getLastSyncTime
+    lastSynced,
+    error
   };
 };

@@ -1,15 +1,15 @@
 
 import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { useSyncManager, SyncableData, ValidTableName } from '@/hooks/useSyncManager';
-import { Loader2, Upload, Download, RefreshCw } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { toast } from 'sonner';
+import { Button } from './ui/button';
+import { useSyncManager } from '@/hooks/useSyncManager';
+import { Cloud, Download, Upload, RefreshCw } from 'lucide-react';
+
+type ValidTableName = 'user_settings' | 'user_progress' | 'user_portfolio_progress' | 'user_achievements';
 
 interface SyncControlsProps {
   tableName: ValidTableName;
   primaryKey: string[];
-  localData: SyncableData | SyncableData[];
+  localData: any;
   localStorageKey?: string;
   onSyncComplete?: (data: any) => void;
   formatDataForUpload?: (data: any) => any;
@@ -22,96 +22,91 @@ export function SyncControls({
   localData,
   localStorageKey,
   onSyncComplete,
-  formatDataForUpload,
-  formatResponseForDownload
+  formatDataForUpload = (data) => data,
+  formatResponseForDownload = (data) => data
 }: SyncControlsProps) {
-  const { syncToCloud, syncFromCloud, isSyncing, getLastSyncTime } = useSyncManager();
-  const [isSyncingUp, setIsSyncingUp] = useState(false);
-  const [isSyncingDown, setIsSyncingDown] = useState(false);
+  const { 
+    syncToDatabase, 
+    syncFromDatabase, 
+    isSyncing,
+    lastSynced,
+    error
+  } = useSyncManager();
   
-  const lastSyncTime = getLastSyncTime(tableName);
-  const lastSyncDisplay = lastSyncTime 
-    ? formatDistanceToNow(lastSyncTime, { addSuffix: true }) 
-    : 'Never';
+  const [syncDirection, setSyncDirection] = useState<'to' | 'from' | null>(null);
 
-  const handleSyncToCloud = async () => {
-    if (!localData || (Array.isArray(localData) && localData.length === 0)) {
-      toast.warning("No data to upload");
-      return;
-    }
-
-    setIsSyncingUp(true);
+  const handlePushToCloud = async () => {
+    setSyncDirection('to');
     try {
-      const result = await syncToCloud(localData, {
+      await syncToDatabase({
         tableName,
         primaryKey,
-        formatData: formatDataForUpload
+        localData,
+        formatDataForUpload,
+        onSyncComplete
       });
-      
-      if (result.success && onSyncComplete) {
-        onSyncComplete(result.data);
-      }
     } finally {
-      setIsSyncingUp(false);
+      setSyncDirection(null);
     }
   };
 
-  const handleSyncFromCloud = async () => {
-    setIsSyncingDown(true);
+  const handlePullFromCloud = async () => {
+    setSyncDirection('from');
     try {
-      const result = await syncFromCloud(
-        {
-          tableName,
-          primaryKey,
-          formatResponse: formatResponseForDownload
-        },
+      await syncFromDatabase({
+        tableName,
+        primaryKey,
+        onSyncComplete,
         localStorageKey
-      );
-      
-      if (result.success && onSyncComplete) {
-        onSyncComplete(result.data);
-      }
+      });
     } finally {
-      setIsSyncingDown(false);
+      setSyncDirection(null);
     }
   };
 
   return (
-    <div className="flex flex-col space-y-2 w-full">
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          Last synced: {lastSyncDisplay}
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncToCloud}
-            disabled={isSyncingUp || isSyncingDown}
-          >
-            {isSyncingUp ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4 mr-2" />
-            )}
-            Upload to Cloud
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncFromCloud}
-            disabled={isSyncingUp || isSyncingDown}
-          >
-            {isSyncingDown ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4 mr-2" />
-            )}
-            Sync from Cloud
-          </Button>
-        </div>
-      </div>
+    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+      <Cloud className="h-4 w-4" />
+      
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 gap-1"
+        onClick={handlePushToCloud}
+        disabled={isSyncing}
+      >
+        {syncDirection === 'to' ? (
+          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Upload className="h-3.5 w-3.5" />
+        )}
+        Save
+      </Button>
+      
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 gap-1"
+        onClick={handlePullFromCloud}
+        disabled={isSyncing}
+      >
+        {syncDirection === 'from' ? (
+          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Download className="h-3.5 w-3.5" />
+        )}
+        Load
+      </Button>
+      
+      {error && (
+        <span className="text-destructive text-xs">Error: {error}</span>
+      )}
+      
+      {lastSynced && !error && (
+        <span className="text-xs">
+          Last synced: {lastSynced.toLocaleTimeString()}
+        </span>
+      )}
     </div>
   );
 }
