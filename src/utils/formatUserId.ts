@@ -44,7 +44,7 @@ export const formatUserId = (userId: string): string => {
  * Converts a string ID (like a course slug) to a UUID-compatible format
  * Uses the same hashing method as formatUserId
  */
-export const formatStringToUuid = (str: string): string => {
+export const formatStringToUuid = (str: string): string | null => {
   // If it already looks like a UUID, return it as is
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
     return str;

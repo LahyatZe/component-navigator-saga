@@ -56,7 +56,7 @@ export function SyncControls({
       await syncFromDatabase({
         tableName,
         primaryKey,
-        localData, // Make sure to pass localData for the user_id value
+        localData, // Pass localData for user_id extraction
         onSyncComplete,
         localStorageKey
       });

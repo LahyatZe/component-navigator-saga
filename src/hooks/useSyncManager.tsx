@@ -5,7 +5,7 @@ import { useUser } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import { formatUserId } from '@/utils/formatUserId';
 
-// Define valid table names explicitly without using FromStringLiteral
+// Define valid table names explicitly as a union type
 type ValidTableName = 'user_settings' | 'user_progress' | 'user_portfolio_progress' | 'user_achievements';
 
 interface SyncOptions {
@@ -63,9 +63,8 @@ export const useSyncManager = () => {
           conditions[key] = key === 'user_id' ? formattedUserId : formattedData[key];
         });
         
-        // Type assertion to any to avoid deep type instantiation issue
         const { data, error: updateError } = await supabase
-          .from(tableName as string)
+          .from(tableName)
           .update(formattedData)
           .match(conditions);
           
@@ -74,9 +73,8 @@ export const useSyncManager = () => {
       } else {
         // Insert new record
         console.log(`Inserting new record into ${tableName}`);
-        // Type assertion to any to avoid deep type instantiation issue
         const { data, error: insertError } = await supabase
-          .from(tableName as string)
+          .from(tableName)
           .insert([formattedData]);
           
         if (insertError) throw new Error(`Error inserting data: ${insertError.message}`);
@@ -119,9 +117,8 @@ export const useSyncManager = () => {
       
       console.log(`Fetching data from ${tableName} for user ID:`, formattedUserId);
       
-      // Type assertion to avoid deep type instantiation
       const { data, error: fetchError } = await supabase
-        .from(tableName as string)
+        .from(tableName)
         .select('*')
         .eq(primaryKey[0], formattedUserId);
         
