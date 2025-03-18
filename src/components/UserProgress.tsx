@@ -125,7 +125,7 @@ const UserProgress: FC<UserProgressProps> = ({ progress, isSignedIn, isLoaded, a
     <>
       {/* Timeline - accessible à tous */}
       <section id="timeline" className="py-10 sm:py-16 bg-secondary/5">
-        <Timeline events={timelineEvents} unlockedYears={[]} />
+        <Timeline events={timelineEvents} />
       </section>
 
       {/* Grille de progression - accessible à tous */}

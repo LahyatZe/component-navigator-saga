@@ -1,8 +1,8 @@
-
 import { FC } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Code2, Brain, Lightbulb, Target, Briefcase, GraduationCap, Clock } from "lucide-react";
+import ProfileAvatar from '@/components/ProfileAvatar';
 
 const About: FC = () => {
   return (
@@ -11,6 +11,9 @@ const About: FC = () => {
       <div className="relative overflow-hidden bg-gradient-to-b from-primary/10 to-background py-20">
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center justify-center text-center">
+            <div className="mb-6">
+              <ProfileAvatar size="lg" fallback="SZ" />
+            </div>
             <div className="mb-8">
               <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 À Propos de Moi

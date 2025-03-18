@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Github, Linkedin, Mail, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import ProfileAvatar from '@/components/ProfileAvatar';
 
 const Home: FC = () => {
   const navigate = useNavigate();
@@ -12,7 +13,13 @@ const Home: FC = () => {
     <div className="min-h-screen">
       <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center bg-gradient-to-b from-primary/10 to-background">
         <div className="text-center px-4 py-16 max-w-3xl mx-auto">
-          <Badge variant="outline" className="mb-4">Portfolio</Badge>
+          <Badge variant="outline" className="mb-6">Portfolio</Badge>
+          
+          {/* Photo de profil */}
+          <div className="mb-6 flex justify-center">
+            <ProfileAvatar size="xl" fallback="SZ" />
+          </div>
+          
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Sohaib Zeghouani
           </h1>
