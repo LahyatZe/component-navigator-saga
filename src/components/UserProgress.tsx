@@ -1,3 +1,4 @@
+
 import { FC } from 'react';
 import { UserProgress as UserProgressType } from '@/hooks/useProgressPersistence';
 import Timeline from '@/components/Timeline';
@@ -46,7 +47,7 @@ export const timelineEvents = [
     year: "2021",
     title: "Alternance chez Capgemini",
     subtitle: "Développeur full-stack",
-    description: "Participation au développement d'applications bancaires sécurisées avec des technologies modernes.",
+    description: "Participation au développement d'applications bancaires sécurisées pour le Crédit Agricole avec Angular et Spring Boot.",
     type: "work" as const
   },
   {
@@ -71,6 +72,22 @@ export const timelineEvents = [
     title: "Projet ICY - Solution de gestion",
     subtitle: "Lead Developer",
     description: "Développement d'une application PWA avec Angular pour la gestion d'interventions techniques en milieu industriel.",
+    type: "work" as const
+  },
+  {
+    id: "timeline-8",
+    year: "2020",
+    title: "MyPetsLife - Services animaliers",
+    subtitle: "Développeur web stagiaire",
+    description: "Développement de fonctionnalités pour une plateforme dédiée aux soins des animaux de compagnie avec Express.js et React.js.",
+    type: "work" as const
+  },
+  {
+    id: "timeline-9",
+    year: "2022",
+    title: "Capgemini - Mission CA-TS",
+    subtitle: "Concepteur Développeur d'Applications",
+    description: "Développement de services bancaires numériques pour le Crédit Agricole avec Angular et Java, en méthodologie Agile.",
     type: "work" as const
   }
 ];
