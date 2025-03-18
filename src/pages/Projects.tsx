@@ -1,4 +1,3 @@
-
 import { FC, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Github, Globe, Filter, Calendar, Building, MapPin } from "lucide-react";
@@ -45,6 +44,26 @@ const projects: Project[] = [
   },
   {
     id: 2,
+    title: "Alternance – Développeur Full-Stack",
+    description: "Développement et amélioration des services bancaires numériques pour les 39 Caisses Régionales du Crédit Agricole et leurs 24 millions de clients en France.",
+    image: "https://images.unsplash.com/photo-1601597111158-2fceff292cdc",
+    technologies: ["Angular", "Java", "Spring Boot", "Jenkins", "Maven", "Agile/Scrum"],
+    company: "Capgemini (Mission Crédit Agricole Technologies & Services - CA-TS)",
+    location: "Pérols, Occitanie",
+    workType: "Hybride",
+    period: "Janvier 2022 - Janvier 2023",
+    keyAchievements: [
+      "Développement Full-Stack en Angular et Java pour améliorer des services bancaires en ligne",
+      "Mise en place et optimisation de pipelines CI/CD avec Jenkins et Maven",
+      "Participation active aux cérémonies Agile: sprint planning, daily stand-ups, rétrospectives",
+      "Collaboration avec les équipes métier pour aligner les solutions techniques aux besoins utilisateurs",
+      "Implémentation de nouvelles fonctionnalités selon les exigences du client",
+      "Veille technologique et optimisation du code pour de meilleures performances"
+    ],
+    details: "Mission réalisée au sein du Crédit Agricole, dans la filiale Technologies & Services. CA-TS est structuré en Chapitre > Tribu > Squad. Mon équipe: Chapitre: Digital Front, Tribu: Clients et Offres, Squad: Entrée en Relation à Distance. Cette alternance m'a permis de développer des solutions numériques bancaires en respectant des contraintes métier strictes, tout en améliorant mes compétences techniques et mon travail en équipe Agile. J'ai acquis une expertise approfondie en développement Full-Stack Angular & Java, en intégration continue (CI/CD) avec Jenkins & Maven, et dans le développement d'applications critiques à grande échelle pour des millions d'utilisateurs."
+  },
+  {
+    id: 3,
     title: "Sam Tool Supervisor",
     description: "Développement et tests d'un logiciel de supervision pour le suivi des contenants automatisés intelligents SAM'URAI (Unités de Rangement Automatisés Intelligents).",
     image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
@@ -60,18 +79,6 @@ const projects: Project[] = [
       "Élaboration de changelog et documentation technique"
     ],
     details: "SAM Outillage propose une gamme de contenants intelligents SAM'URAI. Le projet impliquait deux logiciels: STM (SAM Tool Manager) fonctionnant sur les contenants eux-mêmes, et STS (SAM Tool Supervisor) permettant aux clients de superviser l'activité des contenants. La phase de test était cruciale pour valider les montées de version et fournir des retours précis sur les problèmes. L'analyse d'infrastructure incluait la rédaction de documents techniques (SWOT, comparaisons, rapports d'audit) à l'aide d'outils comme PhpMetrics et Phpstan. Le support technique aux développeurs internes et externes ainsi qu'aux clients nécessitait l'utilisation de TeamViewer pour la maintenance à distance."
-  },
-  {
-    id: 3,
-    title: "Applications Web - Crédit Agricole",
-    description: "Développement et maintenance d'applications web pour la filiale Technologies & Services du Crédit Agricole.",
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-    technologies: ["GitLab", "Web Development"],
-    company: "Capgemini",
-    location: "Pérols, Occitanie",
-    workType: "Hybride",
-    period: "Janvier 2022 - Janvier 2023",
-    details: "Mission réalisée au sein du Crédit Agricole, dans la filiale Technologies & Services. Développement et maintenance d'applications web bancaires nécessitant une attention particulière à la sécurité et aux performances. Le travail impliquait une collaboration étroite avec les équipes du client et le respect de contraintes spécifiques au secteur bancaire."
   },
   {
     id: 4,
