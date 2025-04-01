@@ -16,7 +16,7 @@ const Contact: FC = () => {
     // Simulate sending form data to the server
     setTimeout(() => {
       setIsSubmitting(false);
-      setSubmissionStatus('Message sent successfully!');
+      setSubmissionStatus('Message envoyé avec succès !');
       // Reset form
       setName('');
       setEmail('');
@@ -28,9 +28,9 @@ const Contact: FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4 py-6 sm:py-10">
       <div className="w-full max-w-md sm:max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-lg animate-fade-in">
         <div className="p-5 sm:p-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-5 text-center">Contact me</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-5 text-center">Contactez-moi</h1>
           <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 text-center">
-            I'd love to hear from you. Please fill out the form below to get in touch.
+            Je serais ravi d'échanger avec vous. Remplissez le formulaire ci-dessous pour me contacter.
           </p>
 
           {submissionStatus && (
@@ -42,7 +42,7 @@ const Contact: FC = () => {
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             <div>
               <label htmlFor="name" className="block text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Name
+                Nom
               </label>
               <input
                 type="text"
@@ -88,7 +88,7 @@ const Contact: FC = () => {
                 disabled={isSubmitting}
                 className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed mobile-touch-target"
               >
-                {isSubmitting ? 'Sending...' : 'Send Message'}
+                {isSubmitting ? 'Envoi en cours...' : 'Envoyer le message'}
               </Button>
             </div>
           </form>
